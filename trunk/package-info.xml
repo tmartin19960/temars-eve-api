@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<!DOCTYPE package-info SYSTEM "http://www.simplemachines.org/xml/package-info">
+<package-info xmlns="http://www.simplemachines.org/xml/package-info" xmlns:smf="http://www.simplemachines.org/">
+	<id>temar:EveAPI</id>
+	<name>Temars EVE API</name>
+	<type>modification</type>
+	<version>1.0.1</version>
+	<install for="1.1 - 1.1.99">
+		<readme type="file">readme.txt</readme>
+		<readme type="inline" parsebbc="true">[color=red]Error! This mod does not support your version of SMF.[/color]</readme>
+	</install>
+	<install for="2.0 - 2.1">
+		<readme type="file">readme.txt</readme>
+		<modification type="file">mod_index.xml</modification>
+		<modification type="file">mod_admin.xml</modification>
+		<modification type="file">mod_profile.xml</modification>
+		<modification type="file">mod_profile_modify.xml</modification>
+		<modification type="file">mod_register.xml</modification>
+		<modification type="file">mod_register_template.xml</modification>
+		<modification type="file">mod_profile_template.xml</modification>
+		<require-file name="Eve_API.php" destination="$sourcedir" />
+		<require-file name="Eve_API_Cron.php" destination="$sourcedir" />
+		<require-file name="Eve_API.english.php" destination="$languagedir" />
+		<code>tables.php</code>
+	</install>
+	<install>
+		<readme type="inline" parsebbc="true">[color=red]Warning! This mod has not been tested on your version of SMF. Do not procced if you get errors![/color]</readme>
+		<modification type="file">mod_index.xml</modification>
+		<modification type="file">mod_admin.xml</modification>
+		<modification type="file">mod_profile.xml</modification>
+		<modification type="file">mod_profile_modify.xml</modification>
+		<modification type="file">mod_register.xml</modification>
+		<modification type="file">mod_register_template.xml</modification>
+		<modification type="file">mod_profile_template.xml</modification>
+		<require-file name="Eve_API.php" destination="$sourcedir" />
+		<require-file name="Eve_API_Cron.php" destination="$sourcedir" />
+		<require-file name="Eve_API.english.php" destination="$languagedir" />
+		<code>tables.php</code>
+	</install>
+	<uninstall>
+		<readme type="inline">This will uninstall the Temar's EVE API Mod.</readme>
+		<modification type="file" reverse="true">mod_index.xml</modification>
+		<modification type="file" reverse="true">mod_admin.xml</modification>
+		<modification type="file" reverse="true">mod_profile.xml</modification>
+		<modification type="file" reverse="true">mod_profile_modify.xml</modification>
+		<modification type="file" reverse="true">mod_register.xml</modification>
+		<modification type="file" reverse="true">mod_register_template.xml</modification>
+		<modification type="file" reverse="true">mod_profile_template.xml</modification>
+		<remove-file name="$sourcedir/Eve_API.php" />
+		<remove-file name="$sourcedir/Eve_API_Cron.php" />
+		<remove-file name="$languagedir/Eve_API.english.php" />
+	</uninstall>
+	<upgrade from="3.18">
+</package-info>

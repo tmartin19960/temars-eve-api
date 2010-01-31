@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<!DOCTYPE modification SYSTEM "http://www.simplemachines.org/xml/modification">
+<modification xmlns="http://www.simplemachines.org/xml/modification" xmlns:smf="http://www.simplemachines.org/">
+	<id>temar:EveAPI</id>
+	<version>1.00</version>
+	<file name="index.php">
+		<operation>
+			<search position="replace"><![CDATA[	// Is the forum in maintenance mode? (doesn't apply to administrators.)]]></search>
+			<add><![CDATA[	require_once($sourcedir . '/Eve_API.php');
+
+	// Is the forum in maintenance mode? (doesn't apply to administrators.)]]></add>
+		</operation>
+	</file>
+</modification>
