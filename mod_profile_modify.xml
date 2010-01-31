@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<!DOCTYPE modification SYSTEM "http://www.simplemachines.org/xml/modification">
+<modification xmlns="http://www.simplemachines.org/xml/modification" xmlns:smf="http://www.simplemachines.org/">
+	<id>temar:EveAPI</id>
+	<version>1.00</version>
+
+	<file name="$sourcedir/Profile-Modify.php">
+
+		<operation>
+			<search position="replace"><![CDATA[			'type' => !empty($modSettings['allow_editDisplayName']) || allowedTo('moderate_forum') ? 'text' : 'label',
+			'label' => $txt['name'],
+			'subtext' => $txt['display_name_desc'],]]></search>
+			<add><![CDATA[			'type' => $modSettings['eveapi_usecharname'] ? 'select' : (!empty($modSettings['allow_editDisplayName']) || allowedTo('moderate_forum') ? 'text' : 'label'),
+			'label' => $txt['name'],
+			'subtext' => $txt['display_name_desc'],
+			'options' => 'Global $eve_api; if($modSettings["eveapi_corptag_options"] == 2) $ticker = TRUE; return $eve_api -> get_all_chars(FALSE, $ticker);',]]></add>
+		</operation>
+		<operation>
+			<search position="replace"><![CDATA[	// Here's where we sort out all the 'other' values...]]></search>
+			<add><![CDATA[	global $eve_api;
+	$eve_api -> EveApiAdd($memID);
+
+	// Here's where we sort out all the 'other' values...]]></add>
+		</operation>
+		<operation>
+			<search position="replace"><![CDATA[	elseif (($value == 'upload' && allowedTo('profile_upload_avatar')) || $downloadedExternalAvatar)]]></search>
+			<add><![CDATA[	elseif($value == 'eveapi')
+	{
+		Global $eve_api;
+		$eve_api -> avatar_save($memID, $profile_vars, $cur_profile);
+	}
+	elseif (($value == 'upload' && allowedTo('profile_upload_avatar')) || $downloadedExternalAvatar)]]></add>
+		</operation>
+	</file>
+
+</modification>
