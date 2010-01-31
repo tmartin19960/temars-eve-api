@@ -2,13 +2,13 @@
 
 if (!defined('SMF'))
 	die('Hacking attempt...');
-Global $eve_api, $db_prefix, $sourcedir, $modSettings, $user_info, $txt, $smcFunc;
-$eve_api = new eve_api($db_prefix, $sourcedir, $modSettings, $user_info, $context, $txt, $smcFunc);
+Global $eve_api, $db_prefix, $sourcedir, $modSettings, $user_info, $txt;
+$eve_api = new eve_api($db_prefix, $sourcedir, $modSettings, $user_info, $context, $txt);
 loadLanguage('Eve_API');
 
 class eve_api
 {
-	function __construct(&$db_prefix, &$sourcedir, &$modSettings, &$user_info, &$context, &$txt, &$smcFunc)
+	function __construct(&$db_prefix, &$sourcedir, &$modSettings, &$user_info, &$context, &$txt)
 	{
 		$this -> db_prefix = $db_prefix;
 		$this -> sourcedir = $sourcedir;
@@ -16,9 +16,8 @@ class eve_api
 		$this -> user_info = $user_info;
 		$this -> context = $context;
 		$this -> txt = $txt;
-		$this -> smcFunc = $smcFunc;
 
-		$this -> version = "1.0.1";
+		$this -> version = "1.0.0";
 
 		$permissions["eveapi_view_own"] = 1;
 		$permissions["eveapi_view_any"] = 0;
@@ -53,7 +52,7 @@ class eve_api
 		if(!$this -> modSettings["eveapi_enable"])
 			Return;
 		$this -> file = "\n\n\nDate: ".gmdate("F jS, Y H:i", time())."\n";
-
+	//	$this -> connect();
 		//.$this -> get_site("", "", "")."</pre>";
 		//echo "<pre>"; var_dump($this -> modSettings);die;
 		$this -> alliance_list();
@@ -206,8 +205,6 @@ class eve_api
 		$mongroups[$this -> modSettings["eveapi_groupass_neut"]] = TRUE;
 
 		$this -> chars = array();
-		grab_txt($this);
-		$txt = $this -> txt;
 
 		if(is_numeric($user))
 			$id = $this -> select("SELECT ID_MEMBER, ID_GROUP FROM ".$this -> db_prefix."members WHERE ID_MEMBER = ".$user);
@@ -227,9 +224,9 @@ class eve_api
 
 					if(!isset($mongroups[$group]))
 					{
-						$this -> file .= $txt['eveapi_run_custom']."\n";
+						$this -> file .= "..Ignoring (in custom group)\n";
 						if($echo)
-							echo $txt['eveapi_run_custom']."\n<br>";
+							echo "..Ignoring (in custom group)\n<br>";
 						$ignore = TRUE;
 					}
 					$chars = $this -> get_characters($apiuser, $apikey);
@@ -319,20 +316,20 @@ class eve_api
 			{
 				$e = "";
 				if($incorp)
-					$e = " ".$txt['eveapi_run_alsocorp'];
+					$e = " (Also Corp Member)";
 				if($inblues)
-					$e .= " ".$txt['eveapi_run_alsoblue'];
+					$e .= " (Also in Blues)";
 				if($group == $red)
 				{
-					$this -> file .= $txt['eveapi_run_ared'].$e."\n";
+					$this -> file .= "..Already set as Reds!$e\n";
 					if($echo)
-						echo $txt['eveapi_run_ared'].$e."\n<br>";
+						echo "..Already set as Reds!$e\n<br>";
 				}
 				else
 				{
-					$this -> file .= $txt['eveapi_run_red'].$e."\n";
+					$this -> file .= "..Setting as Reds!$e\n";
 					if($echo)
-						echo $txt['eveapi_run_red'].$e."\n<br>";
+						echo "..Setting as Reds!$e\n<br>";
 					$this -> query("UPDATE ".$this -> db_prefix."members SET ID_GROUP = $red WHERE ID_MEMBER = ".$id);
 				}
 				$this -> query("UPDATE ".$this -> db_prefix."eve_api SET status = 'red', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
@@ -341,18 +338,18 @@ class eve_api
 			{
 				$e = "";
 				if($inblues)
-					$e = " ".$txt['eveapi_run_alsoblue'];
+					$e = " (Also in Blues)";
 				if($group == $corp)
 				{
-					$this -> file .= $txt['eveapi_run_acorp'].$e."\n";
+					$this -> file .= "..Already set as Corp Member$e\n";
 					if($echo)
-						echo $txt['eveapi_run_acorp'].$e."\n<br>";
+						echo "..Already set as Corp Member!$e\n<br>";
 				}
 				else
 				{
-					$this -> file .= $txt['eveapi_run_corp'].$e."\n";
+					$this -> file .= "..Setting as Corp Member$e\n";
 					if($echo)
-						echo $txt['eveapi_run_corp'].$e."\n<br>";
+						echo "..Setting as Corp Member!$e\n<br>";
 					$this -> query("UPDATE ".$this -> db_prefix."members SET ID_GROUP = $corp WHERE ID_MEMBER = ".$id);
 				}
 				$this -> query("UPDATE ".$this -> db_prefix."eve_api SET status = 'corp', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
@@ -361,18 +358,18 @@ class eve_api
 			{
 				$e = "";
 				if($inblues)
-					$e = " ".$txt['eveapi_run_alsoblue'];
+					$e = " (Also in Blues)";
 				if($group == $alliance)
 				{
-					$this -> file .= $txt['eveapi_run_aalliance'].$e."\n";
+					$this -> file .= "..Already set as Alliance Member$e\n";
 					if($echo)
-						echo $txt['eveapi_run_aalliance'].$e."\n<br>";
+						echo "..Already set as Alliance Member!$e\n<br>";
 				}
 				else
 				{
-					$this -> file .= $txt['eveapi_run_alliance'].$e."\n";
+					$this -> file .= "..Setting as Alliance Member$e\n";
 					if($echo)
-						echo $txt['eveapi_run_alliance'].$e."\n<br>";
+						echo "..Setting as Alliance Member!$e\n<br>";
 					$this -> query("UPDATE ".$this -> db_prefix."members SET ID_GROUP = $alliance WHERE ID_MEMBER = ".$id);
 				}
 				$this -> query("UPDATE ".$this -> db_prefix."eve_api SET status = 'alliance', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
@@ -381,15 +378,15 @@ class eve_api
 			{
 				if($group == $blue)
 				{
-					$this -> file .= $txt['eveapi_run_ablue']."\n";
+					$this -> file .= "..Already set as Blues\n";
 					if($echo)
-						echo $txt['eveapi_run_ablue']."\n<br>";
+						echo "..Already set as Blues\n<br>";
 				}
 				else
 				{
-					$this -> file .= $txt['eveapi_run_blue']."\n";
+					$this -> file .= "..Setting as Blues\n";
 					if($echo)
-						echo $txt['eveapi_run_blue']."\n<br>";
+						echo "..Setting as Blues\n<br>";
 					$this -> query("UPDATE ".$this -> db_prefix."members SET ID_GROUP = $blue WHERE ID_MEMBER = ".$id);
 				}
 				$this -> query("UPDATE ".$this -> db_prefix."eve_api SET status = 'blue', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
@@ -398,32 +395,32 @@ class eve_api
 			{
 				if($group == $neut)
 				{
-					$this -> file .= $txt['eveapi_run_aneut']."\n";
+					$this -> file .= "..Already set as Neutral\n";
 					if($echo)
-						echo $txt['eveapi_run_aneut']."\n<br>";
+						echo "..Already set as Neutral\n<br>";
 				}
 				else
 				{
-					$this -> file .= $txt['eveapi_run_neut']."\n";
+					$this -> file .= "..Setting as Neutral\n";
 					if($echo)
-						echo $txt['eveapi_run_neut']."\n<br>";
+						echo "..Setting as Neutral\n<br>";
 					$this -> query("UPDATE ".$this -> db_prefix."members SET ID_GROUP = $neut WHERE ID_MEMBER = ".$id);
 				}
 				$this -> query("UPDATE ".$this -> db_prefix."eve_api SET status = 'neut', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
 			}
 			elseif($group != $nogroup)
 			{
-				$this -> file .= $txt['eveapi_run_reg']."\n";
+				$this -> file .= "..Setting as Regular Member\n";
 				if($echo)
-					echo $txt['eveapi_run_reg']."\n<br>";
+					echo "..Setting as Regular Member\n<br>";
 				$this -> query("UPDATE ".$this -> db_prefix."members SET ID_GROUP = $nogroup WHERE ID_MEMBER = ".$id);
 				$this -> query("UPDATE ".$this -> db_prefix."eve_api SET status = 'error', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
 			}
 			elseif($group == $nogroup)
 			{
-				$this -> file .= $txt['eveapi_run_areg']."\n";
+				$this -> file .= "..Already set as Regular Member\n";
 				if($echo)
-					echo $txt['eveapi_run_areg']."\n<br>";
+					echo "..Already set as Regular Member\n<br>";
 				$this -> query("UPDATE ".$this -> db_prefix."eve_api SET status = 'error', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
 			}
 		}
@@ -578,17 +575,21 @@ class eve_api
 		Return $data;
 	}
 
+	function connect()
+	{
+		$this -> link = mysql_connect("localhost", "tnt", "sql");
+	}
+
 	function select($sql, $result_form=MYSQL_NUM, $error=TRUE)//MYSQL_ASSOC = field names
 	{
 		$data = "";
-	//	$result = mysql_query($sql);
-		$result = $this -> smcFunc['db_query']('', $sql);
+		$result = mysql_query($sql);
 
 		if (!$result)
 		{
 			echo $sql;
 			if($error)
-				echo "<BR>".$this -> smcFunc['db_error']."<BR>";
+				echo "<BR>".mysql_error()."<BR>";
 			return false;
 		}
 
@@ -597,33 +598,23 @@ class eve_api
 			return false;
 		}
 
-		if($result_form == MYSQL_ASSOC)
+		while ($row = mysql_fetch_array($result, $result_form))
 		{
-			while ($row = $this -> smcFunc['db_fetch_assoc']($result))
-			{
-				$data[] = $row;
-			}
-		}
-		else
-		{
-			while ($row = $this -> smcFunc['db_fetch_row']($result))
-			{
-				$data[] = $row;
-			}
+			$data[] = $row;
 		}
 
-		$this -> smcFunc['db_free_result']($result);
+		mysql_free_result($result);
 		return $data;
 	}
 
 	function query($sql)
 	{
-		$return = $this -> smcFunc['db_query']('', $sql);
+		$return = mysql_query($sql);
 
 		if (!$return)
 		{
 			echo $sql;
-			echo "<BR>".$this -> smcFunc['db_error']."<BR>";
+			echo mysql_error();
 			return false;
 		}
 		else
@@ -767,9 +758,8 @@ class eve_api
 		Return ($info);
 	}
 
-	function Settings(&$txt, $scripturl, &$context, $settings, $sc)
+	function Settings($txt, $scripturl, &$context, $settings, $sc)
 	{
-	//	$txt = $this -> txt;
 		if (isset($_GET['update']))
 		{
 			$this -> update_api(FALSE);
@@ -823,7 +813,7 @@ class eve_api
 				$time = 'Never';
 			$groups = $this -> MemberGroups();
 			$config_vars = array(
-				'<dt>'.$txt['eveapi_version'].': '.$this -> version.'</dt>',
+				'<dt>Version: '.$this -> version.'</dt>',
 				'',
 					// enable?
 					array('check', 'eveapi_enable'),
@@ -832,11 +822,11 @@ class eve_api
 					array('int', 'eveapi_userid', 10),
 					array('text', 'eveapi_api', 64),
 					array('select', 'eveapi_charid', $charlist),
-				'<dt><a href="'.$scripturl.'?action=admin;area=eveapi;update">'.$txt['eveapi_fullcheck'].'</a></dt>',
-				'<dt>'.$txt['eveapi_standings_updated'].': '.$time.'</dt>',
-				'<dt>'.$txt['eveapi_standings_contains'].': '.count($cblues).' '.$txt['eveapi_standings_bluec'].', '.count($creds).' '.$txt['eveapi_standings_bluea'].', '.count($ablues).' '.$txt['eveapi_standings_redc'].', '.count($areds).' '.$txt['eveapi_standings_reda'].'</dt>',
-				'<dt>'.$txt['eveapi_corpl_updated'].': '.$atime.'</dt>',
-				'<dt>'.$txt['eveapi_corpl_contains'].': '.count($this -> corps).'</dt>',
+				'<dt><a href="'.$scripturl.'?action=admin;area=eveapi;update">Run Full Member Check Now</a></dt>',
+				'<dt>Standings Last Updated: '.$time.'</dt>',
+				'<dt>Standings List Contains: '.count($cblues).' Blue Corps, '.count($creds).' Blue Alliances, '.count($ablues).' Red Corps, '.count($areds).' Red Alliances</dt>',
+				'<dt>Alliance Corp List Last Updated: '.$atime.'</dt>',
+				'<dt>Alliance Corp List Contains: '.count($this -> corps).'</dt>',
 				'',
 					array('check', 'eveapi_regreq'),
 					array('check', 'eveapi_usecharname'),
@@ -846,7 +836,7 @@ class eve_api
 					array('check', 'eveapi_useapiabove'),
 					array('select', 'eveapi_corptag_options', array(0 => 'Nothing', 1 => 'Custom Title', 2 => 'Part of Name')),
 				'',
-				'<dt>'.$txt['eveapi_group_settings'].'</dt>',
+				'<dt>Group Settings, in order of priority</dt>',
 					array('select', 'eveapi_groupass_red', $groups),
 					array('select', 'eveapi_groupass_corp', $groups),
 					array('select', 'eveapi_groupass_alliance', $groups),
@@ -1067,7 +1057,7 @@ class eve_api
 
 		$context['post_url'] = $scripturl . '?action=featuresettings2;save;sa=eveapi';
 		$context['settings_title'] = $txt['mods_cat_layout'];
-		$context['settings_message'] = $txt['eveapi_settings_message'];
+		$context['settings_message'] = "the API info needed here is to get the Corp/Alliance Info along with Standings";
 
 	//	prepareDBSettingContext($config_vars);
 	}
@@ -1253,7 +1243,7 @@ function template_editeveapi()
 						<table border="0" width="100%" cellpadding="3">';
 	if(!$modSettings["eveapi_enable"])
 	{
-		echo '<tr><td>'.$txt['eveapi_disabled'].'</td></tr>';
+		echo '<tr><td>Eve Api Mod is Disabled.</td></tr>';
 	}
 	else
 	{
@@ -1296,11 +1286,5 @@ $eveapiinfo[] = array();
 				</tr>
 			</table>
 		</form>';
-}
-
-function grab_txt($eveapi)
-{
-	Global $txt;
-	$eveapi -> txt = $txt;
 }
 ?>

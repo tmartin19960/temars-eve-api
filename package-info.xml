@@ -4,7 +4,7 @@
 	<id>temar:EveAPI</id>
 	<name>Temars EVE API</name>
 	<type>modification</type>
-	<version>1.0.1</version>
+	<version>1.0.0</version>
 	<install for="1.1 - 1.1.99">
 		<readme type="file">readme.txt</readme>
 		<readme type="inline" parsebbc="true">[color=red]Error! This mod does not support your version of SMF.[/color]</readme>
@@ -50,5 +50,4 @@
 		<remove-file name="$sourcedir/Eve_API_Cron.php" />
 		<remove-file name="$languagedir/Eve_API.english.php" />
 	</uninstall>
-	<upgrade from="3.18">
 </package-info>
