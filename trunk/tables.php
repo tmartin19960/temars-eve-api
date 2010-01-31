@@ -113,7 +113,7 @@ $tables[1]["status"] = "VARCHAR(20) DEFAULT NULL";
 $tables[1]["errorid"] = "INT(5) DEFAULT NULL";
 $tables[1]["error"] = "VARCHAR(254) DEFAULT NULL";
 $tables[1]["status_change"] = "INT DEFAULT NULL";
-$tables[1]["auto"] = "INT(1) DEFAULT 1";
+//$tables[1]["auto"] = "INT(1) DEFAULT 1";
 
 $info[2]['name'] = 'eve_characters';
 $info[2]['primary'] = 'userid, charid';
@@ -124,6 +124,18 @@ $tables[2]["corpid"] = "INT DEFAULT NULL";
 $tables[2]["corp"] = "VARCHAR(50) DEFAULT NULL";
 $tables[2]["corp_ticker"] = "VARCHAR(20) DEFAULT NULL";
 $tables[2]["allianceid"] = "INT DEFAULT NULL";
+$tables[2]["alliance"] = "VARCHAR(50) DEFAULT NULL";
+
+$info[3]['name'] = 'eve_rules';
+$info[3]['primary'] = 'id';
+$tables[3]["id"] = "INT DEFAULT NULL AUTO_INCREMENT";
+$tables[3]["ruleid"] = "INT DEFAULT NULL";
+$tables[3]["main"] = "INT(1) DEFAULT 0";
+$tables[3]["type"] = "VARCHAR(50) DEFAULT NULL";
+$tables[3]["value"] = "VARCHAR(250) DEFAULT NULL";
+$tables[3]["extra"] = "VARCHAR(250) DEFAULT NULL";
+$tables[3]["group"] = "INT DEFAULT NULL";
+$tables[3]["enabled"] = "INT(1) DEFAULT 0";
 
 Global $db_prefix;
 

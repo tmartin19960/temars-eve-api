@@ -8,6 +8,8 @@ loadLanguage('Eve_API');
 
 class eve_api
 {
+	var $corps;
+
 	function __construct(&$db_prefix, &$sourcedir, &$modSettings, &$user_info, &$context, &$txt, &$smcFunc)
 	{
 		$this -> db_prefix = $db_prefix;
@@ -18,7 +20,7 @@ class eve_api
 		$this -> txt = $txt;
 		$this -> smcFunc = $smcFunc;
 
-		$this -> version = "1.0.1";
+		$this -> version = "1.1.0";
 
 		$permissions["eveapi_view_own"] = 1;
 		$permissions["eveapi_view_any"] = 0;
@@ -272,9 +274,9 @@ class eve_api
 							}
 							$this -> query("
 								REPLACE INTO ".$this -> db_prefix."eve_characters
-									(userid, charid, name, corpid, corp, corp_ticker, allianceid)
+									(userid, charid, name, corpid, corp, corp_ticker, allianceid, alliance)
 								VALUES 
-								('" . mysql_real_escape_string($apiuser) . "', '" . mysql_real_escape_string($char[1]) . "', '" . mysql_real_escape_string($char[0]) . "', '" . mysql_real_escape_string($corp) . "', '" . mysql_real_escape_string($corpinfo['name']) . "', '" . mysql_real_escape_string($corpinfo['ticker']) . "', '$alliance')");
+								('" . mysql_real_escape_string($apiuser) . "', '" . mysql_real_escape_string($char[1]) . "', '" . mysql_real_escape_string($char[0]) . "', '" . mysql_real_escape_string($corp) . "', '" . mysql_real_escape_string($corpinfo['name']) . "', '" . mysql_real_escape_string($corpinfo['ticker']) . "', '$alliance', '" . mysql_real_escape_string($corpinfo['alliance']) . "')");
 						}
 						if(!$incorp && !$inblues && !$inreds)
 							$inneuts = TRUE;
@@ -295,23 +297,29 @@ class eve_api
 			}
 			if($ignore)
 				Return;
-			$nogroup = $this -> modSettings["eveapi_groupass_unknown"];
-			if(!$nogroup)
+			if(isset($this -> modSettings["eveapi_groupass_unknown"]))
+				$nogroup = $this -> modSettings["eveapi_groupass_unknown"];
+			else
 				$nogroup = 0;
-			$corp = $this -> modSettings["eveapi_groupass_corp"];
-			if(!$corp)
+			if(isset($this -> modSettings["eveapi_groupass_corp"]))
+				$corp = $this -> modSettings["eveapi_groupass_corp"];
+			else
 				$corp = 0;
-			$alliance = $this -> modSettings["eveapi_groupass_alliance"];
-			if(!$alliance)
+			if(isset($this -> modSettings["eveapi_groupass_alliance"]))
+				$alliance = $this -> modSettings["eveapi_groupass_alliance"];
+			else
 				$alliance = 0;
-			$blue = $this -> modSettings["eveapi_groupass_blue"];
-			if(!$blue)
+			if(isset($this -> modSettings["eveapi_groupass_blue"]))
+				$blue = $this -> modSettings["eveapi_groupass_blue"];
+			else
 				$blue = 0;
-			$red = $this -> modSettings["eveapi_groupass_red"];
-			if(!$red)
+			if(isset($this -> modSettings["eveapi_groupass_red"]))
+				$red = $this -> modSettings["eveapi_groupass_red"];
+			else
 				$red = 0;
-			$neut = $this -> modSettings["eveapi_groupass_neut"];
-			if(!$neut)
+			if(isset($this -> modSettings["eveapi_groupass_neut"]))
+				$neut = $this -> modSettings["eveapi_groupass_neut"];
+			else
 				$neut = 0;
 
 			//15 = doom
@@ -465,24 +473,37 @@ class eve_api
 		{
 			foreach($user as $acc)
 			{
-				$chars = $this -> select("SELECT charid, name, corp_ticker FROM ".$this -> db_prefix."eve_characters WHERE userid = ".$acc[0]);
+				$chars = $this -> get_acc_chars($acc[0]);
 				if(!empty($chars))
 				{
-					foreach($chars as $char)
+					foreach($chars as $cid => $char)
 					{
 						if($getticker)
 						{
 						//	$ticker = $this -> corp_info($corp);
-							if(!empty($char[2]))
-								$char[1] = "[".$char[2]."] ".$char[1];
+							if(!empty($char[1]))
+								$char[0] = "[".$char[1]."] ".$char[0];
 						}
 
 						if($id)
-							$charlist[$char[0]] = $char[1];
+							$charlist[$cid] = $char[0];
 						else
-							$charlist[$char[1]] = $char[1];
+							$charlist[$char[0]] = $char[0];
 					}
 				}
+			}
+		}
+		Return $charlist;
+	}
+
+	function get_acc_chars($userid)
+	{
+		$chars = $this -> select("SELECT charid, name, corp_ticker, corp, alliance FROM ".$this -> db_prefix."eve_characters WHERE userid = ".$userid);
+		if(!empty($chars))
+		{
+			foreach($chars as $char)
+			{
+				$charlist[$char[0]] = array($char[1], $char[2], $char[3], $char[4]);
 			}
 		}
 		Return $charlist;
@@ -764,10 +785,37 @@ class eve_api
 		$data = $this -> get_site(FALSE, FALSE, $corp, 'corp');
 		$info['name'] = $this -> xmlparse($data, 'corporationName');
 		$info['ticker'] = $this -> xmlparse($data, 'ticker');
+		$info['allianceid'] = $this -> xmlparse($data, 'allianceID');
+		$info['alliance'] = $this -> xmlparse($data, 'allianceName');
 		Return ($info);
 	}
 
 	function Settings(&$txt, $scripturl, &$context, $settings, $sc)
+	{
+		$context[$context['admin_menu_name']]['tab_data'] = array(
+			'title' => $txt['eveapi_title'],
+		//	'help' => 'featuresettings',
+			'description' => $txt['eveapi_settings_message'],
+			'tabs' => array(
+				'settings' => array(
+				),
+				'rules' => array(
+	//				'description' => $txt['signature_settings_desc'],
+				),
+				'checks' => array(
+				),
+			),
+		);
+
+		if(isset($_GET['sa']) && strtolower($_GET['sa']) == "rules")
+			$this -> settings_rules(&$txt, $scripturl, &$context, $settings, $sc);
+		elseif(isset($_GET['sa']) && strtolower($_GET['sa']) == "checks")
+			$this -> settings_checks(&$txt, $scripturl, &$context, $settings, $sc);
+		else
+			$this -> settings_settings(&$txt, $scripturl, &$context, $settings, $sc);
+	}
+
+	function settings_settings(&$txt, $scripturl, &$context, $settings, $sc)
 	{
 	//	$txt = $this -> txt;
 		if (isset($_GET['update']))
@@ -814,6 +862,11 @@ class eve_api
 					}
 				}
 			}
+			$cblues = NULL;
+			$ablues = NULL;
+			$creds = NULL;
+			$areds = NULL;
+			$time = FALSE;
 			$file = $this -> sourcedir."/../cache/eve_standings.php";
 			if(file_exists($file))
 				require($file);
@@ -832,7 +885,6 @@ class eve_api
 					array('int', 'eveapi_userid', 10),
 					array('text', 'eveapi_api', 64),
 					array('select', 'eveapi_charid', $charlist),
-				'<dt><a href="'.$scripturl.'?action=admin;area=eveapi;update">'.$txt['eveapi_fullcheck'].'</a></dt>',
 				'<dt>'.$txt['eveapi_standings_updated'].': '.$time.'</dt>',
 				'<dt>'.$txt['eveapi_standings_contains'].': '.count($cblues).' '.$txt['eveapi_standings_bluec'].', '.count($creds).' '.$txt['eveapi_standings_bluea'].', '.count($ablues).' '.$txt['eveapi_standings_redc'].', '.count($areds).' '.$txt['eveapi_standings_reda'].'</dt>',
 				'<dt>'.$txt['eveapi_corpl_updated'].': '.$atime.'</dt>',
@@ -876,9 +928,233 @@ class eve_api
 		}
 
 		$context['post_url'] = $scripturl . '?action=admin;area=eveapi;save';
-		$context['settings_title'] = $txt['eveapi_title'];
-		$context['settings_message'] = $txt['eveapi_settings_message'];
+	//	$context['settings_title'] = $txt['eveapi_title'];
+	//	$context['settings_message'] = $txt['eveapi_settings_message'];
 
+		prepareDBSettingContext($config_vars);
+	}
+
+	function settings_rules(&$txt, $scripturl, &$context, $settings, $sc)
+	{
+		$types['corp'] = 'Corp';
+		$types['alliance'] = 'Alliance';
+		$types['blue'] = 'Blue';
+		$types['red'] = 'Red';
+		$types['neut'] = 'Neutral';
+		$types['error'] = 'Invalid API';
+		$types['red'] = 'Red';
+		$types['skill'] = 'Skill';
+		$types['role'] = 'Role';
+		$types['title'] = 'Title';
+		$types['militia'] = 'Militia';
+		$groups = $this -> MemberGroups();
+		if(!empty($_POST))
+		{
+		//	echo '<pre>'; var_dump($_POST);die;
+			if($_POST['id'] == "new")
+			{
+				$id = $this -> select("SELECT ruleid FROM ".$this -> db_prefix."eve_rules ORDER BY ruleid DESC LIMIT 1");
+				if(!empty($id))
+					$id = $id[0][0]+1;
+				else
+					$id = 1;
+				$ids[] = $id;
+			}
+			elseif(is_numeric($_POST['id']))
+				$id = $_POST['id'];
+			else
+				die("error id");
+
+			if($_POST['main'] = "main")
+				$main = 1;
+			else
+				$main = 0;
+
+			if(isset($types[$_POST['type']]))
+				$type = $_POST['type'];
+			else
+				die("Unknown Type");
+
+			if($type == "corp" || $type == "alliance" || $type == "skill" || $type == "role" || $type == "title")
+				$value = mysql_real_escape_string($_POST['value']);
+
+			if($type == "skill")
+				$extra = (int)$_POST['extra'];
+
+			if(isset($groups[$_POST['group']]))
+				$group = $_POST['group'];
+			else
+				die("Invalid Group");
+
+			$this -> query("INSERT INTO ".$this -> db_prefix."eve_rules (ruleid, main, type, value, extra, `group`) VALUES ($id, $main, '$type', '$value', '$extra', $group)");
+			//if(!isset($types[$_POST['type']]))
+			//	error
+			//elseif(!is_numeric($_POST['id']) && $_POST['id'] != "new")
+			//	error
+			//elseif(!is_numeric($_POST['group']))
+			//	error
+			
+		}
+		$idl = $this -> select("SELECT id, ruleid, main, type, value, extra, `group`, enabled FROM ".$this -> db_prefix."eve_rules ORDER BY ruleid");
+		if(!empty($idl))
+		{
+			foreach($idl as $k => $id)
+			{
+				$ids[] = $id[1];
+				$list[$id[1]][] = $id;
+			}
+		}
+		//echo '<pre>'; var_dump($ids);die;
+
+		$out[0] = '<dt>Rules for Main Group are done in Order of ID<br>Rules with Same ID as Another act as Multi Requirments<br><table border="1">'.
+				'<tr><td>ID</td><td>Main</td><td>Type</td><td>Value</td><td>Group</td><td>Enabled</td></tr>';
+		if(!empty($list))
+		{
+			foreach($list as $id => $l)
+			{
+				$span = count($l);
+				$out[0] .= '<tr><td rowspan="'.$span.'">'.$id.'</td>';
+				$tr = '';
+				foreach($l as $r)
+				{
+					if($r[2] == 1)
+						$main = 'Yes';
+					else
+						$main = 'No';
+					if($r[7] == 1)
+						$enabled = 'Yes';
+					else
+						$enabled = 'No';
+					$out[0] .= $tr.'<td>'.$main.'</td><td>'.$types[$r[3]].'</td><td>'.$r[4].'</td><td>'.$groups[$r[6]].'</td><td>'.$enabled.'</td></tr>';
+					$tr = '<tr>';
+				}
+			}
+		}
+		$out[0] .= '</table></dt>';
+		$out[2] = '';
+		$out[3] = '<dt>Create Rule:<br>
+					</form><form name="makerule" method="post" action="">
+			<table>
+			<tr>
+				<td width="134">Rule ID:</td>
+				<td><select name="id"><option value="new">new</option>';
+		foreach($ids as $id)
+		{
+			$out[3] .= '<option value="'.$id.'">'.$id.'</option>';
+		}
+
+		$out[3] .= '</select></td>
+			</tr>
+						<tr>
+				<td>Main Group:</td>
+				<td><input type="checkbox" name="main" value="main" /></td>
+			</tr>
+			<tr>
+				<td>Type:</td>
+				<td><select name="type" onchange="javascript: value_type()">';
+		foreach($types as $value => $name)
+		{
+			$out[3] .= '<option value="'.$value.'">'.$name.'</option>';
+		}
+		$out[3] .= '</select></td>
+			</tr>
+
+				<tr>
+				<td><div id="eveapi_valuetxt"></div></td>
+				<td><div id="eveapi_value"></div></td>
+			</tr><tr>
+				<td>Group:</td>
+				<td><select name="group">
+				<option value="-">-</option>';
+		foreach($groups as $id => $group)
+		{
+			$out[3] .= '<option value="'.$id.'">'.$group.'</option>';
+		}
+		$out[3] .= '</select></td>
+			</tr>
+			<tr>
+				<td width="134">&nbsp;</td>
+				<td><input type="submit" name="submit" value="ADD"></td>
+			</tr>
+			</table>
+			</form>
+			TODO: language file
+</dt>';
+$out[3] .= '
+<script type="text/javascript">
+function value_type()
+{
+	type = document.makerule.type.value;
+	if(type == "corp")
+	{
+		document.getElementById(\'eveapi_valuetxt\').innerHTML="Corp ID:";
+		document.getElementById(\'eveapi_value\').innerHTML=\'<input type="text" name="value" value="" />\';
+	}
+	else if(type == "alliance")
+	{
+		document.getElementById(\'eveapi_valuetxt\').innerHTML="Alliance ID:";
+		document.getElementById(\'eveapi_value\').innerHTML=\'<input type="text" name="value" value="" />\';
+	}
+	else if(type == "blue" || type == "red" || type == "neut" || type == "error")
+	{
+		document.getElementById(\'eveapi_valuetxt\').innerHTML="";
+		document.getElementById(\'eveapi_value\').innerHTML="";
+	}
+	else if(type == "skill")
+	{
+		document.getElementById(\'eveapi_valuetxt\').innerHTML="Skill:";
+		document.getElementById(\'eveapi_value\').innerHTML=\'<input type="text" name="value" value="" /><br>Level: <input type="radio" name="extra" value="1" /> 1 <input type="radio" name="extra" value="1" /> 2 <input type="radio" name="extra" value="1" /> 3 <input type="radio" name="extra" value="1" /> 4 <input type="radio" name="extra" value="1" /> 5\';
+	}
+	else if(type == "role")
+	{
+		document.getElementById(\'eveapi_valuetxt\').innerHTML="Role:";
+		document.getElementById(\'eveapi_value\').innerHTML=\'<input type="text" name="value" value="" />\';
+	}
+	else if(type == "title")
+	{
+		document.getElementById(\'eveapi_valuetxt\').innerHTML="Title:";
+		document.getElementById(\'eveapi_value\').innerHTML=\'<input type="text" name="value" value="" />\';
+	}
+	else if(type == "militia")
+	{
+		document.getElementById(\'eveapi_valuetxt\').innerHTML="Militia:";
+		document.getElementById(\'eveapi_value\').innerHTML=\'<select name="value"><option value="amarr">amaar</option><option value="caldari">caldari</option><option value="galente">galente</option><option value="mimitar">mimitar</option></select>\';
+	}
+}
+value_type();
+</script>
+';
+		$config_vars = $out;
+		$context['settings_save_dont_show'] = TRUE;
+		prepareDBSettingContext($config_vars);
+	}
+
+	function settings_checks(&$txt, $scripturl, &$context, $settings, $sc)
+	{
+	//	$txt = $this -> txt;
+		if (isset($_GET['update']))
+		{
+			if(!$this -> modSettings["eveapi_enable"])
+				$file = "API Mod is Disabled";
+			$this -> update_api(FALSE);
+			$file = str_replace("\n", "<br>", $this -> file);
+			$config_vars = array(
+			'<dt>'.$file.'</dt>'
+			);
+		}
+		else
+		{
+
+			$config_vars = array(
+				'<dt><a href="'.$scripturl.'?action=admin;area=eveapi;sa=checks;update">'.$txt['eveapi_fullcheck'].'</a></dt>',
+			);
+
+		}
+
+		//$context['post_url'] = $scripturl . '?action=admin;area=eveapi;sa=checks;save';
+//		$context['settings_title'] = $txt['eveapi_title'];
+//		$context['settings_message'] = $txt['eveapi_settings_message'];
+		$context['settings_save_dont_show'] = TRUE;
 		prepareDBSettingContext($config_vars);
 	}
 
@@ -1087,7 +1363,8 @@ class eve_api
 		{
 			foreach($user as $u)
 			{
-				$characters = $this -> get_all_chars(FALSE, TRUE);
+				$characters = $this -> get_acc_chars($u[0]);
+				
 				if($u[1] == "tnet")
 					$checkt = "checked";
 				else
@@ -1108,7 +1385,7 @@ class eve_api
 				"userid" => $u[0],
 				"api" => $u[1],
 			//	"msg" => $msg,
-				'charnames' => implode(", ", $characters),
+				'charnames' => $characters,
 				'status' => $u[2],
 				'error' => $u[3]
 				);
@@ -1269,9 +1546,18 @@ $eveapiinfo[] = array();
 			echo ' ('.$info['error'].')';
 		echo '</td>
 			</tr><tr><td>
-										<b>', $txt['eveapi_characters'], ':</b></td><td>'.$info['charnames'].'</td>
-			</tr>';
-		echo '<tr><td>
+										<b>', $txt['eveapi_characters'], ':</b></td><td>';
+		if(!empty($info['charnames']))
+		{
+			$echo = array();
+			foreach($info['charnames'] as $char)
+			{
+				$echo[] = '['.$char[1].'] '.$char[0].' ('.$char[2].' / '.$char[3].')';
+			}
+			echo implode('<br>', $echo);
+		}
+		echo '</td></tr>
+		<tr><td>
 										<b>', $txt['eveapi_userid'], ':</b></td>
 										<td>';
 					if($info['userid'] == "")
