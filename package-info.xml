@@ -50,5 +50,10 @@
 		<remove-file name="$sourcedir/Eve_API_Cron.php" />
 		<remove-file name="$languagedir/Eve_API.english.php" />
 	</uninstall>
+	<upgrade from="1.0.0">
+		<readme type="inline">This will upgrade Temars Eve Api Mod to version 1.0.0</readme>
+		<require-file name="Eve_API.php" destination="$sourcedir" />
+		<require-file name="Eve_API.english.php" destination="$languagedir" />
+	</upgrade>
 	<upgrade from="3.18">
 </package-info>
