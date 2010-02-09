@@ -237,10 +237,69 @@ class eve_api
 					$chars = $this -> get_characters($apiuser, $apikey);
 					if(!empty($chars))
 					{
-					//	$charlist = array();
-						foreach($chars as $char)
+						// get main rules
+						$rules = $this -> select("SELECT ruleid, group FROM ".$this -> db_prefix."eve_rules WHERE main = 1 AND enabled = 1 ORDER BY ruleid");
+						if(!empty($rules))
 						{
-							$this -> chars[] = $char;
+							foreach($rules as $rule)
+							{
+								$conditions = $this -> select("SELECT type, value, extra FROM ".$this -> db_prefix."eve_conditions WHERE ruleid = ".$rule[0]);
+								if(!empty($conditions))
+								{
+									foreach($conditions as $cond)
+									{
+										$match = TRUE;
+										foreach($chars as $char)
+										{
+											$this -> chars[] = $char;
+											Switch($cond[0])
+											{
+												case 'corp':
+													if($char[3] == $cond[1])
+														Break 2;
+													else
+													{
+														$match = FALSE;
+														Break 3;
+													}
+												case 'alliance':
+													if($this -> corps[$char[3]] == $cond[1])
+														Break 2;
+													else
+													{
+														$match = FALSE;
+														Break 3;
+													}
+												case 'blue':
+													if(isset($this -> cblues[$char[3]]) || isset($this -> ablues[$this -> corps[$char[3]]]))
+														Break 2;
+													else
+													{
+														$match = FALSE;
+														Break 3;
+													}
+												case 'red':
+													if(isset($this -> creds[$char[3]]) || isset($this -> areds[$this -> corps[$char[3]]]))
+														Break 2;
+													else
+													{
+														$match = FALSE;
+														Break 3;
+													}
+												case 'error':
+													
+												case 'skill':
+												case 'role':
+												case 'title':
+												case 'militia':
+											}
+										}
+									}
+								}
+							}
+						//}
+					//}
+
 							//var_dump($char);
 							//$charlist[$char[1]] = array($char[0], ;
 							$corp = $char[3];
@@ -435,6 +494,11 @@ class eve_api
 				$this -> query("UPDATE ".$this -> db_prefix."eve_api SET status = 'error', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
 			}
 		}
+	}
+
+	function rule_check_corp()
+	{
+	
 	}
 
 	function get_characters($userid, $api)
@@ -942,7 +1006,6 @@ class eve_api
 		$types['red'] = 'Red';
 		$types['neut'] = 'Neutral';
 		$types['error'] = 'Invalid API';
-		$types['red'] = 'Red';
 		$types['skill'] = 'Skill';
 		$types['role'] = 'Role';
 		$types['title'] = 'Title';
@@ -961,7 +1024,10 @@ class eve_api
 				$ids[] = $id;
 			}
 			elseif(is_numeric($_POST['id']))
+			{
 				$id = $_POST['id'];
+				$exists = TRUE;
+			}
 			else
 				die("error id");
 
@@ -986,7 +1052,9 @@ class eve_api
 			else
 				die("Invalid Group");
 
-			$this -> query("INSERT INTO ".$this -> db_prefix."eve_rules (ruleid, main, type, value, extra, `group`) VALUES ($id, $main, '$type', '$value', '$extra', $group)");
+			if(!$exists)
+				$this -> query("INSERT INTO ".$this -> db_prefix."eve_rules (ruleid, main, `group`) VALUES ($id, $main, $group)");
+			$this -> query("INSERT INTO ".$this -> db_prefix."eve_conditions (ruleid, type, value, extra) VALUES ($id, '$type', '$value', '$extra')");
 			//if(!isset($types[$_POST['type']]))
 			//	error
 			//elseif(!is_numeric($_POST['id']) && $_POST['id'] != "new")
@@ -995,49 +1063,62 @@ class eve_api
 			//	error
 			
 		}
-		$idl = $this -> select("SELECT id, ruleid, main, type, value, extra, `group`, enabled FROM ".$this -> db_prefix."eve_rules ORDER BY ruleid");
+		$idl = $this -> select("SELECT ruleid, main, `group`, enabled FROM ".$this -> db_prefix."eve_rules ORDER BY ruleid");
 		if(!empty($idl))
 		{
-			foreach($idl as $k => $id)
+			foreach($idl as $id)
 			{
-				$ids[] = $id[1];
-				$list[$id[1]][] = $id;
+				$ids[] = $id[0];
+				$list[$id[0]] = array('main' => $id[1], 'group' => $id[2], 'enabled' => $id[3], 'conditions' => array());
 			}
 		}
-		//echo '<pre>'; var_dump($ids);die;
+		$idl = $this -> select("SELECT id, ruleid, type, value, extra FROM ".$this -> db_prefix."eve_conditions ORDER BY ruleid");
+		if(!empty($idl))
+		{
+			foreach($idl as $id)
+			{
+				$list[$id[1]]['conditions'][] = array('id' => $id[0], 'type' => $id[2], 'value' => $id[3], 'extra' => $id[4]);
+			}
+		}
+	//	echo '<pre>'; var_dump($list);die;
 
 		$out[0] = '<dt>Rules for Main Group are done in Order of ID<br>Rules with Same ID as Another act as Multi Requirments<br><table border="1">'.
-				'<tr><td>ID</td><td>Main</td><td>Type</td><td>Value</td><td>Group</td><td>Enabled</td></tr>';
+				'<tr><td>ID</td><td>Main</td><td>Rule</td><td>Group</td><td>Enabled</td></tr>';
 		if(!empty($list))
 		{
 			foreach($list as $id => $l)
 			{
-				$span = count($l);
-				$out[0] .= '<tr><td rowspan="'.$span.'">'.$id.'</td>';
+				$span = count($l['conditions']);
+				if($l['main'] == 1)
+					$main = 'Yes';
+				else
+					$main = 'No';
+				$out[0] .= '<tr><td rowspan="'.$span.'">'.$id.'</td><td rowspan="'.$span.'">'.$main.'</td>';
 				$tr = '';
-				foreach($l as $r)
+				foreach($l['conditions'] as $r)
 				{
-					if($r[2] == 1)
-						$main = 'Yes';
-					else
-						$main = 'No';
-					if($r[7] == 1)
-						$enabled = 'Yes';
-					else
-						$enabled = 'No';
-					$out[0] .= $tr.'<td>'.$main.'</td><td>'.$types[$r[3]].'</td><td>'.$r[4].'</td><td>'.$groups[$r[6]].'</td><td>'.$enabled.'</td></tr>';
-					$tr = '<tr>';
+					$out[0] .= $tr.'<td>'.$types[$r['type']].': '.$r['value'].'</td>';
+					if($tr == '')
+					{
+						if($r[7] == 1)
+							$enabled = 'Yes';
+						else
+							$enabled = 'No';
+						$out[0] .= '<td rowspan="'.$span.'">'.$groups[$l['group']].'</td><td rowspan="'.$span.'">'.$enabled.'</td>';
+					}
+					$tr = '</tr><tr>';
 				}
+				$out[0] .= '</tr>';
 			}
 		}
-		$out[0] .= '</table></dt>';
+		$out[0] .= '</tr></table></dt>';
 		$out[2] = '';
 		$out[3] = '<dt>Create Rule:<br>
 					</form><form name="makerule" method="post" action="">
 			<table>
 			<tr>
 				<td width="134">Rule ID:</td>
-				<td><select name="id"><option value="new">new</option>';
+				<td><select name="id" onchange="javascript: value_type()"><option value="new">new</option>';
 		foreach($ids as $id)
 		{
 			$out[3] .= '<option value="'.$id.'">'.$id.'</option>';
@@ -1046,8 +1127,8 @@ class eve_api
 		$out[3] .= '</select></td>
 			</tr>
 						<tr>
-				<td>Main Group:</td>
-				<td><input type="checkbox" name="main" value="main" /></td>
+				<td><div id="eveapi_maintxt">Main Group:</div></td>
+				<td><div id="eveapi_main"><input type="checkbox" name="main" value="main" /></div></td>
 			</tr>
 			<tr>
 				<td>Type:</td>
@@ -1063,14 +1144,14 @@ class eve_api
 				<td><div id="eveapi_valuetxt"></div></td>
 				<td><div id="eveapi_value"></div></td>
 			</tr><tr>
-				<td>Group:</td>
-				<td><select name="group">
+				<td><div id="eveapi_grouptxt">Group:</div></td>
+				<td><div id="eveapi_group"><select name="group">
 				<option value="-">-</option>';
 		foreach($groups as $id => $group)
 		{
 			$out[3] .= '<option value="'.$id.'">'.$group.'</option>';
 		}
-		$out[3] .= '</select></td>
+		$out[3] .= '</select></div></td>
 			</tr>
 			<tr>
 				<td width="134">&nbsp;</td>
@@ -1085,6 +1166,26 @@ $out[3] .= '
 function value_type()
 {
 	type = document.makerule.type.value;
+	id = document.makerule.id.value;
+	if(id == "new")
+	{
+		document.getElementById(\'eveapi_maintxt\').innerHTML="Main Group:";
+		document.getElementById(\'eveapi_main\').innerHTML=\'<input type="checkbox" name="main" value="main" />\';
+		document.getElementById(\'eveapi_grouptxt\').innerHTML="Group:";
+		document.getElementById(\'eveapi_group\').innerHTML=\'<select name="group"><option value="-">-</option>';
+		foreach($groups as $id => $group)
+		{
+			$out[3] .= '<option value="'.$id.'">'.$group.'</option>';
+		}
+		$out[3] .= '</select>\';
+	}
+	else
+	{
+		document.getElementById(\'eveapi_maintxt\').innerHTML="";
+		document.getElementById(\'eveapi_main\').innerHTML="";
+		document.getElementById(\'eveapi_grouptxt\').innerHTML="";
+		document.getElementById(\'eveapi_group\').innerHTML="";
+	}
 	if(type == "corp")
 	{
 		document.getElementById(\'eveapi_valuetxt\').innerHTML="Corp ID:";
@@ -1103,7 +1204,7 @@ function value_type()
 	else if(type == "skill")
 	{
 		document.getElementById(\'eveapi_valuetxt\').innerHTML="Skill:";
-		document.getElementById(\'eveapi_value\').innerHTML=\'<input type="text" name="value" value="" /><br>Level: <input type="radio" name="extra" value="1" /> 1 <input type="radio" name="extra" value="1" /> 2 <input type="radio" name="extra" value="1" /> 3 <input type="radio" name="extra" value="1" /> 4 <input type="radio" name="extra" value="1" /> 5\';
+		document.getElementById(\'eveapi_value\').innerHTML=\'<input type="text" name="value" value="" /> % wildcard Allowed<br>Level: <input type="radio" name="extra" value="1" /> 1 <input type="radio" name="extra" value="1" /> 2 <input type="radio" name="extra" value="1" /> 3 <input type="radio" name="extra" value="1" /> 4 <input type="radio" name="extra" value="1" /> 5\';
 	}
 	else if(type == "role")
 	{
