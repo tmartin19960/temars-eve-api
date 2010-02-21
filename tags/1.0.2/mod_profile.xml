@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<!DOCTYPE modification SYSTEM "http://www.simplemachines.org/xml/modification">
+<modification xmlns="http://www.simplemachines.org/xml/modification" xmlns:smf="http://www.simplemachines.org/">
+	<id>temar:EveAPI</id>
+	<version>1.00</version>
+
+	<file name="$sourcedir/Profile.php">
+		<operation>
+			<search position="replace"><![CDATA[				'groupmembership' => array(]]></search>
+			<add><![CDATA[				'eveapi' => array(
+					'label' => $txt['eveapi_eveapi'],
+					'file' => 'Eve_API.php',
+					'function' => 'editeveapi',
+					'enabled' => allowedTo(array('eveapi_edit_own', 'eveapi_edit_any')),
+					'sc' => 'post',
+					'permission' => array(
+						'own' => array('eveapi_edit_any', 'eveapi_edit_own'),
+						'any' => array('eveapi_edit_any'),
+					),
+				),
+				'groupmembership' => array(]]></add>
+		</operation>
+
+		<operation>
+			<search position="replace"><![CDATA[	loadLanguage('Profile');]]></search>
+			<add><![CDATA[	loadLanguage('Profile');
+	loadLanguage('EveAPI');]]></add>
+		</operation>
+	</file>
+
+</modification>
