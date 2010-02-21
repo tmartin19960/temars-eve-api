@@ -56,7 +56,7 @@ class eve_api
 			Return;
 		$this -> file = "\n\n\nDate: ".gmdate("F jS, Y H:i", time())."\n";
 
-		//.$this -> get_site("", "", "")."</pre>";
+		//.$this -> get_xml("", "", "")."</pre>";
 		//echo "<pre>"; var_dump($this -> modSettings);die;
 		$this -> alliance_list();
 		$this -> standings();
@@ -104,7 +104,7 @@ class eve_api
 			}
 			unset($corps);
 		}
-		$data = $this -> get_site($this -> modSettings["eveapi_userid"], $this -> modSettings["eveapi_api"], $this -> modSettings["eveapi_charid"], 'standings');
+		$data = $this -> get_xml($this -> modSettings["eveapi_userid"], $this -> modSettings["eveapi_api"], $this -> modSettings["eveapi_charid"], 'standings');
 
 		$temp[1] = $this -> xmlparse($data, "corporationStandings");
 		$temp[2] = $this -> xmlparse($data, "allianceStandings");
@@ -219,12 +219,13 @@ class eve_api
 		{
 			$group = $id[0][1];
 			$id = $id[0][0];
-			$apiusers = $this -> select("SELECT userid, api FROM ".$this -> db_prefix."eve_api WHERE ID_MEMBER = ".$id);
+			$apiusers = $this -> select("SELECT userid, api, status FROM ".$this -> db_prefix."eve_api WHERE ID_MEMBER = ".$id);
 			if(!empty($apiusers))
 			{
 				foreach($apiusers as $apiuser)
 				{
 					$apikey = $apiuser[1];
+					$status = $apiuser[2];
 					$apiuser = $apiuser[0];
 
 					if(!isset($mongroups[$group]))
@@ -237,62 +238,119 @@ class eve_api
 					$chars = $this -> get_characters($apiuser, $apikey);
 					if(!empty($chars))
 					{
+						$this -> query("UPDATE ".$this -> db_prefix."eve_api SET status = 'OK', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND userid = ".$apiuser);
 						// get main rules
 						$rules = $this -> select("SELECT ruleid, group FROM ".$this -> db_prefix."eve_rules WHERE main = 1 AND enabled = 1 ORDER BY ruleid");
 						if(!empty($rules))
 						{
 							foreach($rules as $rule)
 							{
-								$conditions = $this -> select("SELECT type, value, extra FROM ".$this -> db_prefix."eve_conditions WHERE ruleid = ".$rule[0]);
-								if(!empty($conditions))
+								foreach($chars as $char)
 								{
-									foreach($conditions as $cond)
+									$conditions = $this -> select("SELECT type, value, extra FROM ".$this -> db_prefix."eve_conditions WHERE ruleid = ".$rule[0]);
+									if(!empty($conditions))
 									{
 										$match = TRUE;
-										foreach($chars as $char)
+										foreach($conditions as $cond)
 										{
 											$this -> chars[] = $char;
 											Switch($cond[0])
 											{
 												case 'corp':
 													if($char[3] == $cond[1])
-														Break 2;
+														Break;
 													else
 													{
 														$match = FALSE;
-														Break 3;
+														Break 2;
 													}
 												case 'alliance':
 													if($this -> corps[$char[3]] == $cond[1])
-														Break 2;
+														Break;
 													else
 													{
 														$match = FALSE;
-														Break 3;
+														Break 2;
 													}
 												case 'blue':
 													if(isset($this -> cblues[$char[3]]) || isset($this -> ablues[$this -> corps[$char[3]]]))
-														Break 2;
+														Break;
 													else
 													{
 														$match = FALSE;
-														Break 3;
+														Break 2;
 													}
 												case 'red':
 													if(isset($this -> creds[$char[3]]) || isset($this -> areds[$this -> corps[$char[3]]]))
-														Break 2;
+														Break;
 													else
 													{
 														$match = FALSE;
-														Break 3;
+														Break 2;
 													}
 												case 'error':
-													
+													if($status == 'error')
+														Break;
+													else
+													{
+														$match = FALSE;
+														Break 2;
+													}
 												case 'skill':
+													$skills = $this -> skill_list($apiuser, $apikey, $char[1]);
+													if(strstr($cond[1], '%'))
+													{
+														$cond[1] = strtolower(str_replace('%', '(.+)', $cond[1]));
+														foreach($skills as $skill)
+														{
+															if(preg_match("/".$cond[1]."/i", $skill))
+																Break 2;
+														}
+													}
+													if(isset($skills[$cond[1]]))
+														Break;
+													else
+													{
+														$match = FALSE;
+														Break 2;
+													}
 												case 'role':
+													$roles = $this -> roles($apiuser, $apikey, $char[1]);
+													if(isset($roles[strtolower($cond[1])]))
+														Break;
+													else
+													{
+														$match = FALSE;
+														Break 2;
+													}
 												case 'title':
+													$titles = $this -> titles($apiuser, $apikey, $char[1]);
+													if(isset($titles[strtolower($cond[1])]))
+														Break;
+													else
+													{
+														$match = FALSE;
+														Break 2;
+													}
 												case 'militia':
+													$militia = $this -> militia($apiuser, $apikey, $char[1]);
+													if($militia == $cond[1])
+														Break;
+													else
+													{
+														$match = FALSE;
+														Break 2;
+													}
+												Default:
+													$match = FALSE;
+													Break 2;
 											}
+										}
+										if($match)
+										{
+											$this -> query("UPDATE ".$this -> db_prefix."members SET ID_GROUP = ".$rule[1]." WHERE ID_MEMBER = ".$id);
+											$this -> query("UPDATE ".$this -> db_prefix."eve_api SET status = 'red', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
+											Break 2;
 										}
 									}
 								}
@@ -503,7 +561,7 @@ class eve_api
 
 	function get_characters($userid, $api)
 	{
-		$chars = $this -> get_site($userid, $api);
+		$chars = $this -> get_xml($userid, $api);
 		$this -> data = $chars;
 		$chars = $this -> xmlparse($chars, "result");
 		$chars = $this -> parse($chars);
@@ -573,6 +631,56 @@ class eve_api
 		Return $charlist;
 	}
 
+	function skill_list($id, $api, $charid)
+	{
+		require($this -> sourcedir.'TEA_SkillDump.php');
+		$skilllist = getSkillArray();
+		$xml = $this -> get_xml($id, $api, $charid, 'charsheet');
+		$xml = new SimpleXMLElement($xml);
+		foreach($xml -> result -> rowset[0] as $skill)
+		{
+			//echo "<pre>";var_dump($skill["typeID"]); echo '<hr>';
+			$skills[$skilllist[strtolower((string)$skill["typeID"])]] = (string)$skill["level"];
+		}
+		return $skills;
+	}
+
+	function roles($id, $api, $charid)
+	{
+		$xml = $this -> get_xml($id, $api, $charid, 'charsheet');
+	//	$xml = file_get_contents('me.xml');
+		$xml = new SimpleXMLElement($xml);
+		$rg = array(2, 3, 4, 5);
+		foreach($rg as $i)
+		{
+			foreach($xml -> result -> rowset[$i] as $role)
+			{
+				$roles[strtolower((string)$role["roleName"])] = TRUE;
+			}
+		}
+		return $skills;
+	}
+
+	function titles($id, $api, $charid)
+	{
+		$xml = $this -> get_xml($id, $api, $charid, 'charsheet');
+	//	$xml = file_get_contents('me.xml');
+		$xml = new SimpleXMLElement($xml);
+		foreach($xml -> result -> rowset[6] as $title)
+		{
+			$titles[strtolower((string)$title["titleName"])] = TRUE;
+		}
+		return $skills;
+	}
+
+	function mititia($id, $api, $charid)
+	{
+		$xml = $this -> get_xml($id, $api, $charid, 'facwar');
+		$xml = new SimpleXMLElement($xml);
+		$faction = $xml -> result -> factionName;
+		return $faction;
+	}
+
 	function all($apiecho)
 	{
 		if($apiecho)
@@ -593,9 +701,8 @@ class eve_api
 		fclose($fp);
 	}
 
-	function get_site($id, $api, $charid=FALSE, $type=FALSE)
+	function get_xml($id, $api, $charid=FALSE, $type=FALSE)
 	{
-		//$url = "http://api.eve-online.com/char/CharacterSheet.xml.aspx";
 		if($type == 'standings')
 			$url = "http://api.eve-online.com/corp/Standings.xml.aspx";
 		elseif($type == 'alliances')
@@ -606,14 +713,12 @@ class eve_api
 			$corpid = $charid;
 			unset($charid);
 		}
+		elseif($type == 'charsheet')
+			$url = "http://api.eve-online.com/char/CharacterSheet.xml.aspx";
+		elseif($type == 'facwar')
+			$url = "http://api.eve-online.com/char/FacWarStats.xml.aspx ";
 		else
 			$url = "http://api.eve-online.com/account/Characters.xml.aspx";
-		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_URL, $url);
-
-		// Set your login and password for authentication
-		//curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
-		//curl_setopt($ch, CURLOPT_USERPWD, $user.':'.$pw);
 
 		if(!empty($id))
 			$post[] = 'userID='.$id;
@@ -623,6 +728,14 @@ class eve_api
 			$post[] = 'characterID='.$charid;
 		if(!empty($corpid))
 			$post[] = 'corporationID='.$corpid;
+
+		return $this -> get_site($url, $post);
+	}
+
+	function get_site($url, $post=FALSE)
+	{
+		$ch = curl_init();
+
 		if(!empty($post))
 		{
 			$post = implode('&', $post);
@@ -630,6 +743,7 @@ class eve_api
 			curl_setopt ($ch, CURLOPT_POSTFIELDS, $post);
 		}
 
+		curl_setopt($ch, CURLOPT_URL, $url);
 		curl_setopt ($ch, CURLOPT_FOLLOWLOCATION, 1);
 
 
@@ -800,7 +914,7 @@ class eve_api
 		}
 		if(!$update)
 			Return;
-		$data = $this -> get_site(FALSE, FALSE, FALSE, 'alliances');
+		$data = $this -> get_xml(FALSE, FALSE, FALSE, 'alliances');
 		//$data = $this -> rowset2($data);
 		$data = explode("<row name=\"", $data);
 		unset($data[0]);
@@ -846,7 +960,7 @@ class eve_api
 
 	function corp_info($corp)
 	{
-		$data = $this -> get_site(FALSE, FALSE, $corp, 'corp');
+		$data = $this -> get_xml(FALSE, FALSE, $corp, 'corp');
 		$info['name'] = $this -> xmlparse($data, 'corporationName');
 		$info['ticker'] = $this -> xmlparse($data, 'ticker');
 		$info['allianceid'] = $this -> xmlparse($data, 'allianceID');
@@ -1031,7 +1145,7 @@ class eve_api
 			else
 				die("error id");
 
-			if($_POST['main'] = "main")
+			if($_POST['main'] == "main")
 				$main = 1;
 			else
 				$main = 0;
@@ -1041,7 +1155,7 @@ class eve_api
 			else
 				die("Unknown Type");
 
-			if($type == "corp" || $type == "alliance" || $type == "skill" || $type == "role" || $type == "title")
+			if($type == "corp" || $type == "alliance" || $type == "skill" || $type == "role" || $type == "title" || $type == "militia")
 				$value = mysql_real_escape_string($_POST['value']);
 
 			if($type == "skill")
@@ -1049,7 +1163,7 @@ class eve_api
 
 			if(isset($groups[$_POST['group']]))
 				$group = $_POST['group'];
-			else
+			elseif(!$exists)
 				die("Invalid Group");
 
 			if(!$exists)
@@ -1082,7 +1196,7 @@ class eve_api
 		}
 	//	echo '<pre>'; var_dump($list);die;
 
-		$out[0] = '<dt>Rules for Main Group are done in Order of ID<br>Rules with Same ID as Another act as Multi Requirments<br><table border="1">'.
+		$out[0] = '<dt>* Rules for Main Group are done in Order of ID<br>* Rules with Same ID as Another act as Multi Requirments<br>* All conditions must be met by the same character<br><table border="1">'.
 				'<tr><td>ID</td><td>Main</td><td>Rule</td><td>Group</td><td>Enabled</td></tr>';
 		if(!empty($list))
 		{
@@ -1219,7 +1333,7 @@ function value_type()
 	else if(type == "militia")
 	{
 		document.getElementById(\'eveapi_valuetxt\').innerHTML="Militia:";
-		document.getElementById(\'eveapi_value\').innerHTML=\'<select name="value"><option value="amarr">amaar</option><option value="caldari">caldari</option><option value="galente">galente</option><option value="mimitar">mimitar</option></select>\';
+		document.getElementById(\'eveapi_value\').innerHTML=\'<select name="value"><option value="Amarr Empire">Amarr Empire</option><option value="Caldari State">Caldari State		</option><option value="Gallente Federation">Gallente Federation</option><option value="Minmatar Republic">Minmatar Republic</option></select>\';
 	}
 }
 value_type();
@@ -1333,7 +1447,14 @@ value_type();
 			foreach($this -> chars as $char)
 			{
 				$corp = $char[3];
-				if($corp == 535483537)
+				$alliance = $this -> corps[$corp];
+				if($corp == $this -> modSettings["eveapi_corpid"])
+				{
+					$main = $char;
+					$match = 4;
+				}
+				$corp = $char[3];
+				if($match < 3 && $alliance == $this -> modSettings["eveapi_allianceid"])
 				{
 					$main = $char;
 					$match = 3;
