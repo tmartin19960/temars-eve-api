@@ -212,12 +212,16 @@ class eve_api
 		$txt = $this -> txt;
 
 		if(is_numeric($user))
-			$id = $this -> select("SELECT ID_MEMBER, ID_GROUP FROM ".$this -> db_prefix."members WHERE ID_MEMBER = ".$user);
+			$id = $this -> select("SELECT ID_MEMBER, ID_GROUP, additional_groups FROM ".$this -> db_prefix."members WHERE ID_MEMBER = ".$user);
 		if(empty($id))
-			$id = $this -> select("SELECT ID_MEMBER, ID_GROUP FROM ".$this -> db_prefix."members WHERE member_name = '".$user."'");
+			$id = $this -> select("SELECT ID_MEMBER, ID_GROUP, additional_groups FROM ".$this -> db_prefix."members WHERE member_name = '".$user."'");
 		if(!empty($id))
 		{
 			$group = $id[0][1];
+			$id[0][2] = explode(',', $id[0][2]);
+			foreach($id[0][2] as $g)
+				$agroups[$g] = $g;
+			//				remove all monitored groups
 			$id = $id[0][0];
 			$apiusers = $this -> select("SELECT userid, api, status FROM ".$this -> db_prefix."eve_api WHERE ID_MEMBER = ".$id);
 			if(!empty($apiusers))
@@ -355,33 +359,157 @@ class eve_api
 									}
 								}
 							}
-						//}
+						}
+						// get additional
+						$rules = $this -> select("SELECT ruleid, group FROM ".$this -> db_prefix."eve_rules WHERE main = 0 AND enabled = 1 ORDER BY ruleid");
+						if(!empty($rules))
+						{
+							foreach($rules as $rule)
+							{
+								if(isset($agroups[$rule[1]])) // group already assigned no point checking
+									Break;
+								foreach($chars as $char)
+								{
+									$conditions = $this -> select("SELECT type, value, extra FROM ".$this -> db_prefix."eve_conditions WHERE ruleid = ".$rule[0]);
+									if(!empty($conditions))
+									{
+										$match = TRUE;
+										foreach($conditions as $cond)
+										{
+											$this -> chars[] = $char;
+											Switch($cond[0])
+											{
+												case 'corp':
+													if($char[3] == $cond[1])
+														Break;
+													else
+													{
+														$match = FALSE;
+														Break 2;
+													}
+												case 'alliance':
+													if($this -> corps[$char[3]] == $cond[1])
+														Break;
+													else
+													{
+														$match = FALSE;
+														Break 2;
+													}
+												case 'blue':
+													if(isset($this -> cblues[$char[3]]) || isset($this -> ablues[$this -> corps[$char[3]]]))
+														Break;
+													else
+													{
+														$match = FALSE;
+														Break 2;
+													}
+												case 'red':
+													if(isset($this -> creds[$char[3]]) || isset($this -> areds[$this -> corps[$char[3]]]))
+														Break;
+													else
+													{
+														$match = FALSE;
+														Break 2;
+													}
+												case 'error':
+													if($status == 'error')
+														Break;
+													else
+													{
+														$match = FALSE;
+														Break 2;
+													}
+												case 'skill':
+													$skills = $this -> skill_list($apiuser, $apikey, $char[1]);
+													if(strstr($cond[1], '%'))
+													{
+														$cond[1] = strtolower(str_replace('%', '(.+)', $cond[1]));
+														foreach($skills as $skill)
+														{
+															if(preg_match("/".$cond[1]."/i", $skill))
+																Break 2;
+														}
+													}
+													if(isset($skills[$cond[1]]))
+														Break;
+													else
+													{
+														$match = FALSE;
+														Break 2;
+													}
+												case 'role':
+													$roles = $this -> roles($apiuser, $apikey, $char[1]);
+													if(isset($roles[strtolower($cond[1])]))
+														Break;
+													else
+													{
+														$match = FALSE;
+														Break 2;
+													}
+												case 'title':
+													$titles = $this -> titles($apiuser, $apikey, $char[1]);
+													if(isset($titles[strtolower($cond[1])]))
+														Break;
+													else
+													{
+														$match = FALSE;
+														Break 2;
+													}
+												case 'militia':
+													$militia = $this -> militia($apiuser, $apikey, $char[1]);
+													if($militia == $cond[1])
+														Break;
+													else
+													{
+														$match = FALSE;
+														Break 2;
+													}
+												Default:
+													$match = FALSE;
+													Break 2;
+											}
+										}
+										if($match)
+										{
+											$agroups[$rule[1]] = $rule[1];
+											Break;
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			$this -> query("UPDATE ".$this -> db_prefix."members SET ID_GROUP = ".$rule[1]." WHERE ID_MEMBER = ".$id);
+			$this -> query("UPDATE ".$this -> db_prefix."eve_api SET status = 'red', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
+		}
 					//}
 
 							//var_dump($char);
 							//$charlist[$char[1]] = array($char[0], ;
-							$corp = $char[3];
+					//		$corp = $char[3];
 							//if(isset($this -> corps[$corp]))
 							//{
-								$alliance = $this -> corps[$corp];
+					//			$alliance = $this -> corps[$corp];
 								//echo "alliance!!!! $alliance\n<br>";
 							//}
-							if($corp == $this -> modSettings["eveapi_corpid"])
-							{
-								$incorp = TRUE;
-							}
-							elseif(isset($this -> cblues[$corp]) || isset($this -> ablues[$alliance]))
-							{
-								$inblues = TRUE;
-							}
-							if(isset($this -> creds[$corp]) || isset($this -> areds[$alliance]))
-							{
-								$inreds = TRUE;
-							}
-							if($alliance == $this -> modSettings["eveapi_allianceid"])
-							{
-								$inalliance = TRUE;
-							}
+					//		if($corp == $this -> modSettings["eveapi_corpid"])
+					//		{
+					//			$incorp = TRUE;
+					//		}
+					//		elseif(isset($this -> cblues[$corp]) || isset($this -> ablues[$alliance]))
+					//		{
+							//	$inblues = TRUE;
+							// }
+							// if(isset($this -> creds[$corp]) || isset($this -> areds[$alliance]))
+							// {
+								// $inreds = TRUE;
+							// }
+							// if($alliance == $this -> modSettings["eveapi_allianceid"])
+							// {
+								// $inalliance = TRUE;
+							// }
 							$corpinfo = $this -> corp_info($corp);
 							if(empty($corpinfo))
 								$corpinfo['ticker'] = "Unknown";
@@ -394,164 +522,164 @@ class eve_api
 									(userid, charid, name, corpid, corp, corp_ticker, allianceid, alliance)
 								VALUES 
 								('" . mysql_real_escape_string($apiuser) . "', '" . mysql_real_escape_string($char[1]) . "', '" . mysql_real_escape_string($char[0]) . "', '" . mysql_real_escape_string($corp) . "', '" . mysql_real_escape_string($corpinfo['name']) . "', '" . mysql_real_escape_string($corpinfo['ticker']) . "', '$alliance', '" . mysql_real_escape_string($corpinfo['alliance']) . "')");
-						}
-						if(!$incorp && !$inblues && !$inreds)
-							$inneuts = TRUE;
+						// }
+						// if(!$incorp && !$inblues && !$inreds)
+							// $inneuts = TRUE;
 					//	$charlist = implode(";", $charlist);
 					//	if($charlist != $charnames)
 					//		$this -> query("UPDATE ".$this -> db_prefix."eve_api SET characters = '".mysql_real_escape_string($charlist)."' WHERE ID_MEMBER = ".$id." AND userid = ".$apiuser);
-						$this -> query("UPDATE ".$this -> db_prefix."eve_api SET status = 'OK', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND userid = ".$apiuser);
-					}
-					else
-					{
+						// $this -> query("UPDATE ".$this -> db_prefix."eve_api SET status = 'OK', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND userid = ".$apiuser);
+					// }
+					// else
+					// {
 						//get error
 						$error = $this -> get_error($this -> data);
 						$this -> query("UPDATE ".$this -> db_prefix."eve_api SET status = 'API Error', errorid = '".$error[0]."', error = '".$error[1]."', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND userid = ".$apiuser);
 						if(($error[0] >= 500 && $error[0] < 600) || ($error[0] >= 900 && $error[0] < 1000)) // Api System is Down
 							$ignore = TRUE;
-					}
-				}
-			}
-			if($ignore)
-				Return;
-			if(isset($this -> modSettings["eveapi_groupass_unknown"]))
-				$nogroup = $this -> modSettings["eveapi_groupass_unknown"];
-			else
-				$nogroup = 0;
-			if(isset($this -> modSettings["eveapi_groupass_corp"]))
-				$corp = $this -> modSettings["eveapi_groupass_corp"];
-			else
-				$corp = 0;
-			if(isset($this -> modSettings["eveapi_groupass_alliance"]))
-				$alliance = $this -> modSettings["eveapi_groupass_alliance"];
-			else
-				$alliance = 0;
-			if(isset($this -> modSettings["eveapi_groupass_blue"]))
-				$blue = $this -> modSettings["eveapi_groupass_blue"];
-			else
-				$blue = 0;
-			if(isset($this -> modSettings["eveapi_groupass_red"]))
-				$red = $this -> modSettings["eveapi_groupass_red"];
-			else
-				$red = 0;
-			if(isset($this -> modSettings["eveapi_groupass_neut"]))
-				$neut = $this -> modSettings["eveapi_groupass_neut"];
-			else
-				$neut = 0;
+		//			}
+		//		}
+		//	}
+			// if($ignore)
+				// Return;
+			// if(isset($this -> modSettings["eveapi_groupass_unknown"]))
+				// $nogroup = $this -> modSettings["eveapi_groupass_unknown"];
+			// else
+				// $nogroup = 0;
+			// if(isset($this -> modSettings["eveapi_groupass_corp"]))
+				// $corp = $this -> modSettings["eveapi_groupass_corp"];
+			// else
+				// $corp = 0;
+			// if(isset($this -> modSettings["eveapi_groupass_alliance"]))
+				// $alliance = $this -> modSettings["eveapi_groupass_alliance"];
+			// else
+				// $alliance = 0;
+			// if(isset($this -> modSettings["eveapi_groupass_blue"]))
+				// $blue = $this -> modSettings["eveapi_groupass_blue"];
+			// else
+				// $blue = 0;
+			// if(isset($this -> modSettings["eveapi_groupass_red"]))
+				// $red = $this -> modSettings["eveapi_groupass_red"];
+			// else
+				// $red = 0;
+			// if(isset($this -> modSettings["eveapi_groupass_neut"]))
+				// $neut = $this -> modSettings["eveapi_groupass_neut"];
+			// else
+				// $neut = 0;
 
 			//15 = doom
-			if($inreds)
-			{
-				$e = "";
-				if($incorp)
-					$e = " ".$txt['eveapi_run_alsocorp'];
-				if($inblues)
-					$e .= " ".$txt['eveapi_run_alsoblue'];
-				if($group == $red)
-				{
-					$this -> file .= $txt['eveapi_run_ared'].$e."\n";
-					if($echo)
-						echo $txt['eveapi_run_ared'].$e."\n<br>";
-				}
-				else
-				{
-					$this -> file .= $txt['eveapi_run_red'].$e."\n";
-					if($echo)
-						echo $txt['eveapi_run_red'].$e."\n<br>";
-					$this -> query("UPDATE ".$this -> db_prefix."members SET ID_GROUP = $red WHERE ID_MEMBER = ".$id);
-				}
-				$this -> query("UPDATE ".$this -> db_prefix."eve_api SET status = 'red', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
-			}
-			elseif($incorp)
-			{
-				$e = "";
-				if($inblues)
-					$e = " ".$txt['eveapi_run_alsoblue'];
-				if($group == $corp)
-				{
-					$this -> file .= $txt['eveapi_run_acorp'].$e."\n";
-					if($echo)
-						echo $txt['eveapi_run_acorp'].$e."\n<br>";
-				}
-				else
-				{
-					$this -> file .= $txt['eveapi_run_corp'].$e."\n";
-					if($echo)
-						echo $txt['eveapi_run_corp'].$e."\n<br>";
-					$this -> query("UPDATE ".$this -> db_prefix."members SET ID_GROUP = $corp WHERE ID_MEMBER = ".$id);
-				}
-				$this -> query("UPDATE ".$this -> db_prefix."eve_api SET status = 'corp', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
-			}
-			elseif($inalliance)
-			{
-				$e = "";
-				if($inblues)
-					$e = " ".$txt['eveapi_run_alsoblue'];
-				if($group == $alliance)
-				{
-					$this -> file .= $txt['eveapi_run_aalliance'].$e."\n";
-					if($echo)
-						echo $txt['eveapi_run_aalliance'].$e."\n<br>";
-				}
-				else
-				{
-					$this -> file .= $txt['eveapi_run_alliance'].$e."\n";
-					if($echo)
-						echo $txt['eveapi_run_alliance'].$e."\n<br>";
-					$this -> query("UPDATE ".$this -> db_prefix."members SET ID_GROUP = $alliance WHERE ID_MEMBER = ".$id);
-				}
-				$this -> query("UPDATE ".$this -> db_prefix."eve_api SET status = 'alliance', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
-			}
-			elseif($inblues)
-			{
-				if($group == $blue)
-				{
-					$this -> file .= $txt['eveapi_run_ablue']."\n";
-					if($echo)
-						echo $txt['eveapi_run_ablue']."\n<br>";
-				}
-				else
-				{
-					$this -> file .= $txt['eveapi_run_blue']."\n";
-					if($echo)
-						echo $txt['eveapi_run_blue']."\n<br>";
-					$this -> query("UPDATE ".$this -> db_prefix."members SET ID_GROUP = $blue WHERE ID_MEMBER = ".$id);
-				}
-				$this -> query("UPDATE ".$this -> db_prefix."eve_api SET status = 'blue', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
-			}
-			elseif($inneuts)
-			{
-				if($group == $neut)
-				{
-					$this -> file .= $txt['eveapi_run_aneut']."\n";
-					if($echo)
-						echo $txt['eveapi_run_aneut']."\n<br>";
-				}
-				else
-				{
-					$this -> file .= $txt['eveapi_run_neut']."\n";
-					if($echo)
-						echo $txt['eveapi_run_neut']."\n<br>";
-					$this -> query("UPDATE ".$this -> db_prefix."members SET ID_GROUP = $neut WHERE ID_MEMBER = ".$id);
-				}
-				$this -> query("UPDATE ".$this -> db_prefix."eve_api SET status = 'neut', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
-			}
-			elseif($group != $nogroup)
-			{
-				$this -> file .= $txt['eveapi_run_reg']."\n";
-				if($echo)
-					echo $txt['eveapi_run_reg']."\n<br>";
-				$this -> query("UPDATE ".$this -> db_prefix."members SET ID_GROUP = $nogroup WHERE ID_MEMBER = ".$id);
-				$this -> query("UPDATE ".$this -> db_prefix."eve_api SET status = 'error', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
-			}
-			elseif($group == $nogroup)
-			{
-				$this -> file .= $txt['eveapi_run_areg']."\n";
-				if($echo)
-					echo $txt['eveapi_run_areg']."\n<br>";
-				$this -> query("UPDATE ".$this -> db_prefix."eve_api SET status = 'error', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
-			}
-		}
+			// if($inreds)
+			// {
+				// $e = "";
+				// if($incorp)
+					// $e = " ".$txt['eveapi_run_alsocorp'];
+				// if($inblues)
+					// $e .= " ".$txt['eveapi_run_alsoblue'];
+				// if($group == $red)
+				// {
+					// $this -> file .= $txt['eveapi_run_ared'].$e."\n";
+					// if($echo)
+						// echo $txt['eveapi_run_ared'].$e."\n<br>";
+				// }
+				// else
+				// {
+					// $this -> file .= $txt['eveapi_run_red'].$e."\n";
+					// if($echo)
+						// echo $txt['eveapi_run_red'].$e."\n<br>";
+					// $this -> query("UPDATE ".$this -> db_prefix."members SET ID_GROUP = $red WHERE ID_MEMBER = ".$id);
+				// }
+				// $this -> query("UPDATE ".$this -> db_prefix."eve_api SET status = 'red', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
+			// }
+			// elseif($incorp)
+			// {
+				// $e = "";
+				// if($inblues)
+					// $e = " ".$txt['eveapi_run_alsoblue'];
+				// if($group == $corp)
+				// {
+					// $this -> file .= $txt['eveapi_run_acorp'].$e."\n";
+					// if($echo)
+						// echo $txt['eveapi_run_acorp'].$e."\n<br>";
+				// }
+				// else
+				// {
+					// $this -> file .= $txt['eveapi_run_corp'].$e."\n";
+					// if($echo)
+						// echo $txt['eveapi_run_corp'].$e."\n<br>";
+					// $this -> query("UPDATE ".$this -> db_prefix."members SET ID_GROUP = $corp WHERE ID_MEMBER = ".$id);
+				// }
+				// $this -> query("UPDATE ".$this -> db_prefix."eve_api SET status = 'corp', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
+			// }
+			// elseif($inalliance)
+			// {
+				// $e = "";
+				// if($inblues)
+					// $e = " ".$txt['eveapi_run_alsoblue'];
+				// if($group == $alliance)
+				// {
+					// $this -> file .= $txt['eveapi_run_aalliance'].$e."\n";
+					// if($echo)
+						// echo $txt['eveapi_run_aalliance'].$e."\n<br>";
+				// }
+				// else
+				// {
+					// $this -> file .= $txt['eveapi_run_alliance'].$e."\n";
+					// if($echo)
+						// echo $txt['eveapi_run_alliance'].$e."\n<br>";
+					// $this -> query("UPDATE ".$this -> db_prefix."members SET ID_GROUP = $alliance WHERE ID_MEMBER = ".$id);
+				// }
+				// $this -> query("UPDATE ".$this -> db_prefix."eve_api SET status = 'alliance', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
+			// }
+			// elseif($inblues)
+			// {
+				// if($group == $blue)
+				// {
+					// $this -> file .= $txt['eveapi_run_ablue']."\n";
+					// if($echo)
+						// echo $txt['eveapi_run_ablue']."\n<br>";
+				// }
+				// else
+				// {
+					// $this -> file .= $txt['eveapi_run_blue']."\n";
+					// if($echo)
+						// echo $txt['eveapi_run_blue']."\n<br>";
+					// $this -> query("UPDATE ".$this -> db_prefix."members SET ID_GROUP = $blue WHERE ID_MEMBER = ".$id);
+				// }
+				// $this -> query("UPDATE ".$this -> db_prefix."eve_api SET status = 'blue', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
+			// }
+			// elseif($inneuts)
+			// {
+				// if($group == $neut)
+				// {
+					// $this -> file .= $txt['eveapi_run_aneut']."\n";
+					// if($echo)
+						// echo $txt['eveapi_run_aneut']."\n<br>";
+				// }
+				// else
+				// {
+					// $this -> file .= $txt['eveapi_run_neut']."\n";
+					// if($echo)
+						// echo $txt['eveapi_run_neut']."\n<br>";
+					// $this -> query("UPDATE ".$this -> db_prefix."members SET ID_GROUP = $neut WHERE ID_MEMBER = ".$id);
+				// }
+				// $this -> query("UPDATE ".$this -> db_prefix."eve_api SET status = 'neut', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
+			// }
+			// elseif($group != $nogroup)
+			// {
+				// $this -> file .= $txt['eveapi_run_reg']."\n";
+				// if($echo)
+					// echo $txt['eveapi_run_reg']."\n<br>";
+				// $this -> query("UPDATE ".$this -> db_prefix."members SET ID_GROUP = $nogroup WHERE ID_MEMBER = ".$id);
+				// $this -> query("UPDATE ".$this -> db_prefix."eve_api SET status = 'error', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
+			// }
+			// elseif($group == $nogroup)
+			// {
+				// $this -> file .= $txt['eveapi_run_areg']."\n";
+				// if($echo)
+					// echo $txt['eveapi_run_areg']."\n<br>";
+				// $this -> query("UPDATE ".$this -> db_prefix."eve_api SET status = 'error', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
+			// }
+		// }
 	}
 
 	function rule_check_corp()
@@ -1177,13 +1305,13 @@ class eve_api
 			//	error
 			
 		}
-		$idl = $this -> select("SELECT ruleid, main, `group`, enabled FROM ".$this -> db_prefix."eve_rules ORDER BY ruleid");
+		$idl = $this -> select("SELECT ruleid, main, `group`, andor, enabled FROM ".$this -> db_prefix."eve_rules ORDER BY ruleid");
 		if(!empty($idl))
 		{
 			foreach($idl as $id)
 			{
 				$ids[] = $id[0];
-				$list[$id[0]] = array('main' => $id[1], 'group' => $id[2], 'enabled' => $id[3], 'conditions' => array());
+				$list[$id[0]] = array('main' => $id[1], 'group' => $id[2], 'andor' => $id[3], 'enabled' => $id[4], 'conditions' => array());
 			}
 		}
 		$idl = $this -> select("SELECT id, ruleid, type, value, extra FROM ".$this -> db_prefix."eve_conditions ORDER BY ruleid");
@@ -1196,38 +1324,66 @@ class eve_api
 		}
 	//	echo '<pre>'; var_dump($list);die;
 
-		$out[0] = '<dt>* Rules for Main Group are done in Order of ID<br>* Rules with Same ID as Another act as Multi Requirments<br>* All conditions must be met by the same character<br><table border="1">'.
-				'<tr><td>ID</td><td>Main</td><td>Rule</td><td>Group</td><td>Enabled</td></tr>';
+		$out[0] = '<dt>* Rules for Main Group are done in Order of ID<br>* Rules with Same ID as Another act as Multi Requirments<br>* All conditions must be met by the same character if AND rule<br><table border="1">'.
+				'<tr><td>ID</td><td>Rule</td><td>Group</td><td>AND / OR</td><td>Enabled</td></tr>';
 		if(!empty($list))
 		{
 			foreach($list as $id => $l)
 			{
-				$span = count($l['conditions']);
 				if($l['main'] == 1)
-					$main = 'Yes';
-				else
-					$main = 'No';
-				$out[0] .= '<tr><td rowspan="'.$span.'">'.$id.'</td><td rowspan="'.$span.'">'.$main.'</td>';
-				$tr = '';
-				foreach($l['conditions'] as $r)
 				{
-					$out[0] .= $tr.'<td>'.$types[$r['type']].': '.$r['value'].'</td>';
-					if($tr == '')
+					$span = count($l['conditions']);
+					$out[0] .= '<tr><td rowspan="'.$span.'">'.$id.'</td>';
+					$tr = '';
+					foreach($l['conditions'] as $r)
 					{
-						if($r[7] == 1)
-							$enabled = 'Yes';
-						else
-							$enabled = 'No';
-						$out[0] .= '<td rowspan="'.$span.'">'.$groups[$l['group']].'</td><td rowspan="'.$span.'">'.$enabled.'</td>';
+						$out[0] .= $tr.'<td>'.$types[$r['type']].': '.$r['value'].'</td>';
+						if($tr == '')
+						{
+							if($r[7] == 1)
+								$enabled = 'Yes';
+							else
+								$enabled = 'No';
+							$out[0] .= '<td rowspan="'.$span.'">'.$groups[$l['group']].'</td><td rowspan="'.$span.'">'.$l['andor'].'</td><td rowspan="'.$span.'">'.$enabled.'</td>';
+						}
+						$tr = '</tr><tr>';
 					}
-					$tr = '</tr><tr>';
+					$out[0] .= '</tr>';
 				}
-				$out[0] .= '</tr>';
 			}
 		}
 		$out[0] .= '</tr></table></dt>';
-		$out[2] = '';
-		$out[3] = '<dt>Create Rule:<br>
+		$out[1] = '';
+		$out[2] .= '<dt><table border="1"><tr><td>ID</td><td>Rule</td><td>Group</td><td>AND / OR</td><td>Enabled</td></tr>';
+		if(!empty($list))
+		{
+			foreach($list as $id => $l)
+			{
+				if($l['main'] == 0)
+				{
+					$span = count($l['conditions']);
+					$out[2] .= '<tr><td rowspan="'.$span.'">'.$id.'</td>';
+					$tr = '';
+					foreach($l['conditions'] as $r)
+					{
+						$out[2] .= $tr.'<td>'.$types[$r['type']].': '.$r['value'].'</td>';
+						if($tr == '')
+						{
+							if($r[7] == 1)
+								$enabled = 'Yes';
+							else
+								$enabled = 'No';
+							$out[2] .= '<td rowspan="'.$span.'">'.$groups[$l['group']].'</td><td rowspan="'.$span.'">'.$l['andor'].'</td><td rowspan="'.$span.'">'.$enabled.'</td>';
+						}
+						$tr = '</tr><tr>';
+					}
+					$out[2] .= '</tr>';
+				}
+			}
+		}
+		$out[2] .= '</tr></table></dt>';
+		$out[3] = '';
+		$out[4] = '<dt>Create Rule:<br>
 					</form><form name="makerule" method="post" action="">
 			<table>
 			<tr>
@@ -1235,23 +1391,30 @@ class eve_api
 				<td><select name="id" onchange="javascript: value_type()"><option value="new">new</option>';
 		foreach($ids as $id)
 		{
-			$out[3] .= '<option value="'.$id.'">'.$id.'</option>';
+			$out[4] .= '<option value="'.$id.'">'.$id.'</option>';
 		}
 
-		$out[3] .= '</select></td>
+		$out[4] .= '</select></td>
 			</tr>
 						<tr>
 				<td><div id="eveapi_maintxt">Main Group:</div></td>
 				<td><div id="eveapi_main"><input type="checkbox" name="main" value="main" /></div></td>
 			</tr>
 			<tr>
+				<td>Condition link:</td>
+				<td><select name="andor">
+						<option value="AND">AND</option>
+						<option value="OR">OR</option>
+					</select> should multiple conditions be treated as AND or OR</td>
+			</tr>
+			<tr>
 				<td>Type:</td>
 				<td><select name="type" onchange="javascript: value_type()">';
 		foreach($types as $value => $name)
 		{
-			$out[3] .= '<option value="'.$value.'">'.$name.'</option>';
+			$out[4] .= '<option value="'.$value.'">'.$name.'</option>';
 		}
-		$out[3] .= '</select></td>
+		$out[4] .= '</select></td>
 			</tr>
 
 				<tr>
@@ -1263,9 +1426,9 @@ class eve_api
 				<option value="-">-</option>';
 		foreach($groups as $id => $group)
 		{
-			$out[3] .= '<option value="'.$id.'">'.$group.'</option>';
+			$out[4] .= '<option value="'.$id.'">'.$group.'</option>';
 		}
-		$out[3] .= '</select></div></td>
+		$out[4] .= '</select></div></td>
 			</tr>
 			<tr>
 				<td width="134">&nbsp;</td>
@@ -1275,7 +1438,7 @@ class eve_api
 			</form>
 			TODO: language file
 </dt>';
-$out[3] .= '
+$out[4] .= '
 <script type="text/javascript">
 function value_type()
 {
@@ -1289,9 +1452,9 @@ function value_type()
 		document.getElementById(\'eveapi_group\').innerHTML=\'<select name="group"><option value="-">-</option>';
 		foreach($groups as $id => $group)
 		{
-			$out[3] .= '<option value="'.$id.'">'.$group.'</option>';
+			$out[4] .= '<option value="'.$id.'">'.$group.'</option>';
 		}
-		$out[3] .= '</select>\';
+		$out[4] .= '</select>\';
 	}
 	else
 	{
@@ -1447,14 +1610,7 @@ value_type();
 			foreach($this -> chars as $char)
 			{
 				$corp = $char[3];
-				$alliance = $this -> corps[$corp];
-				if($corp == $this -> modSettings["eveapi_corpid"])
-				{
-					$main = $char;
-					$match = 4;
-				}
-				$corp = $char[3];
-				if($match < 3 && $alliance == $this -> modSettings["eveapi_allianceid"])
+				if($corp == 535483537)
 				{
 					$main = $char;
 					$match = 3;
@@ -1811,4 +1967,5 @@ function grab_txt($eveapi)
 	Global $txt;
 	$eveapi -> txt = $txt;
 }
+
 ?>
