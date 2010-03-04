@@ -1168,8 +1168,8 @@ class eve_api
 			<script type="text/javascript">
 				function getPortrait(id)
 				{
-					var maxHeight = ', !empty($modSettings['avatar_max_height_external']) ? $modSettings['avatar_max_height_external'] : 0, ';
-					var maxWidth = ', !empty($modSettings['avatar_max_width_external']) ? $modSettings['avatar_max_width_external'] : 0, ';
+					var maxHeight = ', !empty($this -> modSettings['avatar_max_height_external']) ? $this -> modSettings['avatar_max_height_external'] : 0, ';
+					var maxWidth = ', !empty($this -> modSettings['avatar_max_width_external']) ? $this -> modSettings['avatar_max_width_external'] : 0, ';
 					var tempImage = new Image();
 
 					tempImage.src = \'http://img.eve.is/serv.asp?s=64&c=\'+id;
