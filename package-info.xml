@@ -55,5 +55,7 @@
 		<modification type="file">upgrade_1_0_x.xml</modification>
 		<require-file name="Eve_API.php" destination="$sourcedir" />
 		<require-file name="Eve_API.english.php" destination="$languagedir" />
+		<modification type="file" reverse="true">mod_profile_template_102.xml</modification>
+		<modification type="file">mod_profile_template.xml</modification>
 	</upgrade>
 </package-info>
