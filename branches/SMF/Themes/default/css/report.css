@@ -1,0 +1,59 @@
+body
+{
+	color: black;
+	background-color: white;
+	zoom: 1;
+}
+body, td, .normaltext
+{
+	font-family: Verdana, arial, helvetica, serif;
+	font-size: small;
+}
+*, a:link, a:visited, a:hover, a:active
+{
+	color: black !important;
+}
+.smalltext, .quoteheader, .codeheader
+{
+	font-size: x-small;
+}
+.largetext
+{
+	font-size: large;
+}
+hr
+{
+	height: 1px;
+	border: 0;
+	color: black;
+	background-color: black;
+}
+.catbg
+{
+	background-color: #D6D6D6;
+	font-weight: bold;
+}
+.titlebg, tr.titlebg td, .titlebg a:link, .titlebg a:visited
+{
+	font-style: normal;
+	background-color: #F0F4F7;
+}
+.bordercolor
+{
+	background-color: #333;
+}
+.windowbg
+{
+	color: black;
+	background-color: white;
+}
+.windowbg2
+{
+	color: black;
+	background-color: #F1F1F1;
+}
+.copyright
+{
+	font-size: x-small;
+	text-align: center;
+}

@@ -1,0 +1,127 @@
+/* The dropdown menus
+------------------------------------------------------- */
+#main_menu
+{
+	overflow: auto;
+}
+.dropmenu li
+{
+	width: 1px;
+}
+.dropmenu li a span
+{
+	white-space: nowrap;
+}
+.dropmenu li a:hover
+{
+	text-decoration: none;
+}
+
+/* the page section*/
+.pagesecttion
+{
+	overflow: auto;
+}
+/* the user section needs some attention */
+#main_menu
+{
+	width: 98%;
+}
+#top_section
+{
+	height: 65px;
+}
+
+/* the tabled definition lists */
+dl.settings dd, #creator dd, dl.stats dd, dl.register_form dd, #poll_options dl.options dd, .login dd
+{
+	float: none !important;
+	width: auto;
+}
+/*generic lists header */
+.table_grid thead th
+{
+	padding: 0 !important;
+}
+
+/* overflow: hidden doesn't help in IE6. */
+h3.titlebg a, h3.titlebg, h4.titlebg, h4.titlebg a
+{
+	display: inline-block;
+}
+
+h3.catbg, h3.catbg2, h4.catbg
+{
+	width: 100%;
+}
+
+#upper_section
+{
+	display: inline-block;
+}
+
+/* Overrides for the message index template
+------------------------------------------------------- */
+#messageindex table
+{
+	margin-top: 5px;
+}
+#messageindex table th
+{
+	border-bottom: solid 1px white;
+}
+#topic_icons .description
+{
+	padding: 2em 1em 1em 1em;
+	overflow: auto;
+}
+
+/* Overrides for the display template
+------------------------------------------------------- */
+#forumposts .postarea
+{
+	margin-left: 0px;
+	margin-right: 0px;
+	float: right;
+}
+
+.buttonlist ul li
+{
+	width: 1%;
+	white-space: nowrap;
+}
+#forumposts h3.catbg
+{
+	margin-top: 8px;
+	clear: both;
+}
+.signature
+{
+	padding: 0 0 0.8em 0;
+}
+
+/* Overrides for the admin template
+------------------------------------------------------- */
+#main_admsection
+{
+	height: 655px;
+}
+#main_admsection table
+{
+	width: 99%;
+}
+/* Overrides for the profile template
+------------------------------------------------------- */
+#basicinfo h4
+{
+	word-wrap: break-word;
+}
+
+/* Overrides for the personal messages template
+------------------------------------------------------- */
+#personal_messages .postarea
+{
+	margin-left: 0px;
+	margin-right: 0px;
+	float: right;
+}

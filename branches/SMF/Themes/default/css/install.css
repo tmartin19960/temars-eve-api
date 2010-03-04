@@ -1,0 +1,81 @@
+#upper_section .user
+{
+	height: 4em;
+}
+#upper_section .news
+{
+	height: 80px;
+}
+#main_screen
+{
+	padding: 0 40px;
+}
+#main_screen h2
+{
+	font-size: 2em;
+	border-bottom: solid 1px #d05800;
+	line-height: 2em;
+	margin: 0 0 0.5em 0;
+	color: #d05800;
+}
+#content_section
+{
+	margin-top: -20px;
+	zoom: 1;
+}
+#main-steps
+{
+	float: right;
+	width: 50%;
+	margin-top: -60px;
+}
+#main-steps h2
+{
+	font-size: 1.5em;
+	border-bottom: solid 1px #d05800;
+	line-height: 1.5em;
+	margin: 0 0 0.5em 0;
+	color: #d05800;
+	margin-right: 40px;
+}
+#main-steps ul
+{
+	list-style: none;
+	padding-left: 0;
+	margin: 0;
+}
+#main-steps ul li
+{
+	padding: 3px 0;
+}
+#main-steps ul li.stepdone
+{
+	color: #aaa;
+}
+#main-steps ul li.stepcurrent
+{
+	color: #000;
+	font-weight: bold;
+}
+#main-steps ul li.stepwaiting
+{
+	color: #666;
+}
+.panel
+{
+	font-weight: normal;
+}
+a:link, a:hover, a:visited
+{
+	text-decoration: underline;
+}
+.progress
+{
+	position: relative;
+	margin: -16px 3px 0 3px;
+}
+.overall_progress
+{
+	position: relative;
+	margin: -25px 3px 0 3px;
+}
