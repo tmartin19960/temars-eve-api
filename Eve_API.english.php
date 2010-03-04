@@ -14,7 +14,7 @@ $txt['eveapi_disabled'] = 'Eve Api Mod is Disabled.';
 $txt['eveapi_version'] = 'Version';
 
 //Settings Page
-$txt['eveapi_settings_message'] = "The API info needed here is to get the Corp/Alliance Info along with Standings";
+$txt['eveapi_settings_message'] = "The API info needed here is to get the Corp/Alliance Info along with Standings<Br>A Full API Key is Required for Standings";
 $txt['eveapi_enable'] = 'Enable Temars Eve Api Mod';
 $txt['eveapi_usecharname'] = 'Is Real name Locked to Characters';
 $txt['eveapi_avatar_enabled'] = 'Is Getting an Avatar of a Character Enabled';

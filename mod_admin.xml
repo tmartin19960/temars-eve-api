@@ -16,11 +16,6 @@
 					'file' => 'Eve_API.php',
 					'function' => 'ModifyEveApiSettings',
 					'icon' => 'treasury.gif',
-					'subsections' => array(
-						'settings' => array($txt['settings']),
-						'rules' => array($txt['eveapi_rules']),
-						'checks' => array($txt['eveapi_checks']),
-					),
 				),
 			),
 		),
