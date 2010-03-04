@@ -24,7 +24,7 @@
 		</operation>
 		<operation>
 			<search position="replace"><![CDATA[	elseif (($value == 'upload' && allowedTo('profile_upload_avatar')) || $downloadedExternalAvatar)]]></search>
-			<add><![CDATA[	elseif($value == 'eveapi')
+			<add><![CDATA[	elseif($value == 'tea')
 	{
 		Global $eve_api;
 		$eve_api -> avatar_save($memID, $profile_vars, $cur_profile);

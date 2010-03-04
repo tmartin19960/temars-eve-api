@@ -2,23 +2,26 @@
 
 if (!defined('SMF'))
 	die('Hacking attempt...');
-Global $eve_api, $db_prefix, $sourcedir, $modSettings, $user_info, $txt, $smcFunc;
-$eve_api = new eve_api($db_prefix, $sourcedir, $modSettings, $user_info, $context, $txt, $smcFunc);
+
+Global $eve_api, $db_prefix, $sourcedir, $modSettings, $user_info, $context, $txt, $smcFunc;
 loadLanguage('Eve_API');
+$eve_api = new eve_api($db_prefix, $sourcedir, $modSettings, $user_info, $context, $txt, $smcFunc);
 
 class eve_api
 {
+	var $corps;
+
 	function __construct(&$db_prefix, &$sourcedir, &$modSettings, &$user_info, &$context, &$txt, &$smcFunc)
 	{
-		$this -> db_prefix = $db_prefix;
-		$this -> sourcedir = $sourcedir;
-		$this -> modSettings = $modSettings;
-		$this -> user_info = $user_info;
-		$this -> context = $context;
-		$this -> txt = $txt;
-		$this -> smcFunc = $smcFunc;
+		$this -> db_prefix = &$db_prefix;
+		$this -> sourcedir = &$sourcedir;
+		$this -> modSettings = &$modSettings;
+		$this -> user_info = &$user_info;
+		$this -> context = &$context;
+		$this -> txt = &$txt;
+		$this -> smcFunc = &$smcFunc;
 
-		$this -> version = "1.0.1";
+		$this -> version = "1.0.3";
 
 		$permissions["eveapi_view_own"] = 1;
 		$permissions["eveapi_view_any"] = 0;
@@ -31,7 +34,7 @@ class eve_api
 		// Get all the non-postcount based groups.
 		$request = $this -> select("
 		  SELECT ID_GROUP
-		  FROM {$db_prefix}membergroups
+		  FROM ".$this -> db_prefix."membergroups
 		  WHERE min_posts = -1");
 		foreach($request as $row)
 			$groups[] = $row[0];
@@ -40,7 +43,7 @@ class eve_api
 		{
 		   // Give them all their new permission.
 			$request = $this -> query("
-			  INSERT IGNORE INTO {$db_prefix}permissions
+			  INSERT IGNORE INTO ".$this -> db_prefix."permissions
 				 (permission, ID_GROUP, add_deny)
 			  VALUES
 				 ('".$p."', " . implode(", $v),
@@ -206,7 +209,7 @@ class eve_api
 		$mongroups[$this -> modSettings["eveapi_groupass_neut"]] = TRUE;
 
 		$this -> chars = array();
-		grab_txt($this);
+
 		$txt = $this -> txt;
 
 		if(is_numeric($user))
@@ -510,7 +513,6 @@ class eve_api
 
 	function get_site($id, $api, $charid=FALSE, $type=FALSE)
 	{
-		//$url = "http://api.eve-online.com/char/CharacterSheet.xml.aspx";
 		if($type == 'standings')
 			$url = "http://api.eve-online.com/corp/Standings.xml.aspx";
 		elseif($type == 'alliances')
@@ -764,6 +766,8 @@ class eve_api
 		$data = $this -> get_site(FALSE, FALSE, $corp, 'corp');
 		$info['name'] = $this -> xmlparse($data, 'corporationName');
 		$info['ticker'] = $this -> xmlparse($data, 'ticker');
+		$info['allianceid'] = $this -> xmlparse($data, 'allianceID');
+		$info['alliance'] = $this -> xmlparse($data, 'allianceName');
 		Return ($info);
 	}
 
@@ -1095,6 +1099,7 @@ class eve_api
 			foreach($user as $u)
 			{
 				$characters = $this -> get_all_chars(FALSE, TRUE);
+				
 				if($u[1] == "tnet")
 					$checkt = "checked";
 				else
@@ -1157,20 +1162,34 @@ class eve_api
 	//						</table>';
 	}
 
-	function avatar_option($txt)
+	function avatar_option()
 	{
 		echo '
-							<tr>
-								<td valign="top" style="padding: 0 2px;">
-									<table width="100%" cellpadding="5" cellspacing="0" border="0"><tr>
-										<td valign="top" width="20" class="windowbg"><input type="radio" name="avatar_choice" id="avatar_choice_eveapi" value="eveapi"', ($this -> context['member']['avatar']['choice'] == 'eveapi' ? ' checked="checked"' : ''), ' class="check" /></td>
-										<td valign="top" style="padding-left: 1ex;"><strong><label for="avatar_choice_eveapi">', $txt['eveapi_avatar'], ':</label></strong></td>
-									</tr></table>
-								</td>
-								<td valign="top">
-									<select name="userpicpersonal" value="', $this -> context['member']['avatar']['eveapi'], '" onfocus="selectRadioByName(document.forms.creator.avatar_choice, \'eveapi\');" onchange="if (typeof(previewExternalAvatar) != \'undefined\') previewExternalAvatar(\'http://img.eve.is/serv.asp?s=64&c=\'+this.value);" >';
+			<script type="text/javascript">
+				function getPortrait(id)
+				{
+					var maxHeight = ', !empty($modSettings['avatar_max_height_external']) ? $modSettings['avatar_max_height_external'] : 0, ';
+					var maxWidth = ', !empty($modSettings['avatar_max_width_external']) ? $modSettings['avatar_max_width_external'] : 0, ';
+					var tempImage = new Image();
+
+					tempImage.src = \'http://img.eve.is/serv.asp?s=64&c=\'+id;
+					if (maxWidth != 0 && tempImage.width > maxWidth)
+					{
+						document.getElementById("eavatar").style.height = parseInt((maxWidth * tempImage.height) / tempImage.width) + "px";
+						document.getElementById("eavatar").style.width = maxWidth + "px";
+					}
+					else if (maxHeight != 0 && tempImage.height > maxHeight)
+					{
+						document.getElementById("eavatar").style.width = parseInt((maxHeight * tempImage.width) / tempImage.height) + "px";
+						document.getElementById("eavatar").style.height = maxHeight + "px";
+					}
+					document.getElementById("eavatar").src = \'http://img.eve.is/serv.asp?s=64&c=\'+id;
+				}
+			</script>
+								<div id="avatar_tea">
+									<select name="attachment" value="', $this -> context['member']['avatar']['tea'], '"  onfocus="selectRadioByName(document.forms.creator.avatar_choice, \'tea\');" onchange="getPortrait(this.value);" >';
 		$chars = $this -> get_all_chars(TRUE);
-	//	var_dump($chars);die;
+	//	echo "\n<pre>"; var_dump($this -> context['member']['avatar']);die;
 		if(!empty($chars))
 		{
 			foreach($chars as $id => $char)
@@ -1178,9 +1197,10 @@ class eve_api
 				echo '<option value="'.$id.'">'.$char.'</option>';
 			}
 		}
-		echo '							</select>
-								</td>
-							</tr>';
+		echo '			</select>
+<br><img name="eavatar" id="eavatar" src="', !empty($this -> modSettings["eveapi_enable"]) && $this -> context['member']['avatar']['choice'] == 'tea' ? $this -> context['member']['avatar']['tea'] : $this -> modSettings['avatar_url'] . '/blank.gif', '" />
+								</div>';
+
 	}
 
 	function avatar_save($memID, &$profile_vars, &$cur_profile)
@@ -1188,7 +1208,7 @@ class eve_api
 		// Remove any attached avatar...
 		removeAttachments(array('id_member' => $memID));
 
-		$profile_vars['avatar'] = $_POST['userpicpersonal'];
+		$profile_vars['avatar'] = $_POST['attachment'];
 
 	//	if ($profile_vars['avatar'] == 'http://' || $profile_vars['avatar'] == 'http:///')
 	//		$profile_vars['avatar'] = '';
@@ -1214,12 +1234,10 @@ class eve_api
 					if (downloadAvatar('http://img.eve.is/serv.asp?s=64&c='.$profile_vars['avatar'], $memID, 64, 64))
 					{
 						$profile_vars['avatar'] = '';
-						$cur_profile['id_attach'] = $modSettings['new_avatar_data']['id'];
-						$cur_profile['filename'] = $modSettings['new_avatar_data']['filename'];
-						$cur_profile['attachment_type'] = $modSettings['new_avatar_data']['type'];
+						$cur_profile['id_attach'] = $this -> modSettings['new_avatar_data']['id'];
+						$cur_profile['filename'] = $this -> modSettings['new_avatar_data']['filename'];
+						$cur_profile['attachment_type'] = $this -> modSettings['new_avatar_data']['type'];
 					}
-					else
-						return 'bad_avatar';
 	//			}
 	//		}
 	//	}
@@ -1305,9 +1323,4 @@ $eveapiinfo[] = array();
 		</form>';
 }
 
-function grab_txt($eveapi)
-{
-	Global $txt;
-	$eveapi -> txt = $txt;
-}
 ?>
