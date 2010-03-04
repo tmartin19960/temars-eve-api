@@ -4,7 +4,7 @@
 	<id>temar:EveAPI</id>
 	<name>Temars EVE API</name>
 	<type>modification</type>
-	<version>1.0.1</version>
+	<version>1.0.3</version>
 	<install for="1.1 - 1.1.99">
 		<readme type="file">readme.txt</readme>
 		<readme type="inline" parsebbc="true">[color=red]Error! This mod does not support your version of SMF.[/color]</readme>
@@ -50,10 +50,10 @@
 		<remove-file name="$sourcedir/Eve_API_Cron.php" />
 		<remove-file name="$languagedir/Eve_API.english.php" />
 	</uninstall>
-	<upgrade from="1.0.0 - 1.0.1">
-		<readme type="inline">This will upgrade Temars Eve Api Mod to version 1.0.2</readme>
+	<upgrade from="1.0.0 - 1.0.2">
+		<readme type="inline">This will upgrade Temars Eve Api Mod to version 1.0.3</readme>
+		<modification type="file">upgrade_1_0_x.xml</modification>
 		<require-file name="Eve_API.php" destination="$sourcedir" />
 		<require-file name="Eve_API.english.php" destination="$languagedir" />
 	</upgrade>
-	<upgrade from="3.18">
 </package-info>
