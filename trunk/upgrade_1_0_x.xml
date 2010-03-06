@@ -26,5 +26,12 @@
 				),]]></add>
 		</operation>
 	</file>
+	<file name="$sourcedir/Profile-Modify.php">
+
+		<operation>
+			<search position="replace"><![CDATA[	elseif($value == 'eveapi')]]></search>
+			<add><![CDATA[	elseif($value == 'tea')]]></add>
+		</operation>
+	</file>
 
 </modification>

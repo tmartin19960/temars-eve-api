@@ -50,11 +50,20 @@
 		<remove-file name="$sourcedir/Eve_API_Cron.php" />
 		<remove-file name="$languagedir/Eve_API.english.php" />
 	</uninstall>
-	<upgrade from="1.0.0 - 1.0.1">
+	<upgrade from="1.0.3">
 		<readme type="inline">This will upgrade Temars Eve Api Mod to version 1.1.0</readme>
 		<modification type="file">upgrade_1_0_x.xml</modification>
 		<require-file name="Eve_API.php" destination="$sourcedir" />
 		<require-file name="Eve_API.english.php" destination="$languagedir" />
+		<code>tables.php</code>
+	</upgrade>
+	<upgrade from="1.0.0 - 1.0.2">
+		<readme type="inline">This will upgrade Temars Eve Api Mod to version 1.1.0</readme>
+		<modification type="file">upgrade_1_0_x.xml</modification>
+		<require-file name="Eve_API.php" destination="$sourcedir" />
+		<require-file name="Eve_API.english.php" destination="$languagedir" />
+		<modification type="file" reverse="true">mod_profile_template_102.xml</modification>
+		<modification type="file">mod_profile_template.xml</modification>
 		<code>tables.php</code>
 	</upgrade>
 </package-info>
