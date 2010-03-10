@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<!DOCTYPE modification SYSTEM "http://www.simplemachines.org/xml/modification">
+<modification xmlns="http://www.simplemachines.org/xml/modification" xmlns:smf="http://www.simplemachines.org/">
+	<id>temar:EveAPI</id>
+	<version>1.00</version>
+
+	<file name="$sourcedir/Admin.php">
+
+		<operation>
+			<search position="replace"><![CDATA[			),
+		),
+		'layout' => array(
+			'title' => $txt['layout_controls'],]]></search>
+			<add><![CDATA[				'eveapi' => array(
+					'label' => $txt['eveapi_eveapi'],
+					'file' => 'Eve_API.php',
+					'function' => 'ModifyEveApiSettings',
+					'icon' => 'treasury.gif',
+				),
+			),
+		),
+		'layout' => array(
+			'title' => $txt['layout_controls'],]]></add>
+		</operation>
+	</file>
+
+</modification>
