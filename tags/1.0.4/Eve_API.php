@@ -21,7 +21,7 @@ class eve_api
 		$this -> txt = &$txt;
 		$this -> smcFunc = &$smcFunc;
 
-		$this -> version = "1.0.3";
+		$this -> version = "1.0.4";
 
 		$permissions["eveapi_view_own"] = 1;
 		$permissions["eveapi_view_any"] = 0;
