@@ -13,7 +13,7 @@ class eve_api
 
 	function __construct(&$db_prefix, &$sourcedir, &$modSettings, &$user_info, &$context, &$txt, &$smcFunc)
 	{
-		$this -> db_prefix = &$db_prefix;
+	//	$this -> db_prefix = &$db_prefix;
 		$this -> sourcedir = &$sourcedir;
 		$this -> modSettings = &$modSettings;
 		$this -> user_info = &$user_info;
@@ -27,27 +27,35 @@ class eve_api
 		$permissions["eveapi_view_any"] = 0;
 		$permissions["eveapi_edit_own"] = 1;
 		$permissions["eveapi_edit_any"] = 0;
-		// Initialize the groups array with 'ungrouped members' (ID: 0).
-		// Add -1 to this array if you want to give guests the same permission
-		$groups = array(0);
+
+		$groups = array();
+		$groups2 = array();
 
 		// Get all the non-postcount based groups.
 		$request = $this -> select("
 		  SELECT ID_GROUP
-		  FROM {$db_prefix}membergroups
-		  WHERE min_posts = -1");
-		foreach($request as $row)
-			$groups[] = $row[0];
+		  FROM {db_prefix}membergroups
+		  WHERE min_posts = {int:minposts}",
+		  array('minposts' => -1));
+
+		// Add -1 to this array if you want to give guests the same permission
+		$request[] = array(0);
+		foreach($request as $k => $row)
+		{
+			$groups['idg'.$k] = $row[0];
+			$groups2[] = '{int:idg'.$k.'}';
+		}
 
 		foreach($permissions as $p => $v)
 		{
 		   // Give them all their new permission.
 			$request = $this -> query("
-			  INSERT IGNORE INTO {$db_prefix}permissions
+			  INSERT IGNORE INTO {db_prefix}permissions
 				 (permission, ID_GROUP, add_deny)
 			  VALUES
 				 ('".$p."', " . implode(", $v),
-				 ('".$p."', ", $groups) . ", $v)");
+				 ('".$p."', ", $groups2) . ", $v)",
+				 $groups);
 		}
 	}
 
@@ -62,8 +70,6 @@ class eve_api
 		$this -> alliance_list();
 		$this -> standings();
 		$this -> main($apiuser, $apiecho);
-		//if($_GET['move'] == "yes")
-		//	$this -> move();
 	}
 
 	function main($user, $apiecho)
@@ -77,16 +83,6 @@ class eve_api
 			$this -> single($user, $apiecho);
 		else
 			$this -> all($apiecho);
-	}
-
-	function move()
-	{
-		$apis = $this -> select("SELECT ID_MEMBER, eve_userID, eve_apiKey FROM ".$this -> db_prefix."members");
-		foreach($apis as $u)
-		{
-			$this -> query("INSERT INTO ".$this -> db_prefix."themes (ID_MEMBER, ID_THEME, variable,  value) VALUES (".$u[0].", 1, 'userid', '".$u[1]."')");
-			$this -> query("INSERT INTO ".$this -> db_prefix."themes (ID_MEMBER, ID_THEME, variable,  value) VALUES (".$u[0].", 1, 'apikey', '".$u[2]."')");
-		}
 	}
 
 	function standings()
@@ -213,9 +209,9 @@ class eve_api
 		$txt = $this -> txt;
 
 		if(is_numeric($user))
-			$id = $this -> select("SELECT ID_MEMBER, ID_GROUP, additional_groups FROM ".$this -> db_prefix."members WHERE ID_MEMBER = ".$user);
+			$id = $this -> select("SELECT ID_MEMBER, ID_GROUP, additional_groups FROM {db_prefix}members WHERE ID_MEMBER = {int:id}", array('id' => $user));
 		if(empty($id))
-			$id = $this -> select("SELECT ID_MEMBER, ID_GROUP, additional_groups FROM ".$this -> db_prefix."members WHERE member_name = '".$user."'");
+			$id = $this -> select("SELECT ID_MEMBER, ID_GROUP, additional_groups FROM {db_prefix}members WHERE member_name = '{string:user}'", array('user' => $user));
 		if(!empty($id))
 		{
 			$group = $id[0][1];
@@ -224,7 +220,7 @@ class eve_api
 				$agroups[$g] = $g;
 			//				remove all monitored groups
 			$id = $id[0][0];
-			$apiusers = $this -> select("SELECT userid, api, status FROM ".$this -> db_prefix."eve_api WHERE ID_MEMBER = ".$id);
+			$apiusers = $this -> select("SELECT userid, api, status FROM {db_prefix}eve_api WHERE ID_MEMBER = {int:id}", array('id' => $id));
 			if(!empty($apiusers))
 			{
 				foreach($apiusers as $apiuser)
@@ -243,16 +239,18 @@ class eve_api
 					$chars = $this -> get_characters($apiuser, $apikey);
 					if(!empty($chars))
 					{
-						$this -> query("UPDATE ".$this -> db_prefix."eve_api SET status = 'OK', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND userid = ".$apiuser);
+						$this -> query("UPDATE {db_prefix}eve_api SET status = 'OK', status_change = ".time()." WHERE ID_MEMBER = {int:id}".$id." AND userid = {int:userid}",
+						array('id' => $id, 'userid' => $apiuser));
 						// get main rules
-						$rules = $this -> select("SELECT ruleid, group FROM ".$this -> db_prefix."eve_rules WHERE main = 1 AND enabled = 1 ORDER BY ruleid");
+						$rules = $this -> select("SELECT ruleid, group FROM {db_prefix}eve_rules WHERE main = 1 AND enabled = 1 ORDER BY ruleid");
 						if(!empty($rules))
 						{
 							foreach($rules as $rule)
 							{
 								foreach($chars as $char)
 								{
-									$conditions = $this -> select("SELECT type, value, extra FROM ".$this -> db_prefix."eve_conditions WHERE ruleid = ".$rule[0]);
+									$conditions = $this -> select("SELECT type, value, extra FROM {db_prefix}eve_conditions WHERE ruleid = {int:id}",
+									array('id' => $rule[0]));
 									if(!empty($conditions))
 									{
 										$match = TRUE;
@@ -353,8 +351,10 @@ class eve_api
 										}
 										if($match)
 										{
-											$this -> query("UPDATE ".$this -> db_prefix."members SET ID_GROUP = ".$rule[1]." WHERE ID_MEMBER = ".$id);
-											$this -> query("UPDATE ".$this -> db_prefix."eve_api SET status = 'red', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
+											$this -> query("UPDATE {db_prefix}members SET ID_GROUP = {int:idg} WHERE ID_MEMBER = {int:id}"
+											array('idg' => $rule[1], 'id' => $id));
+											$this -> query("UPDATE {db_prefix}eve_api SET status = 'red', status_change = {int:time} WHERE ID_MEMBER = {int:id} AND status = 'OK'",
+											array('time' => time(), 'id' => $id));
 											Break 2;
 										}
 									}
@@ -362,7 +362,7 @@ class eve_api
 							}
 						}
 						// get additional
-						$rules = $this -> select("SELECT ruleid, group FROM ".$this -> db_prefix."eve_rules WHERE main = 0 AND enabled = 1 ORDER BY ruleid");
+						$rules = $this -> select("SELECT ruleid, group FROM {db_prefix}eve_rules WHERE main = 0 AND enabled = 1 ORDER BY ruleid");
 						if(!empty($rules))
 						{
 							foreach($rules as $rule)
@@ -371,7 +371,7 @@ class eve_api
 									Break;
 								foreach($chars as $char)
 								{
-									$conditions = $this -> select("SELECT type, value, extra FROM ".$this -> db_prefix."eve_conditions WHERE ruleid = ".$rule[0]);
+									$conditions = $this -> select("SELECT type, value, extra FROM {db_prefix}eve_conditions WHERE ruleid = ".$rule[0]);
 									if(!empty($conditions))
 									{
 										$match = TRUE;
@@ -482,8 +482,8 @@ class eve_api
 					}
 				}
 			}
-			$this -> query("UPDATE ".$this -> db_prefix."members SET ID_GROUP = ".$rule[1]." WHERE ID_MEMBER = ".$id);
-			$this -> query("UPDATE ".$this -> db_prefix."eve_api SET status = 'red', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
+			$this -> query("UPDATE {db_prefix}members SET ID_GROUP = ".$rule[1]." WHERE ID_MEMBER = ".$id);
+			$this -> query("UPDATE {db_prefix}eve_api SET status = 'red', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
 		}
 					//}
 
@@ -516,10 +516,10 @@ class eve_api
 								$corpinfo['ticker'] = "Unknown";
 							if($this -> modSettings["eveapi_corptag_options"] == 1)
 							{
-								$this -> query("UPDATE ".$this -> db_prefix."members SET usertitle = '".$corpinfo['ticker']."' WHERE ID_MEMBER = ".$id);
+								$this -> query("UPDATE {db_prefix}members SET usertitle = '".$corpinfo['ticker']."' WHERE ID_MEMBER = ".$id);
 							}
 							$this -> query("
-								REPLACE INTO ".$this -> db_prefix."eve_characters
+								REPLACE INTO {db_prefix}eve_characters
 									(userid, charid, name, corpid, corp, corp_ticker, allianceid, alliance)
 								VALUES 
 								('" . mysql_real_escape_string($apiuser) . "', '" . mysql_real_escape_string($char[1]) . "', '" . mysql_real_escape_string($char[0]) . "', '" . mysql_real_escape_string($corp) . "', '" . mysql_real_escape_string($corpinfo['name']) . "', '" . mysql_real_escape_string($corpinfo['ticker']) . "', '$alliance', '" . mysql_real_escape_string($corpinfo['alliance']) . "')");
@@ -528,14 +528,14 @@ class eve_api
 							// $inneuts = TRUE;
 					//	$charlist = implode(";", $charlist);
 					//	if($charlist != $charnames)
-					//		$this -> query("UPDATE ".$this -> db_prefix."eve_api SET characters = '".mysql_real_escape_string($charlist)."' WHERE ID_MEMBER = ".$id." AND userid = ".$apiuser);
-						// $this -> query("UPDATE ".$this -> db_prefix."eve_api SET status = 'OK', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND userid = ".$apiuser);
+					//		$this -> query("UPDATE {db_prefix}eve_api SET characters = '".mysql_real_escape_string($charlist)."' WHERE ID_MEMBER = ".$id." AND userid = ".$apiuser);
+						// $this -> query("UPDATE {db_prefix}eve_api SET status = 'OK', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND userid = ".$apiuser);
 					// }
 					// else
 					// {
 						//get error
 						$error = $this -> get_error($this -> data);
-						$this -> query("UPDATE ".$this -> db_prefix."eve_api SET status = 'API Error', errorid = '".$error[0]."', error = '".$error[1]."', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND userid = ".$apiuser);
+						$this -> query("UPDATE {db_prefix}eve_api SET status = 'API Error', errorid = '".$error[0]."', error = '".$error[1]."', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND userid = ".$apiuser);
 						if(($error[0] >= 500 && $error[0] < 600) || ($error[0] >= 900 && $error[0] < 1000)) // Api System is Down
 							$ignore = TRUE;
 		//			}
@@ -587,9 +587,9 @@ class eve_api
 					// $this -> file .= $txt['eveapi_run_red'].$e."\n";
 					// if($echo)
 						// echo $txt['eveapi_run_red'].$e."\n<br>";
-					// $this -> query("UPDATE ".$this -> db_prefix."members SET ID_GROUP = $red WHERE ID_MEMBER = ".$id);
+					// $this -> query("UPDATE {db_prefix}members SET ID_GROUP = $red WHERE ID_MEMBER = ".$id);
 				// }
-				// $this -> query("UPDATE ".$this -> db_prefix."eve_api SET status = 'red', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
+				// $this -> query("UPDATE {db_prefix}eve_api SET status = 'red', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
 			// }
 			// elseif($incorp)
 			// {
@@ -607,9 +607,9 @@ class eve_api
 					// $this -> file .= $txt['eveapi_run_corp'].$e."\n";
 					// if($echo)
 						// echo $txt['eveapi_run_corp'].$e."\n<br>";
-					// $this -> query("UPDATE ".$this -> db_prefix."members SET ID_GROUP = $corp WHERE ID_MEMBER = ".$id);
+					// $this -> query("UPDATE {db_prefix}members SET ID_GROUP = $corp WHERE ID_MEMBER = ".$id);
 				// }
-				// $this -> query("UPDATE ".$this -> db_prefix."eve_api SET status = 'corp', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
+				// $this -> query("UPDATE {db_prefix}eve_api SET status = 'corp', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
 			// }
 			// elseif($inalliance)
 			// {
@@ -627,9 +627,9 @@ class eve_api
 					// $this -> file .= $txt['eveapi_run_alliance'].$e."\n";
 					// if($echo)
 						// echo $txt['eveapi_run_alliance'].$e."\n<br>";
-					// $this -> query("UPDATE ".$this -> db_prefix."members SET ID_GROUP = $alliance WHERE ID_MEMBER = ".$id);
+					// $this -> query("UPDATE {db_prefix}members SET ID_GROUP = $alliance WHERE ID_MEMBER = ".$id);
 				// }
-				// $this -> query("UPDATE ".$this -> db_prefix."eve_api SET status = 'alliance', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
+				// $this -> query("UPDATE {db_prefix}eve_api SET status = 'alliance', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
 			// }
 			// elseif($inblues)
 			// {
@@ -644,9 +644,9 @@ class eve_api
 					// $this -> file .= $txt['eveapi_run_blue']."\n";
 					// if($echo)
 						// echo $txt['eveapi_run_blue']."\n<br>";
-					// $this -> query("UPDATE ".$this -> db_prefix."members SET ID_GROUP = $blue WHERE ID_MEMBER = ".$id);
+					// $this -> query("UPDATE {db_prefix}members SET ID_GROUP = $blue WHERE ID_MEMBER = ".$id);
 				// }
-				// $this -> query("UPDATE ".$this -> db_prefix."eve_api SET status = 'blue', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
+				// $this -> query("UPDATE {db_prefix}eve_api SET status = 'blue', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
 			// }
 			// elseif($inneuts)
 			// {
@@ -661,24 +661,24 @@ class eve_api
 					// $this -> file .= $txt['eveapi_run_neut']."\n";
 					// if($echo)
 						// echo $txt['eveapi_run_neut']."\n<br>";
-					// $this -> query("UPDATE ".$this -> db_prefix."members SET ID_GROUP = $neut WHERE ID_MEMBER = ".$id);
+					// $this -> query("UPDATE {db_prefix}members SET ID_GROUP = $neut WHERE ID_MEMBER = ".$id);
 				// }
-				// $this -> query("UPDATE ".$this -> db_prefix."eve_api SET status = 'neut', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
+				// $this -> query("UPDATE {db_prefix}eve_api SET status = 'neut', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
 			// }
 			// elseif($group != $nogroup)
 			// {
 				// $this -> file .= $txt['eveapi_run_reg']."\n";
 				// if($echo)
 					// echo $txt['eveapi_run_reg']."\n<br>";
-				// $this -> query("UPDATE ".$this -> db_prefix."members SET ID_GROUP = $nogroup WHERE ID_MEMBER = ".$id);
-				// $this -> query("UPDATE ".$this -> db_prefix."eve_api SET status = 'error', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
+				// $this -> query("UPDATE {db_prefix}members SET ID_GROUP = $nogroup WHERE ID_MEMBER = ".$id);
+				// $this -> query("UPDATE {db_prefix}eve_api SET status = 'error', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
 			// }
 			// elseif($group == $nogroup)
 			// {
 				// $this -> file .= $txt['eveapi_run_areg']."\n";
 				// if($echo)
 					// echo $txt['eveapi_run_areg']."\n<br>";
-				// $this -> query("UPDATE ".$this -> db_prefix."eve_api SET status = 'error', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
+				// $this -> query("UPDATE {db_prefix}eve_api SET status = 'error', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
 			// }
 		// }
 	}
@@ -719,7 +719,7 @@ class eve_api
 			$memberResult = loadMemberData($ID_MEMBER, false, 'profile');
 		$memID = $memberResult[0];
 
-		$user = $this -> select("SELECT userid FROM ".$this -> db_prefix."eve_api WHERE ID_MEMBER = ".$memID);
+		$user = $this -> select("SELECT userid FROM {db_prefix}eve_api WHERE ID_MEMBER = ".$memID);
 		if(!empty($user))
 		{
 			foreach($user as $acc)
@@ -749,7 +749,7 @@ class eve_api
 
 	function get_acc_chars($userid)
 	{
-		$chars = $this -> select("SELECT charid, name, corp_ticker, corp, alliance FROM ".$this -> db_prefix."eve_characters WHERE userid = ".$userid);
+		$chars = $this -> select("SELECT charid, name, corp_ticker, corp, alliance FROM {db_prefix}eve_characters WHERE userid = ".$userid);
 		if(!empty($chars))
 		{
 			foreach($chars as $char)
@@ -814,7 +814,7 @@ class eve_api
 	{
 		if($apiecho)
 			echo "checking all...\n<br>";
-		$api = $this -> select("SELECT member_name, ID_GROUP FROM ".$this -> db_prefix."members");
+		$api = $this -> select("SELECT member_name, ID_GROUP FROM {db_prefix}members");
 		if(!empty($api))
 		{
 			foreach($api as $user)
@@ -1259,7 +1259,7 @@ class eve_api
 		//	echo '<pre>'; var_dump($_POST);die;
 			if($_POST['id'] == "new")
 			{
-				$id = $this -> select("SELECT ruleid FROM ".$this -> db_prefix."eve_rules ORDER BY ruleid DESC LIMIT 1");
+				$id = $this -> select("SELECT ruleid FROM {db_prefix}eve_rules ORDER BY ruleid DESC LIMIT 1");
 				if(!empty($id))
 					$id = $id[0][0]+1;
 				else
@@ -1296,8 +1296,8 @@ class eve_api
 				die("Invalid Group");
 
 			if(!$exists)
-				$this -> query("INSERT INTO ".$this -> db_prefix."eve_rules (ruleid, main, `group`) VALUES ($id, $main, $group)");
-			$this -> query("INSERT INTO ".$this -> db_prefix."eve_conditions (ruleid, type, value, extra) VALUES ($id, '$type', '$value', '$extra')");
+				$this -> query("INSERT INTO {db_prefix}eve_rules (ruleid, main, `group`) VALUES ($id, $main, $group)");
+			$this -> query("INSERT INTO {db_prefix}eve_conditions (ruleid, type, value, extra) VALUES ($id, '$type', '$value', '$extra')");
 			//if(!isset($types[$_POST['type']]))
 			//	error
 			//elseif(!is_numeric($_POST['id']) && $_POST['id'] != "new")
@@ -1306,7 +1306,7 @@ class eve_api
 			//	error
 			
 		}
-		$idl = $this -> select("SELECT ruleid, main, `group`, andor, enabled FROM ".$this -> db_prefix."eve_rules ORDER BY ruleid");
+		$idl = $this -> select("SELECT ruleid, main, `group`, andor, enabled FROM {db_prefix}eve_rules ORDER BY ruleid");
 		if(!empty($idl))
 		{
 			foreach($idl as $id)
@@ -1315,7 +1315,7 @@ class eve_api
 				$list[$id[0]] = array('main' => $id[1], 'group' => $id[2], 'andor' => $id[3], 'enabled' => $id[4], 'conditions' => array());
 			}
 		}
-		$idl = $this -> select("SELECT id, ruleid, type, value, extra FROM ".$this -> db_prefix."eve_conditions ORDER BY ruleid");
+		$idl = $this -> select("SELECT id, ruleid, type, value, extra FROM {db_prefix}eve_conditions ORDER BY ruleid");
 		if(!empty($idl))
 		{
 			foreach($idl as $id)
@@ -1569,7 +1569,7 @@ value_type();
 			if($userid == "")
 				Continue;
 			$api = $_POST['eveapi_user_api'][$k];
-			$user = $this -> select("SELECT userid, api, status, status_change, auto FROM ".$this -> db_prefix."eve_api WHERE ID_MEMBER = ".$memberID." AND userid = ".mysql_real_escape_string($userid));
+			$user = $this -> select("SELECT userid, api, status, status_change, auto FROM {db_prefix}eve_api WHERE ID_MEMBER = ".$memberID." AND userid = ".mysql_real_escape_string($userid));
 			if(!empty($user))
 			{
 				$duserid = $user[0][0];
@@ -1589,7 +1589,7 @@ value_type();
 			if($duserid != $userid || $dapi != $api)
 			{
 				$this -> query("
-					REPLACE INTO ".$this -> db_prefix."eve_api
+					REPLACE INTO {db_prefix}eve_api
 						(ID_MEMBER, userid, api, status, status_change, auto)
 					VALUES 
 					($memberID, '" . mysql_real_escape_string($userid) . "', '" . mysql_real_escape_string($api) . "', 'unchecked', ".time().", $auto)");
@@ -1599,7 +1599,7 @@ value_type();
 		{
 			foreach($_POST['del_api'] as $userid)
 			{
-				$this -> query("DELETE FROM ".$this -> db_prefix."eve_api WHERE ID_MEMBER = $memberID AND userid = '" . mysql_real_escape_string($userid) . "'");
+				$this -> query("DELETE FROM {db_prefix}eve_api WHERE ID_MEMBER = $memberID AND userid = '" . mysql_real_escape_string($userid) . "'");
 			}
 		}
 		unset($_POST['del_api']);
@@ -1641,7 +1641,7 @@ value_type();
 			}
 			if($modSettings['eveapi_usecharname'])
 			{	
-				$this -> query("UPDATE ".$this -> db_prefix."members SET real_name = '".$main[0]."' WHERE ID_MEMBER = ".$memberID);
+				$this -> query("UPDATE {db_prefix}members SET real_name = '".$main[0]."' WHERE ID_MEMBER = ".$memberID);
 			}
 			if($modSettings['eveapi_avatar_enabled'])
 			{
