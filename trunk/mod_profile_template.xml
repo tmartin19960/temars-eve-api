@@ -60,33 +60,33 @@ function template_error_message()]]></add>
 		</operation>
 		<operation>
 			<search position="replace"><![CDATA[									', !empty($context['member']['avatar']['allow_server_stored']) ? 'document.getElementById("avatar_server_stored").style.display = "' . ($context['member']['avatar']['choice'] == 'server_stored' ? '' : 'none') . '";' : '', '
-									', !empty($context['member']['avatar']['allow_external']) ? 'document.getElementById("avatar_external").style.display = "' . ($context['member']['avatar']['choice'] == 'external' ? '' : 'none') . '";' : '', '
-									', !empty($context['member']['avatar']['allow_upload']) ? 'document.getElementById("avatar_upload").style.display = "' . ($context['member']['avatar']['choice'] == 'upload' ? '' : 'none') . '";' : '', '
+									', !empty($context['member']['avatar']['allow_external']) ? 'document.getElementById("avatar_external").style.display = "' . (($context['member']['avatar']['choice'] == 'external' || (empty($context['member']['avatar']['allow_server_stored']))) ? '' : 'none') . '";' : '', '
+									', !empty($context['member']['avatar']['allow_upload']) ? 'document.getElementById("avatar_upload").style.display = "' . (($context['member']['avatar']['choice'] == 'upload' || (empty($context['member']['avatar']['allow_server_stored']) && empty($context['member']['avatar']['allow_external']))) ? '' : 'none') . '";' : '', '
 
 									function swap_avatar(type)
 									{
 										switch(type.id)
 										{
 											case "avatar_choice_server_stored":
-												document.getElementById("avatar_server_stored").style.display = "";
-												document.getElementById("avatar_external").style.display = "none";
-												document.getElementById("avatar_upload").style.display = "none";
+												', !empty($context['member']['avatar']['allow_server_stored']) ? 'document.getElementById("avatar_server_stored").style.display = "";' : '', '
+												', !empty($context['member']['avatar']['allow_external']) ? 'document.getElementById("avatar_external").style.display = "none";' : '', '
+												', !empty($context['member']['avatar']['allow_upload']) ? 'document.getElementById("avatar_upload").style.display = "none";' : '', '
 												break;
 											case "avatar_choice_external":
-												document.getElementById("avatar_server_stored").style.display = "none";
-												document.getElementById("avatar_external").style.display = "";
-												document.getElementById("avatar_upload").style.display = "none";
+												', !empty($context['member']['avatar']['allow_server_stored']) ? 'document.getElementById("avatar_server_stored").style.display = "none";' : '', '
+												', !empty($context['member']['avatar']['allow_external']) ? 'document.getElementById("avatar_external").style.display = "";' : '', '
+												', !empty($context['member']['avatar']['allow_upload']) ? 'document.getElementById("avatar_upload").style.display = "none";' : '', '
 												break;
 											case "avatar_choice_upload":
-												document.getElementById("avatar_server_stored").style.display = "none";
-												document.getElementById("avatar_external").style.display = "none";
-												document.getElementById("avatar_upload").style.display = "";
+												', !empty($context['member']['avatar']['allow_server_stored']) ? 'document.getElementById("avatar_server_stored").style.display = "none";' : '', '
+												', !empty($context['member']['avatar']['allow_external']) ? 'document.getElementById("avatar_external").style.display = "none";' : '', '
+												', !empty($context['member']['avatar']['allow_upload']) ? 'document.getElementById("avatar_upload").style.display = "";' : '', '
 												break;
 										}
 									}]]></search>
 			<add><![CDATA[									', !empty($context['member']['avatar']['allow_server_stored']) ? 'document.getElementById("avatar_server_stored").style.display = "' . ($context['member']['avatar']['choice'] == 'server_stored' ? '' : 'none') . '";' : '', '
-									', !empty($context['member']['avatar']['allow_external']) ? 'document.getElementById("avatar_external").style.display = "' . ($context['member']['avatar']['choice'] == 'external' ? '' : 'none') . '";' : '', '
-									', !empty($context['member']['avatar']['allow_upload']) ? 'document.getElementById("avatar_upload").style.display = "' . ($context['member']['avatar']['choice'] == 'upload' ? '' : 'none') . '";' : '', '
+									', !empty($context['member']['avatar']['allow_external']) ? 'document.getElementById("avatar_external").style.display = "' . (($context['member']['avatar']['choice'] == 'external' || (empty($context['member']['avatar']['allow_server_stored']))) ? '' : 'none') . '";' : '', '
+									', !empty($context['member']['avatar']['allow_upload']) ? 'document.getElementById("avatar_upload").style.display = "' . (($context['member']['avatar']['choice'] == 'upload' || (empty($context['member']['avatar']['allow_server_stored']) && empty($context['member']['avatar']['allow_external']))) ? '' : 'none') . '";' : '', '
 									', !empty($modSettings["eveapi_enable"]) ? 'document.getElementById("avatar_tea").style.display = "' . ($context['member']['avatar']['choice'] == 'tea' ? '' : 'none') . '";' : '', '
 
 									function swap_avatar(type)
@@ -94,28 +94,28 @@ function template_error_message()]]></add>
 										switch(type.id)
 										{
 											case "avatar_choice_server_stored":
-												document.getElementById("avatar_server_stored").style.display = "";
-												document.getElementById("avatar_external").style.display = "none";
-												document.getElementById("avatar_upload").style.display = "none";
-												document.getElementById("avatar_tea").style.display = "none";
+												', !empty($context['member']['avatar']['allow_server_stored']) ? 'document.getElementById("avatar_server_stored").style.display = "";' : '', '
+												', !empty($context['member']['avatar']['allow_external']) ? 'document.getElementById("avatar_external").style.display = "none";' : '', '
+												', !empty($context['member']['avatar']['allow_upload']) ? 'document.getElementById("avatar_upload").style.display = "none";' : '', '
+												', !empty($modSettings["eveapi_enable"]) ? 'document.getElementById("avatar_tea").style.display = "none";' : '', '
 												break;
 											case "avatar_choice_external":
-												document.getElementById("avatar_server_stored").style.display = "none";
-												document.getElementById("avatar_external").style.display = "";
-												document.getElementById("avatar_upload").style.display = "none";
-												document.getElementById("avatar_tea").style.display = "none";
+												', !empty($context['member']['avatar']['allow_server_stored']) ? 'document.getElementById("avatar_server_stored").style.display = "none";' : '', '
+												', !empty($context['member']['avatar']['allow_external']) ? 'document.getElementById("avatar_external").style.display = "";' : '', '
+												', !empty($context['member']['avatar']['allow_upload']) ? 'document.getElementById("avatar_upload").style.display = "none";' : '', '
+												', !empty($modSettings["eveapi_enable"]) ? 'document.getElementById("avatar_tea").style.display = "none";' : '', '
 												break;
 											case "avatar_choice_upload":
-												document.getElementById("avatar_server_stored").style.display = "none";
-												document.getElementById("avatar_external").style.display = "none";
-												document.getElementById("avatar_upload").style.display = "";
-												document.getElementById("avatar_tea").style.display = "none";
+												', !empty($context['member']['avatar']['allow_server_stored']) ? 'document.getElementById("avatar_server_stored").style.display = "none";' : '', '
+												', !empty($context['member']['avatar']['allow_external']) ? 'document.getElementById("avatar_external").style.display = "none";' : '', '
+												', !empty($context['member']['avatar']['allow_upload']) ? 'document.getElementById("avatar_upload").style.display = "";' : '', '
+												', !empty($modSettings["eveapi_enable"]) ? 'document.getElementById("avatar_tea").style.display = "none";' : '', '
 												break;
 											case "avatar_choice_tea":
-												document.getElementById("avatar_server_stored").style.display = "none";
-												document.getElementById("avatar_external").style.display = "none";
-												document.getElementById("avatar_upload").style.display = "none";
-												document.getElementById("avatar_tea").style.display = "";
+												', !empty($context['member']['avatar']['allow_server_stored']) ? 'document.getElementById("avatar_server_stored").style.display = "none";' : '', '
+												', !empty($context['member']['avatar']['allow_external']) ? 'document.getElementById("avatar_external").style.display = "none";' : '', '
+												', !empty($context['member']['avatar']['allow_upload']) ? 'document.getElementById("avatar_upload").style.display = "none";' : '', '
+												', !empty($modSettings["eveapi_enable"]) ? 'document.getElementById("avatar_tea").style.display = "";' : '', '
 												break;
 										}
 									}]]></add>

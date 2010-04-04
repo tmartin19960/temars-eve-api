@@ -229,6 +229,9 @@ class eve_api
 					$status = $apiuser[2];
 					$apiuser = $apiuser[0];
 
+					$matched[0] = 'none';
+					$matched[1] = array();
+
 					if(!isset($mongroups[$group]))
 					{
 						$this -> file .= $txt['eveapi_run_custom']."\n";
@@ -239,10 +242,10 @@ class eve_api
 					$chars = $this -> get_characters($apiuser, $apikey);
 					if(!empty($chars))
 					{
-						$this -> query("UPDATE {db_prefix}eve_api SET status = 'OK', status_change = ".time()." WHERE ID_MEMBER = {int:id}".$id." AND userid = {int:userid}",
+						$this -> query("UPDATE {db_prefix}eve_api SET status = 'OK', status_change = ".time()." WHERE ID_MEMBER = {int:id} AND userid = {int:userid}",
 						array('id' => $id, 'userid' => $apiuser));
 						// get main rules
-						$rules = $this -> select("SELECT ruleid, group FROM {db_prefix}eve_rules WHERE main = 1 AND enabled = 1 ORDER BY ruleid");
+						$rules = $this -> select("SELECT ruleid, `group` FROM {db_prefix}eve_rules WHERE main = 1 AND enabled = 1 ORDER BY ruleid");
 						if(!empty($rules))
 						{
 							foreach($rules as $rule)
@@ -260,7 +263,7 @@ class eve_api
 											Switch($cond[0])
 											{
 												case 'corp':
-													if($char[3] == $cond[1])
+													if($char['corpid'] == $cond[1])
 														Break;
 													else
 													{
@@ -268,7 +271,7 @@ class eve_api
 														Break 2;
 													}
 												case 'alliance':
-													if($this -> corps[$char[3]] == $cond[1])
+													if($char['allianceid'] == $cond[1])
 														Break;
 													else
 													{
@@ -276,7 +279,7 @@ class eve_api
 														Break 2;
 													}
 												case 'blue':
-													if(isset($this -> cblues[$char[3]]) || isset($this -> ablues[$this -> corps[$char[3]]]))
+													if(isset($this -> cblues[$char['corpid']]) || isset($this -> ablues[$char['allianceid']]))
 														Break;
 													else
 													{
@@ -284,7 +287,7 @@ class eve_api
 														Break 2;
 													}
 												case 'red':
-													if(isset($this -> creds[$char[3]]) || isset($this -> areds[$this -> corps[$char[3]]]))
+													if(isset($this -> creds[$char['corpid']]) || isset($this -> areds[$char['allianceid']]))
 														Break;
 													else
 													{
@@ -300,7 +303,7 @@ class eve_api
 														Break 2;
 													}
 												case 'skill':
-													$skills = $this -> skill_list($apiuser, $apikey, $char[1]);
+													$skills = $this -> skill_list($apiuser, $apikey, $char['charid']);
 													if(strstr($cond[1], '%'))
 													{
 														$cond[1] = strtolower(str_replace('%', '(.+)', $cond[1]));
@@ -318,7 +321,7 @@ class eve_api
 														Break 2;
 													}
 												case 'role':
-													$roles = $this -> roles($apiuser, $apikey, $char[1]);
+													$roles = $this -> roles($apiuser, $apikey, $char['charid']);
 													if(isset($roles[strtolower($cond[1])]))
 														Break;
 													else
@@ -327,7 +330,7 @@ class eve_api
 														Break 2;
 													}
 												case 'title':
-													$titles = $this -> titles($apiuser, $apikey, $char[1]);
+													$titles = $this -> titles($apiuser, $apikey, $char['charid']);
 													if(isset($titles[strtolower($cond[1])]))
 														Break;
 													else
@@ -336,7 +339,7 @@ class eve_api
 														Break 2;
 													}
 												case 'militia':
-													$militia = $this -> militia($apiuser, $apikey, $char[1]);
+													$militia = $this -> militia($apiuser, $apikey, $char['charid']);
 													if($militia == $cond[1])
 														Break;
 													else
@@ -351,10 +354,11 @@ class eve_api
 										}
 										if($match)
 										{
-											$this -> query("UPDATE {db_prefix}members SET ID_GROUP = {int:idg} WHERE ID_MEMBER = {int:id}"
+											$this -> query("UPDATE {db_prefix}members SET ID_GROUP = {int:idg} WHERE ID_MEMBER = {int:id}",
 											array('idg' => $rule[1], 'id' => $id));
 											$this -> query("UPDATE {db_prefix}eve_api SET status = 'red', status_change = {int:time} WHERE ID_MEMBER = {int:id} AND status = 'OK'",
 											array('time' => time(), 'id' => $id));
+											$matched[0] = $rule[0];
 											Break 2;
 										}
 									}
@@ -362,7 +366,7 @@ class eve_api
 							}
 						}
 						// get additional
-						$rules = $this -> select("SELECT ruleid, group FROM {db_prefix}eve_rules WHERE main = 0 AND enabled = 1 ORDER BY ruleid");
+						$rules = $this -> select("SELECT ruleid, `group` FROM {db_prefix}eve_rules WHERE main = 0 AND enabled = 1 ORDER BY ruleid");
 						if(!empty($rules))
 						{
 							foreach($rules as $rule)
@@ -381,7 +385,7 @@ class eve_api
 											Switch($cond[0])
 											{
 												case 'corp':
-													if($char[3] == $cond[1])
+													if($char['corpid'] == $cond[1])
 														Break;
 													else
 													{
@@ -389,7 +393,7 @@ class eve_api
 														Break 2;
 													}
 												case 'alliance':
-													if($this -> corps[$char[3]] == $cond[1])
+													if($char['allianceid'] == $cond[1])
 														Break;
 													else
 													{
@@ -397,7 +401,7 @@ class eve_api
 														Break 2;
 													}
 												case 'blue':
-													if(isset($this -> cblues[$char[3]]) || isset($this -> ablues[$this -> corps[$char[3]]]))
+													if(isset($this -> cblues[$char['corpid']]) || isset($this -> ablues[$char['allianceid']]))
 														Break;
 													else
 													{
@@ -405,7 +409,7 @@ class eve_api
 														Break 2;
 													}
 												case 'red':
-													if(isset($this -> creds[$char[3]]) || isset($this -> areds[$this -> corps[$char[3]]]))
+													if(isset($this -> creds[$char['corpid']]) || isset($this -> areds[$char['allianceid']]))
 														Break;
 													else
 													{
@@ -421,7 +425,7 @@ class eve_api
 														Break 2;
 													}
 												case 'skill':
-													$skills = $this -> skill_list($apiuser, $apikey, $char[1]);
+													$skills = $this -> skill_list($apiuser, $apikey, $char['charid']);
 													if(strstr($cond[1], '%'))
 													{
 														$cond[1] = strtolower(str_replace('%', '(.+)', $cond[1]));
@@ -439,7 +443,7 @@ class eve_api
 														Break 2;
 													}
 												case 'role':
-													$roles = $this -> roles($apiuser, $apikey, $char[1]);
+													$roles = $this -> roles($apiuser, $apikey, $char['charid']);
 													if(isset($roles[strtolower($cond[1])]))
 														Break;
 													else
@@ -448,7 +452,7 @@ class eve_api
 														Break 2;
 													}
 												case 'title':
-													$titles = $this -> titles($apiuser, $apikey, $char[1]);
+													$titles = $this -> titles($apiuser, $apikey, $char['charid']);
 													if(isset($titles[strtolower($cond[1])]))
 														Break;
 													else
@@ -457,7 +461,7 @@ class eve_api
 														Break 2;
 													}
 												case 'militia':
-													$militia = $this -> militia($apiuser, $apikey, $char[1]);
+													$militia = $this -> militia($apiuser, $apikey, $char['charid']);
 													if($militia == $cond[1])
 														Break;
 													else
@@ -473,17 +477,28 @@ class eve_api
 										if($match)
 										{
 											$agroups[$rule[1]] = $rule[1];
+											$matched[1][] = $rule[0];
 											Break;
 										}
 									}
 								}
 							}
 						}
+						$matched[1] = implode(',', $matched[1]);
+						$matched = implode(';', $matched);
+						$this -> query("UPDATE {db_prefix}eve_api SET status = 'checked', matched = '".$matched."', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND userid = ".$apiuser);
+					}
+					else
+					{
+						$error = $this -> get_error($this -> data);
+						$this -> query("UPDATE {db_prefix}eve_api SET status = 'API Error', errorid = '".$error[0]."', error = '".$error[1]."', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND userid = ".$apiuser);
+						if(($error[0] >= 500 && $error[0] < 600) || ($error[0] >= 900 && $error[0] < 1000)) // Api System is Down
+							$ignore = TRUE;
 					}
 				}
 			}
-			$this -> query("UPDATE {db_prefix}members SET ID_GROUP = ".$rule[1]." WHERE ID_MEMBER = ".$id);
-			$this -> query("UPDATE {db_prefix}eve_api SET status = 'red', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
+			//$this -> query("UPDATE {db_prefix}members SET ID_GROUP = ".$rule[1]." WHERE ID_MEMBER = ".$id);
+			//$this -> query("UPDATE {db_prefix}eve_api SET status = 'red', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
 		}
 					//}
 
@@ -511,18 +526,13 @@ class eve_api
 							// {
 								// $inalliance = TRUE;
 							// }
-							$corpinfo = $this -> corp_info($corp);
-							if(empty($corpinfo))
-								$corpinfo['ticker'] = "Unknown";
-							if($this -> modSettings["eveapi_corptag_options"] == 1)
-							{
-								$this -> query("UPDATE {db_prefix}members SET usertitle = '".$corpinfo['ticker']."' WHERE ID_MEMBER = ".$id);
-							}
-							$this -> query("
-								REPLACE INTO {db_prefix}eve_characters
-									(userid, charid, name, corpid, corp, corp_ticker, allianceid, alliance)
-								VALUES 
-								('" . mysql_real_escape_string($apiuser) . "', '" . mysql_real_escape_string($char[1]) . "', '" . mysql_real_escape_string($char[0]) . "', '" . mysql_real_escape_string($corp) . "', '" . mysql_real_escape_string($corpinfo['name']) . "', '" . mysql_real_escape_string($corpinfo['ticker']) . "', '$alliance', '" . mysql_real_escape_string($corpinfo['alliance']) . "')");
+						//	$corpinfo = $this -> corp_info($corp);
+						//	if(empty($corpinfo))
+						//		$corpinfo['ticker'] = "Unknown";
+						//	if($this -> modSettings["eveapi_corptag_options"] == 1)
+						//	{
+						//		$this -> query("UPDATE {db_prefix}members SET usertitle = '".$corpinfo['ticker']."' WHERE ID_MEMBER = ".$id);
+						//	}
 						// }
 						// if(!$incorp && !$inblues && !$inreds)
 							// $inneuts = TRUE;
@@ -534,10 +544,6 @@ class eve_api
 					// else
 					// {
 						//get error
-						$error = $this -> get_error($this -> data);
-						$this -> query("UPDATE {db_prefix}eve_api SET status = 'API Error', errorid = '".$error[0]."', error = '".$error[1]."', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND userid = ".$apiuser);
-						if(($error[0] >= 500 && $error[0] < 600) || ($error[0] >= 900 && $error[0] < 1000)) // Api System is Down
-							$ignore = TRUE;
 		//			}
 		//		}
 		//	}
@@ -699,7 +705,15 @@ class eve_api
 			$charlist = array();
 			foreach($chars as $char)
 			{
+				//	$chars[] = array('name' => $name, 'charid' => $charid, 'corpname' => $corpname, 'corpid' => $corpid);
+				$corpinfo = $this -> corp_info($char['corpid']); // corpname, ticker, allianceid, alliance
+				$char = array_merge($char, $corpinfo);
 				$charlist[] = $char;
+				$this -> query("
+					REPLACE INTO {db_prefix}eve_characters
+						(userid, charid, name, corpid, corp, corp_ticker, allianceid, alliance)
+					VALUES 
+					('" . mysql_real_escape_string($userid) . "', '" . mysql_real_escape_string($char['charid']) . "', '" . mysql_real_escape_string($char['name']) . "', '" . mysql_real_escape_string($char['corpid']) . "', '" . mysql_real_escape_string($char['corpname']) . "', '" . mysql_real_escape_string($char['ticker']) . "', '".$char['allainceid']."', '" . mysql_real_escape_string($char['alliance']) . "')");
 			}
 		}
 		Return $charlist;
@@ -906,12 +920,11 @@ class eve_api
 		Return $data;
 	}
 
-	function select($sql, $result_form=MYSQL_NUM, $error=TRUE)//MYSQL_ASSOC = field names
+	function select($sql, $params, $result_form=MYSQL_NUM, $error=TRUE)//MYSQL_ASSOC = field names
 	{
 		$data = "";
 	//	$result = mysql_query($sql);
-		$result = $this -> smcFunc['db_query']('', $sql);
-
+		$result = $this -> smcFunc['db_query']('', $sql, $params);
 		if (!$result)
 		{
 			echo $sql;
@@ -944,9 +957,9 @@ class eve_api
 		return $data;
 	}
 
-	function query($sql)
+	function query($sql, $params)
 	{
-		$return = $this -> smcFunc['db_query']('', $sql);
+		$return = $this -> smcFunc['db_query']('', $sql, $params);
 
 		if (!$return)
 		{
@@ -991,7 +1004,7 @@ class eve_api
 				$corpname = $char[0];
 				$char = explode('" />', $char[1], 2);
 				$corpid = $char[0];
-				$chars[] = array($name, $charid, $corpname, $corpid);
+				$chars[] = array('name' => $name, 'charid' => $charid, 'corpname' => $corpname, 'corpid' => $corpid);
 			}
 		}
 		return $chars;
@@ -1090,7 +1103,7 @@ class eve_api
 	function corp_info($corp)
 	{
 		$data = $this -> get_xml(FALSE, FALSE, $corp, 'corp');
-		$info['name'] = $this -> xmlparse($data, 'corporationName');
+		$info['corpname'] = $this -> xmlparse($data, 'corporationName');
 		$info['ticker'] = $this -> xmlparse($data, 'ticker');
 		$info['allianceid'] = $this -> xmlparse($data, 'allianceID');
 		$info['alliance'] = $this -> xmlparse($data, 'allianceName');
@@ -1274,6 +1287,8 @@ class eve_api
 			else
 				die("error id");
 
+			$name = mysql_real_escape_string($_POST['name']);
+
 			if($_POST['main'] == "main")
 				$main = 1;
 			else
@@ -1296,7 +1311,7 @@ class eve_api
 				die("Invalid Group");
 
 			if(!$exists)
-				$this -> query("INSERT INTO {db_prefix}eve_rules (ruleid, main, `group`) VALUES ($id, $main, $group)");
+				$this -> query("INSERT INTO {db_prefix}eve_rules (ruleid, name, main, `group`) VALUES ($id, '$name', $main, $group)");
 			$this -> query("INSERT INTO {db_prefix}eve_conditions (ruleid, type, value, extra) VALUES ($id, '$type', '$value', '$extra')");
 			//if(!isset($types[$_POST['type']]))
 			//	error
@@ -1306,13 +1321,13 @@ class eve_api
 			//	error
 			
 		}
-		$idl = $this -> select("SELECT ruleid, main, `group`, andor, enabled FROM {db_prefix}eve_rules ORDER BY ruleid");
+		$idl = $this -> select("SELECT ruleid, name, main, `group`, andor, enabled FROM {db_prefix}eve_rules ORDER BY ruleid");
 		if(!empty($idl))
 		{
 			foreach($idl as $id)
 			{
 				$ids[] = $id[0];
-				$list[$id[0]] = array('main' => $id[1], 'group' => $id[2], 'andor' => $id[3], 'enabled' => $id[4], 'conditions' => array());
+				$list[$id[0]] = array('name' => $id[1], 'main' => $id[2], 'group' => $id[3], 'andor' => $id[4], 'enabled' => $id[5], 'conditions' => array());
 			}
 		}
 		$idl = $this -> select("SELECT id, ruleid, type, value, extra FROM {db_prefix}eve_conditions ORDER BY ruleid");
@@ -1326,7 +1341,7 @@ class eve_api
 	//	echo '<pre>'; var_dump($list);die;
 
 		$out[0] = '<dt>* Rules for Main Group are done in Order of ID<br>* Rules with Same ID as Another act as Multi Requirments<br>* All conditions must be met by the same character if AND rule<br><table border="1">'.
-				'<tr><td>ID</td><td>Rule</td><td>Group</td><td>AND / OR</td><td>Enabled</td></tr>';
+				'<tr><td>ID</td><td>Name</td><td>Rule</td><td>Group</td><td>AND / OR</td><td>Enabled</td></tr>';
 		if(!empty($list))
 		{
 			foreach($list as $id => $l)
@@ -1334,7 +1349,7 @@ class eve_api
 				if($l['main'] == 1)
 				{
 					$span = count($l['conditions']);
-					$out[0] .= '<tr><td rowspan="'.$span.'">'.$id.'</td>';
+					$out[0] .= '<tr><td rowspan="'.$span.'">'.$id.'</td><td rowspan="'.$span.'">'.$l['name'].'</td>';
 					$tr = '';
 					foreach($l['conditions'] as $r)
 					{
@@ -1355,7 +1370,7 @@ class eve_api
 		}
 		$out[0] .= '</tr></table></dt>';
 		$out[1] = '';
-		$out[2] .= '<dt><table border="1"><tr><td>ID</td><td>Rule</td><td>Group</td><td>AND / OR</td><td>Enabled</td></tr>';
+		$out[2] .= '<dt><table border="1"><tr><td>ID</td><td>Name</td><td>Rule</td><td>Group</td><td>AND / OR</td><td>Enabled</td></tr>';
 		if(!empty($list))
 		{
 			foreach($list as $id => $l)
@@ -1363,7 +1378,7 @@ class eve_api
 				if($l['main'] == 0)
 				{
 					$span = count($l['conditions']);
-					$out[2] .= '<tr><td rowspan="'.$span.'">'.$id.'</td>';
+					$out[2] .= '<tr><td rowspan="'.$span.'">'.$id.'</td><td rowspan="'.$span.'">'.$l['name'].'</td>';
 					$tr = '';
 					foreach($l['conditions'] as $r)
 					{
@@ -1387,6 +1402,10 @@ class eve_api
 		$out[4] = '<dt>Create Rule:<br>
 					</form><form name="makerule" method="post" action="">
 			<table>
+			<tr>
+				<td width="134">Name:</td>
+				<td><input type="text" name="name" value="" /> For reference only</td>
+			</tr>
 			<tr>
 				<td width="134">Rule ID:</td>
 				<td><select name="id" onchange="javascript: value_type()"><option value="new">new</option>';
@@ -1539,7 +1558,7 @@ value_type();
 
 	function MemberGroups()
 	{
-		$list = $this -> select('SELECT id_group, group_name FROM '.$this -> db_prefix.'membergroups WHERE min_posts = -1 ORDER BY group_name');
+		$list = $this -> select('SELECT id_group, group_name FROM {db_prefix}membergroups WHERE min_posts = -1 ORDER BY group_name');
 		if(!empty($list))
 		{
 			foreach($list as $l)
@@ -1734,46 +1753,72 @@ value_type();
 	//	prepareDBSettingContext($config_vars);
 	}
 
-	function UserModifyEveApi($memID, &$eveapiinfo, &$context, &$settings, &$options, $scripturl, &$modSettings, &$txt, $db_prefix)
+	function UserModifyEveApi($memID, &$eveapiinfo)
 	{ // is this a valid function? clearly code for my other mod, but is it safe to delete, or is it partly in use and other code is junk
 		if(!$this -> modSettings["eveapi_enable"])
 			Return;
-		if(!empty($_POST))die;
 
-		loadLanguage('AOCharLink');
+	//	loadLanguage('AOCharLink');
 		//	isAllowedTo('eveapi_edit_any');
 		if(!is_numeric($memID))
 			die("Invalid User id");
-		$user = $this -> select("SELECT userid, api, status, error FROM ".$db_prefix."eve_api WHERE ID_MEMBER = ".$memID);
+		$user = $this -> select("SELECT userid, api, status, matched, error FROM {db_prefix}eve_api WHERE ID_MEMBER = ".$memID);
 		if(!empty($user))
 		{
 			foreach($user as $u)
 			{
 				$characters = $this -> get_acc_chars($u[0]);
 				
-				if($u[1] == "tnet")
-					$checkt = "checked";
+			//	if($u[1] == "tnet")
+			//		$checkt = "checked";
+			//	else
+			//		$checkb = "checked";
+			//	if($u[3] == "unverified" && strlen($u[0]) < 3)
+			//	{
+			//		$msg = "Please set a Character 1st";
+			//	}
+			//	elseif($u[3] == "unverified")
+			//	{
+			//		$msg = "/tell ".ucfirst($u[1])." !cv $u[2]";
+			//	}
+			//	elseif($u[3] == "verified")
+			//	{
+			//		$msg = "You are Already Verified";
+			//	}
+				$matched = explode(";", $u[3], 2);
+				if(is_numeric($matched[0]))
+				{
+					$mname = $this -> select("SELECT name FROM {db_prefix}eve_rules WHERE ruleid = {int:id}", array('id' => $matched[0]));
+					if(!empty($mname))
+						$mname = $mname[0][0];
+				}
 				else
-					$checkb = "checked";
-				if($u[3] == "unverified" && strlen($u[0]) < 3)
+					$mname = $matched[0];
+				$adits = explode(',', $matched[1]);
+				if(!empty($adits) && $adits[0] != '')
 				{
-					$msg = "Please set a Character 1st";
+					foreach($adits as $a)
+					{
+						if(is_numeric($a))
+						{
+							$aname = $this -> select("SELECT name FROM {db_prefix}eve_rules WHERE ruleid = {int:id}", array('id' => $a));
+							if(!empty($aname))
+								$anames[] = $aname[0][0];
+						}
+					}
+					$aname = implode(", ", $aname);
 				}
-				elseif($u[3] == "unverified")
-				{
-					$msg = "/tell ".ucfirst($u[1])." !cv $u[2]";
-				}
-				elseif($u[3] == "verified")
-				{
-					$msg = "You are Already Verified";
-				}
+				else
+					$aname = 'none';
 				$eveapiinfo[] = array(
 				"userid" => $u[0],
 				"api" => $u[1],
 			//	"msg" => $msg,
 				'charnames' => $characters,
 				'status' => $u[2],
-				'error' => $u[3]
+				'mainrule' => $mname,
+				'aditrules' => $aname,
+				'error' => $u[4]
 				);
 			}
 		}
@@ -1939,18 +1984,26 @@ $eveapiinfo[] = array();
 				{
 					echo '<tr><td colspan="3"><hr class="hrcolor" width="100%" size="1"/></td></tr>';
 		echo '<tr><td>
-										<b>', $txt['eveapi_status'], ':</b></td><td>'.$info['status'];
+					<b>', $txt['eveapi_status'], ':</b></td><td>'.$info['status'];
 		if($info['status'] == 'API Error')
 			echo ' ('.$info['error'].')';
 		echo '</td>
+			</tr><tr><td><b>', $txt['eveapi_mainrule'], ':</b></td><td>'.$info['mainrule'].'</td>
+			</tr><tr><td><b>', $txt['eveapi_aditrules'], ':</b></td><td>'.$info['aditrules'].'</td>
 			</tr><tr><td>
 										<b>', $txt['eveapi_characters'], ':</b></td><td>';
 		if(!empty($info['charnames']))
 		{
+			echo '<style type="text/css">
+green {color:green}
+blue {color:blue}
+red {color:red}
+</style>';
 			$echo = array();
 			foreach($info['charnames'] as $char)
 			{
-				$echo[] = '['.$char[1].'] '.$char[0].' ('.$char[2].' / '.$char[3].')';
+				$char[3] = $char[3] != '' ? ' / <blue>'.$char[3].'</blue>' : '';
+				$echo[] = '['.$char[1].'] '.$char[0].' (<green>'.$char[2].'</green>'.$char[3].')';
 			}
 			echo implode('<br>', $echo);
 		}

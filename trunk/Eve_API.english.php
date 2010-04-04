@@ -14,7 +14,9 @@ $txt['eveapi_disabled'] = 'Eve Api Mod is Disabled.';
 $txt['eveapi_version'] = 'Version';
 
 //Settings Page
-$txt['eveapi_settings_message'] = "The API info needed here is to get the Corp/Alliance Info along with Standings";
+$txt['eveapi_rules'] = "Rules";
+$txt['eveapi_checks'] = "Checks";
+$txt['eveapi_settings_message'] = "The API info needed here is to get the Corp/Alliance Info along with Standings<Br>A Full API Key is Required for Standings";
 $txt['eveapi_enable'] = 'Enable Temars Eve Api Mod';
 $txt['eveapi_usecharname'] = 'Is Real name Locked to Characters';
 $txt['eveapi_avatar_enabled'] = 'Is Getting an Avatar of a Character Enabled';
@@ -39,6 +41,11 @@ $txt['eveapi_standings_reda'] = 'Red Alliances';
 $txt['eveapi_corpl_updated'] = 'Alliance Corp List Last Updated';
 $txt['eveapi_corpl_contains'] = 'Alliance Corp List Contains';
 $txt['eveapi_group_settings'] = 'Group Settings, in order of priority';
+$txt['eveapi_main'] = 'Main group';
+
+//profile
+$txt['eveapi_mainrule'] = 'Main Matched Rule';
+$txt['eveapi_aditrules'] = 'Additional Matched Rules';
 
 $txt['eveapi_avatar'] = 'I want to Use my EVE Avatar';
 
