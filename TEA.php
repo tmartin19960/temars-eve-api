@@ -739,7 +739,7 @@ class TEA
 					REPLACE INTO {db_prefix}tea_characters
 						(userid, charid, name, corpid, corp, corp_ticker, allianceid, alliance)
 					VALUES 
-					('" . mysql_real_escape_string($userid) . "', '" . mysql_real_escape_string($char['charid']) . "', '" . mysql_real_escape_string($char['name']) . "', '" . mysql_real_escape_string($char['corpid']) . "', '" . mysql_real_escape_string($char['corpname']) . "', '" . mysql_real_escape_string($char['ticker']) . "', '".$char['allainceid']."', '" . mysql_real_escape_string($char['alliance']) . "')");
+					('" . mysql_real_escape_string($userid) . "', '" . mysql_real_escape_string($char['charid']) . "', '" . mysql_real_escape_string($char['name']) . "', '" . mysql_real_escape_string($char['corpid']) . "', '" . mysql_real_escape_string($char['corpname']) . "', '" . mysql_real_escape_string($char['ticker']) . "', '".$char['allianceid']."', '" . mysql_real_escape_string($char['alliance']) . "')");
 			}
 		}
 		Return $charlist;
@@ -1132,6 +1132,8 @@ class TEA
 		$info['corpname'] = $this -> xmlparse($data, 'corporationName');
 		$info['ticker'] = $this -> xmlparse($data, 'ticker');
 		$info['allianceid'] = $this -> xmlparse($data, 'allianceID');
+		if(empty($info['allianceid']) || $info['allianceid'] == '')
+			$info['allianceid'] = 0;
 		$info['alliance'] = $this -> xmlparse($data, 'allianceName');
 		Return ($info);
 	}
