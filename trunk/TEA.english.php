@@ -40,7 +40,7 @@ $txt['eveapi_standings_redc'] = 'Red Corps';
 $txt['eveapi_standings_reda'] = 'Red Alliances';
 $txt['eveapi_corpl_updated'] = 'Alliance Corp List Last Updated';
 $txt['eveapi_corpl_contains'] = 'Alliance Corp List Contains';
-$txt['eveapi_group_settings'] = 'Group Settings, in order of priority';
+$txt['eveapi_group_settings'] = 'Group Setting for Users with no API';
 $txt['eveapi_main'] = 'Main group';
 
 //profile

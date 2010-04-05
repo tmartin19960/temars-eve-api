@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!DOCTYPE package-info SYSTEM "http://www.simplemachines.org/xml/package-info">
 <package-info xmlns="http://www.simplemachines.org/xml/package-info" xmlns:smf="http://www.simplemachines.org/">
-	<id>temar:EveAPI</id>
+	<id>temar:TEA</id>
 	<name>Temars EVE API</name>
 	<type>modification</type>
 	<version>1.1.0</version>
@@ -18,9 +18,9 @@
 		<modification type="file">mod_register.xml</modification>
 		<modification type="file">mod_register_template.xml</modification>
 		<modification type="file">mod_profile_template.xml</modification>
-		<require-file name="Eve_API.php" destination="$sourcedir" />
-		<require-file name="Eve_API_Cron.php" destination="$sourcedir" />
-		<require-file name="Eve_API.english.php" destination="$languagedir" />
+		<require-file name="TEA.php" destination="$sourcedir" />
+		<require-file name="TEA_Cron.php" destination="$sourcedir" />
+		<require-file name="TEA.english.php" destination="$languagedir" />
 		<code>tables.php</code>
 	</install>
 	<install for="2.0 - 2.0 RC2">
@@ -32,9 +32,9 @@
 		<modification type="file">mod_register.xml</modification>
 		<modification type="file">mod_register_template.xml</modification>
 		<modification type="file">mod_profile_template_rc2.xml</modification>
-		<require-file name="Eve_API.php" destination="$sourcedir" />
-		<require-file name="Eve_API_Cron.php" destination="$sourcedir" />
-		<require-file name="Eve_API.english.php" destination="$languagedir" />
+		<require-file name="TEA.php" destination="$sourcedir" />
+		<require-file name="TEA_Cron.php" destination="$sourcedir" />
+		<require-file name="TEA.english.php" destination="$languagedir" />
 		<code>tables.php</code>
 	</install>
 	<install>
@@ -46,9 +46,9 @@
 		<modification type="file">mod_register.xml</modification>
 		<modification type="file">mod_register_template.xml</modification>
 		<modification type="file">mod_profile_template.xml</modification>
-		<require-file name="Eve_API.php" destination="$sourcedir" />
-		<require-file name="Eve_API_Cron.php" destination="$sourcedir" />
-		<require-file name="Eve_API.english.php" destination="$languagedir" />
+		<require-file name="TEA.php" destination="$sourcedir" />
+		<require-file name="TEA_Cron.php" destination="$sourcedir" />
+		<require-file name="TEA.english.php" destination="$languagedir" />
 		<code>tables.php</code>
 	</install>
 	<uninstall>
@@ -60,26 +60,12 @@
 		<modification type="file" reverse="true">mod_register.xml</modification>
 		<modification type="file" reverse="true">mod_register_template.xml</modification>
 		<modification type="file" reverse="true">mod_profile_template.xml</modification>
-		<remove-file name="$sourcedir/Eve_API.php" />
-		<remove-file name="$sourcedir/Eve_API_Cron.php" />
-		<remove-file name="$languagedir/Eve_API.english.php" />
+		<remove-file name="$sourcedir/TEA.php" />
+		<remove-file name="$sourcedir/TEA_Cron.php" />
+		<remove-file name="$languagedir/TEA.english.php" />
 	</uninstall>
-	<upgrade from="1.0.0 - 1.0.3" for="2.0 RC3 - 2.1">
-		<readme type="inline">This will upgrade Temars Eve Api Mod to version 1.1.0</readme>
-		<modification type="file">upgrade_1_0_x.xml</modification>
-		<require-file name="Eve_API.php" destination="$sourcedir" />
-		<require-file name="Eve_API.english.php" destination="$languagedir" />
-		<modification type="file" reverse="true">mod_profile_template_102.xml</modification>
-		<modification type="file">mod_profile_template.xml</modification>
-		<code>tables.php</code>
-	</upgrade>
-	<upgrade from="1.0.0 - 1.0.3" for="2.0 - 2.0 RC2">
-		<readme type="inline">This will upgrade Temars Eve Api Mod to version 1.1.0</readme>
-		<modification type="file">upgrade_1_0_x.xml</modification>
-		<require-file name="Eve_API.php" destination="$sourcedir" />
-		<require-file name="Eve_API.english.php" destination="$languagedir" />
-		<modification type="file" reverse="true">mod_profile_template_102.xml</modification>
-		<modification type="file">mod_profile_template_rc2.xml</modification>
-		<code>tables.php</code>
+	<upgrade from="1.0.0 - 1.0.5">
+		<readme type="file">readme.txt</readme>
+		<readme type="inline" parsebbc="true">[color=red]Error! Please Uninstall Previous Version as there is too many changes<br>your Settings and API's wont be removed.[/color]</readme>
 	</upgrade>
 </package-info>
