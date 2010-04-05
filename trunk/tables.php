@@ -135,6 +135,7 @@ $info[3]['primary'] = 'ruleid';
 $tables[3]["ruleid"] = "INT DEFAULT NULL AUTO_INCREMENT";
 $tables[3]["name"] = "VARCHAR(50) DEFAULT NULL";
 $tables[3]["main"] = "INT(1) DEFAULT 0";
+$tables[3]["andor"] = "VARCHAR(3) DEFAULT 'AND'";
 $tables[3]["group"] = "INT DEFAULT NULL";
 $tables[3]["enabled"] = "INT(1) DEFAULT 0";
 
