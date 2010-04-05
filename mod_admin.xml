@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!DOCTYPE modification SYSTEM "http://www.simplemachines.org/xml/modification">
 <modification xmlns="http://www.simplemachines.org/xml/modification" xmlns:smf="http://www.simplemachines.org/">
-	<id>temar:EveAPI</id>
+	<id>temar:TEA</id>
 	<version>1.00</version>
 
 	<file name="$sourcedir/Admin.php">
@@ -11,15 +11,15 @@
 		),
 		'layout' => array(
 			'title' => $txt['layout_controls'],]]></search>
-			<add><![CDATA[				'eveapi' => array(
-					'label' => $txt['eveapi_eveapi'],
-					'file' => 'Eve_API.php',
-					'function' => 'ModifyEveApiSettings',
-					'icon' => 'treasury.gif',
+			<add><![CDATA[				'tea' => array(
+					'label' => $txt['tea_eveapi'],
+					'file' => 'TEA.php',
+					'function' => 'ModifyTEASettings',
+					'icon' => 'tea.gif',
 					'subsections' => array(
 						'settings' => array($txt['settings']),
-						'rules' => array($txt['eveapi_rules']),
-						'checks' => array($txt['eveapi_checks']),
+						'rules' => array($txt['tea_rules']),
+						'checks' => array($txt['tea_checks']),
 					),
 				),
 			),

@@ -19,9 +19,9 @@ $overwrite_old_settings = false;
 
 // List settings here in the format: setting_key => default_value.  Escape any "s. (" => \")
 $mod_settings = array(
-	'eveapi_enable' => '0',
-	'eveapi_userid' => '',
-	'eveapi_api' => '',
+	'tea_enable' => '0',
+	'tea_userid' => '',
+	'tea_api' => '',
 );
 
 /******************************************************************************/

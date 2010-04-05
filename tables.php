@@ -102,7 +102,8 @@ elseif (!defined('SMF'))
 		}
 	}
 
-$info[1]['name'] = 'eve_api';	
+$info[1]['old'] = 'eve_api';	
+$info[1]['name'] = 'tea_api';	
 $info[1]['primary'] = 'ID_MEMBER, userid';	
 $tables[1]["ID_MEMBER"] = "INT";
 $tables[1]["userid"] = "INT DEFAULT NULL";
@@ -116,7 +117,8 @@ $tables[1]["error"] = "VARCHAR(254) DEFAULT NULL";
 $tables[1]["status_change"] = "INT DEFAULT NULL";
 //$tables[1]["auto"] = "INT(1) DEFAULT 1";
 
-$info[2]['name'] = 'eve_characters';
+$info[2]['old'] = 'eve_characters';
+$info[2]['name'] = 'tea_characters';
 $info[2]['primary'] = 'userid, charid';
 $tables[2]["userid"] = "INT DEFAULT NULL";
 $tables[2]["charid"] = "INT DEFAULT NULL";
@@ -127,7 +129,8 @@ $tables[2]["corp_ticker"] = "VARCHAR(20) DEFAULT NULL";
 $tables[2]["allianceid"] = "INT DEFAULT NULL";
 $tables[2]["alliance"] = "VARCHAR(50) DEFAULT NULL";
 
-$info[3]['name'] = 'eve_rules';
+$info[3]['old'] = 'eve_rules';
+$info[3]['name'] = 'tea_rules';
 $info[3]['primary'] = 'ruleid';
 $tables[3]["ruleid"] = "INT DEFAULT NULL AUTO_INCREMENT";
 $tables[3]["name"] = "VARCHAR(50) DEFAULT NULL";
@@ -135,7 +138,8 @@ $tables[3]["main"] = "INT(1) DEFAULT 0";
 $tables[3]["group"] = "INT DEFAULT NULL";
 $tables[3]["enabled"] = "INT(1) DEFAULT 0";
 
-$info[4]['name'] = 'eve_conditions';
+$info[4]['old'] = 'eve_conditions';
+$info[4]['name'] = 'tea_conditions';
 $info[4]['primary'] = 'id';
 $tables[4]["id"] = "INT DEFAULT NULL AUTO_INCREMENT";
 $tables[4]["ruleid"] = "INT DEFAULT NULL";
@@ -143,23 +147,28 @@ $tables[4]["type"] = "VARCHAR(50) DEFAULT NULL";
 $tables[4]["value"] = "VARCHAR(250) DEFAULT NULL";
 $tables[4]["extra"] = "VARCHAR(250) DEFAULT NULL";
 
-$info[5]['name'] = 'eve_groups';
+$info[5]['old'] = 'eve_groups';
+$info[5]['name'] = 'tea_groups';
 $info[5]['primary'] = 'id';
 $tables[5]["id"] = "INT DEFAULT NULL";
 $tables[5]["main"] = "INT(1) DEFAULT 1";
 $tables[5]["additional"] = "INT(1) DEFAULT 1";
 
-$info[6]['name'] = 'eve_cache';
-$info[6]['primary'] = 'address, post';
-$tables[6]["address"] = "VARCHAR(200) DEFAULT NULL";
-$tables[6]["post"] = "VARCHAR(200) DEFAULT NULL";
-$tables[6]["time"] = "INT DEFAULT 0";
-$tables[6]["xml"] = "text";
+// $info[6]['name'] = 'tea_cache';
+// $info[6]['primary'] = 'address, post';
+// $tables[6]["address"] = "VARCHAR(200) DEFAULT NULL";
+// $tables[6]["post"] = "VARCHAR(200) DEFAULT NULL";
+// $tables[6]["time"] = "INT DEFAULT 0";
+// $tables[6]["xml"] = "text";
 
 Global $db_prefix;
 
 foreach($tables as $i => $table)
 {
+	$checkold = eveapi_check_table($db_prefix.$info[$i]['old'], $table);
+	$check = eveapi_check_table($db_prefix.$info[$i]['name'], $table);
+	if(($checkold[0] || (!$checkold[0] && $checkold[1])) && !$check[0] && !$check[1]) // if old table exists regardless of if needs changing and new doesnt then rename
+		query("RENAME TABLE ".$db_prefix.$info[$i]['old']." TO ".$db_prefix.$info[$i]['name']);
 	$check = eveapi_check_table($db_prefix.$info[$i]['name'], $table);
 	if(!$check[0])
 	{

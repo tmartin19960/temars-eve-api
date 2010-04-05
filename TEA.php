@@ -3,15 +3,15 @@
 if (!defined('SMF'))
 	die('Hacking attempt...');
 
-Global $eve_api, $db_prefix, $sourcedir, $modSettings, $user_info, $context, $txt, $smcFunc;
-loadLanguage('Eve_API');
-$eve_api = new eve_api($db_prefix, $sourcedir, $modSettings, $user_info, $context, $txt, $smcFunc);
+Global $tea, $db_prefix, $sourcedir, $modSettings, $user_info, $context, $txt, $smcFunc, $settings;
+loadLanguage('TEA');
+$tea = new TEA($db_prefix, $sourcedir, $modSettings, $user_info, $context, $txt, $smcFunc, $settings);
 
-class eve_api
+class TEA
 {
 	var $corps;
 
-	function __construct(&$db_prefix, &$sourcedir, &$modSettings, &$user_info, &$context, &$txt, &$smcFunc)
+	function __construct(&$db_prefix, &$sourcedir, &$modSettings, &$user_info, &$context, &$txt, &$smcFunc, &$settings)
 	{
 	//	$this -> db_prefix = &$db_prefix;
 		$this -> sourcedir = &$sourcedir;
@@ -20,6 +20,7 @@ class eve_api
 		$this -> context = &$context;
 		$this -> txt = &$txt;
 		$this -> smcFunc = &$smcFunc;
+		$this -> settings = &$settings;
 
 		$this -> version = "1.1.0";
 
@@ -208,6 +209,13 @@ class eve_api
 
 		$txt = $this -> txt;
 
+		$cgq = $this -> select("SELECT id, main, additional FROM {db_prefix}eve_groups ORDER BY id");
+		if(!empty($cgq))
+		{
+			foreach($cgq as $cgqs)
+				$mongroups[$cgqs[0]] = array($cgqs[1], $cgqs[2]);
+		}
+
 		if(is_numeric($user))
 			$id = $this -> select("SELECT ID_MEMBER, ID_GROUP, additional_groups FROM {db_prefix}members WHERE ID_MEMBER = {int:id}", array('id' => $user));
 		if(empty($id))
@@ -219,8 +227,16 @@ class eve_api
 			foreach($id[0][2] as $g)
 				$agroups[$g] = $g;
 			//				remove all monitored groups
+			if(!empty($mongroups))
+			{
+				foreach($mongroups as $g => $m)
+				{
+					if($m[1] == 1)
+						unset($agroups[$g]);
+				}
+			}
 			$id = $id[0][0];
-			$apiusers = $this -> select("SELECT userid, api, status FROM {db_prefix}eve_api WHERE ID_MEMBER = {int:id}", array('id' => $id));
+			$apiusers = $this -> select("SELECT userid, api, status FROM {db_prefix}tea_api WHERE ID_MEMBER = {int:id}", array('id' => $id));
 			if(!empty($apiusers))
 			{
 				foreach($apiusers as $apiuser)
@@ -229,10 +245,9 @@ class eve_api
 					$status = $apiuser[2];
 					$apiuser = $apiuser[0];
 
-					$matched[0] = 'none';
-					$matched[1] = array();
+					$matched = array('none', array());
 
-					if(!isset($mongroups[$group]))
+					if(!isset($mongroups[$group]) && $mongroups[$group] == 1)
 					{
 						$this -> file .= $txt['eveapi_run_custom']."\n";
 						if($echo)
@@ -240,13 +255,25 @@ class eve_api
 						$ignore = TRUE;
 					}
 					$chars = $this -> get_characters($apiuser, $apikey);
+					if(empty($chars))
+					{
+						$error = $this -> get_error($this -> data);
+						$this -> query("UPDATE {db_prefix}tea_api SET status = 'API Error', errorid = '".$error[0]."', error = '".$error[1]."', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND userid = ".$apiuser);
+						if(($error[0] >= 500 && $error[0] < 600) || ($error[0] >= 900 && $error[0] < 1000)) // Api System is Down
+							$ignore = TRUE;
+						else
+							$chars[] = array(1);
+						$status = 'error';
+						$error = TRUE;
+					}
 					if(!empty($chars))
 					{
-						$this -> query("UPDATE {db_prefix}eve_api SET status = 'OK', status_change = ".time()." WHERE ID_MEMBER = {int:id} AND userid = {int:userid}",
+						if(!$error)
+							$this -> query("UPDATE {db_prefix}tea_api SET status = 'OK', status_change = ".time()." WHERE ID_MEMBER = {int:id} AND userid = {int:userid}",
 						array('id' => $id, 'userid' => $apiuser));
 						// get main rules
 						$rules = $this -> select("SELECT ruleid, `group` FROM {db_prefix}eve_rules WHERE main = 1 AND enabled = 1 ORDER BY ruleid");
-						if(!empty($rules))
+						if(!empty($rules) && !$ignore)
 						{
 							foreach($rules as $rule)
 							{
@@ -295,7 +322,7 @@ class eve_api
 														Break 2;
 													}
 												case 'error':
-													if($status == 'error')
+													if($error)
 														Break;
 													else
 													{
@@ -356,7 +383,8 @@ class eve_api
 										{
 											$this -> query("UPDATE {db_prefix}members SET ID_GROUP = {int:idg} WHERE ID_MEMBER = {int:id}",
 											array('idg' => $rule[1], 'id' => $id));
-											$this -> query("UPDATE {db_prefix}eve_api SET status = 'red', status_change = {int:time} WHERE ID_MEMBER = {int:id} AND status = 'OK'",
+											if(!$error)
+												$this -> query("UPDATE {db_prefix}tea_api SET status = 'red', status_change = {int:time} WHERE ID_MEMBER = {int:id} AND status = 'OK'",
 											array('time' => time(), 'id' => $id));
 											$matched[0] = $rule[0];
 											Break 2;
@@ -486,19 +514,22 @@ class eve_api
 						}
 						$matched[1] = implode(',', $matched[1]);
 						$matched = implode(';', $matched);
-						$this -> query("UPDATE {db_prefix}eve_api SET status = 'checked', matched = '".$matched."', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND userid = ".$apiuser);
-					}
-					else
-					{
-						$error = $this -> get_error($this -> data);
-						$this -> query("UPDATE {db_prefix}eve_api SET status = 'API Error', errorid = '".$error[0]."', error = '".$error[1]."', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND userid = ".$apiuser);
-						if(($error[0] >= 500 && $error[0] < 600) || ($error[0] >= 900 && $error[0] < 1000)) // Api System is Down
-							$ignore = TRUE;
+						if(!$error)
+							$this -> query("UPDATE {db_prefix}tea_api SET status = 'checked', matched = '".$matched."', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND userid = ".$apiuser);
 					}
 				}
 			}
+			else
+			{	// no api on account, if monitored group change to unknown group
+				if(!$ignore)
+					$this -> query("UPDATE {db_prefix}members SET ID_GROUP = {int:group} WHERE ID_MEMBER = {int:id}", array('id' => $user, 'group' => $this -> modSettings["eveapi_groupass_unknown"]));
+			}
+			$agroups = implode(',', $agroups);
+			// no api found remove all monitored groups
+			$this -> query("UPDATE {db_prefix}members SET additional_groups = '".$matched."' WHERE ID_MEMBER = {int:id}", array('id' => $user));
+
 			//$this -> query("UPDATE {db_prefix}members SET ID_GROUP = ".$rule[1]." WHERE ID_MEMBER = ".$id);
-			//$this -> query("UPDATE {db_prefix}eve_api SET status = 'red', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
+			//$this -> query("UPDATE {db_prefix}tea_api SET status = 'red', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
 		}
 					//}
 
@@ -538,8 +569,8 @@ class eve_api
 							// $inneuts = TRUE;
 					//	$charlist = implode(";", $charlist);
 					//	if($charlist != $charnames)
-					//		$this -> query("UPDATE {db_prefix}eve_api SET characters = '".mysql_real_escape_string($charlist)."' WHERE ID_MEMBER = ".$id." AND userid = ".$apiuser);
-						// $this -> query("UPDATE {db_prefix}eve_api SET status = 'OK', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND userid = ".$apiuser);
+					//		$this -> query("UPDATE {db_prefix}tea_api SET characters = '".mysql_real_escape_string($charlist)."' WHERE ID_MEMBER = ".$id." AND userid = ".$apiuser);
+						// $this -> query("UPDATE {db_prefix}tea_api SET status = 'OK', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND userid = ".$apiuser);
 					// }
 					// else
 					// {
@@ -595,7 +626,7 @@ class eve_api
 						// echo $txt['eveapi_run_red'].$e."\n<br>";
 					// $this -> query("UPDATE {db_prefix}members SET ID_GROUP = $red WHERE ID_MEMBER = ".$id);
 				// }
-				// $this -> query("UPDATE {db_prefix}eve_api SET status = 'red', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
+				// $this -> query("UPDATE {db_prefix}tea_api SET status = 'red', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
 			// }
 			// elseif($incorp)
 			// {
@@ -615,7 +646,7 @@ class eve_api
 						// echo $txt['eveapi_run_corp'].$e."\n<br>";
 					// $this -> query("UPDATE {db_prefix}members SET ID_GROUP = $corp WHERE ID_MEMBER = ".$id);
 				// }
-				// $this -> query("UPDATE {db_prefix}eve_api SET status = 'corp', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
+				// $this -> query("UPDATE {db_prefix}tea_api SET status = 'corp', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
 			// }
 			// elseif($inalliance)
 			// {
@@ -635,7 +666,7 @@ class eve_api
 						// echo $txt['eveapi_run_alliance'].$e."\n<br>";
 					// $this -> query("UPDATE {db_prefix}members SET ID_GROUP = $alliance WHERE ID_MEMBER = ".$id);
 				// }
-				// $this -> query("UPDATE {db_prefix}eve_api SET status = 'alliance', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
+				// $this -> query("UPDATE {db_prefix}tea_api SET status = 'alliance', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
 			// }
 			// elseif($inblues)
 			// {
@@ -652,7 +683,7 @@ class eve_api
 						// echo $txt['eveapi_run_blue']."\n<br>";
 					// $this -> query("UPDATE {db_prefix}members SET ID_GROUP = $blue WHERE ID_MEMBER = ".$id);
 				// }
-				// $this -> query("UPDATE {db_prefix}eve_api SET status = 'blue', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
+				// $this -> query("UPDATE {db_prefix}tea_api SET status = 'blue', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
 			// }
 			// elseif($inneuts)
 			// {
@@ -669,7 +700,7 @@ class eve_api
 						// echo $txt['eveapi_run_neut']."\n<br>";
 					// $this -> query("UPDATE {db_prefix}members SET ID_GROUP = $neut WHERE ID_MEMBER = ".$id);
 				// }
-				// $this -> query("UPDATE {db_prefix}eve_api SET status = 'neut', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
+				// $this -> query("UPDATE {db_prefix}tea_api SET status = 'neut', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
 			// }
 			// elseif($group != $nogroup)
 			// {
@@ -677,14 +708,14 @@ class eve_api
 				// if($echo)
 					// echo $txt['eveapi_run_reg']."\n<br>";
 				// $this -> query("UPDATE {db_prefix}members SET ID_GROUP = $nogroup WHERE ID_MEMBER = ".$id);
-				// $this -> query("UPDATE {db_prefix}eve_api SET status = 'error', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
+				// $this -> query("UPDATE {db_prefix}tea_api SET status = 'error', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
 			// }
 			// elseif($group == $nogroup)
 			// {
 				// $this -> file .= $txt['eveapi_run_areg']."\n";
 				// if($echo)
 					// echo $txt['eveapi_run_areg']."\n<br>";
-				// $this -> query("UPDATE {db_prefix}eve_api SET status = 'error', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
+				// $this -> query("UPDATE {db_prefix}tea_api SET status = 'error', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
 			// }
 		// }
 	}
@@ -733,7 +764,7 @@ class eve_api
 			$memberResult = loadMemberData($ID_MEMBER, false, 'profile');
 		$memID = $memberResult[0];
 
-		$user = $this -> select("SELECT userid FROM {db_prefix}eve_api WHERE ID_MEMBER = ".$memID);
+		$user = $this -> select("SELECT userid FROM {db_prefix}tea_api WHERE ID_MEMBER = ".$memID);
 		if(!empty($user))
 		{
 			foreach($user as $acc)
@@ -1219,11 +1250,11 @@ class eve_api
 					array('select', 'eveapi_corptag_options', array(0 => 'Nothing', 1 => 'Custom Title', 2 => 'Part of Name')),
 				'',
 				'<dt>'.$txt['eveapi_group_settings'].'</dt>',
-					array('select', 'eveapi_groupass_red', $groups),
-					array('select', 'eveapi_groupass_corp', $groups),
-					array('select', 'eveapi_groupass_alliance', $groups),
-					array('select', 'eveapi_groupass_blue', $groups),
-					array('select', 'eveapi_groupass_neut', $groups),
+				//	array('select', 'eveapi_groupass_red', $groups),
+				//	array('select', 'eveapi_groupass_corp', $groups),
+				//	array('select', 'eveapi_groupass_alliance', $groups),
+				//	array('select', 'eveapi_groupass_blue', $groups),
+				//	array('select', 'eveapi_groupass_neut', $groups),
 					array('select', 'eveapi_groupass_unknown', $groups),
 				'',
 					// Who's online.
@@ -1270,57 +1301,180 @@ class eve_api
 		if(!empty($_POST))
 		{
 		//	echo '<pre>'; var_dump($_POST);die;
-			if($_POST['id'] == "new")
+			if(isset($_POST['mong']))
 			{
-				$id = $this -> select("SELECT ruleid FROM {db_prefix}eve_rules ORDER BY ruleid DESC LIMIT 1");
-				if(!empty($id))
-					$id = $id[0][0]+1;
+				foreach($_POST as $g => $v)
+				{
+					$g = explode("_", $g, 2);
+					if($g[0] == "main")
+						$gs[$g[1]][0] = 1;
+					elseif($g[0] == "adit")
+						$gs[$g[1]][1] = 1;
+				}
+				$this -> query("DELETE FROM {db_prefix}eve_groups");
+				foreach($gs as $g => $v)
+				{
+					if($v[0] != 1) $v[0] = 0;
+					if($v[1] != 1) $v[1] = 0;
+					$this -> query("
+						INSERT INTO {db_prefix}eve_groups
+							(id, main, additional)
+						VALUES 
+							({int:id}, {int:main}, {int:adit})",
+							array('id' => $g, 'main' => $v[0], 'adit' => $v[1]));
+				}
+			}
+			elseif(isset($_POST['enr']))
+			{
+				foreach($_POST as $g => $v)
+				{
+					$g = explode("_", $g, 2);
+					if($g[0] == "main")
+						$gs[$g[1]][0] = 1;
+					elseif($g[0] == "adit")
+						$gs[$g[1]][1] = 1;
+				}
+				$this -> query("DELETE FROM {db_prefix}eve_groups");
+				foreach($gs as $g => $v)
+				{
+					if($v[0] != 1) $v[0] = 0;
+					if($v[1] != 1) $v[1] = 0;
+					$this -> query("
+						INSERT INTO {db_prefix}eve_groups
+							(id, main, additional)
+						VALUES 
+							({int:id}, {int:main}, {int:adit})",
+							array('id' => $g, 'main' => $v[0], 'adit' => $v[1]));
+				}
+			}
+			elseif(isset($_POST['minitype']))
+			{
+				if($_POST['minitype'] == 'delrule')
+				{
+					if(!is_numeric($_POST['value']))
+						die("delete value must be number");
+					$this -> query("DELETE FROM {db_prefix}eve_rules WHERE ruleid = ".$_POST['value']);
+					$this -> query("DELETE FROM {db_prefix}eve_conditions WHERE ruleid = ".$_POST['value']);
+				}
 				else
-					$id = 1;
-				$ids[] = $id;
+				{
+					die("Unknown mini form type");
+				}
 			}
-			elseif(is_numeric($_POST['id']))
+			elseif($_POST["submit"] == "EDIT")
 			{
-				$id = $_POST['id'];
-				$exists = TRUE;
+				if(is_numeric($_POST['id']))
+				{
+					$id = $_POST['id'];
+					$exists = TRUE;
+				}
+				else
+					die("error id");
+
+				$andor = $_POST['andor'];
+				if($andor != "AND" && $andor != "OR")
+					die("andor must be AND or OR");
+
+				$name = mysql_real_escape_string($_POST['name']);
+
+				if($_POST['main'] == "main")
+					$main = 1;
+				else
+					$main = 0;
+
+				if(isset($groups[$_POST['group']]))
+					$group = $_POST['group'];
+				elseif(!$exists)
+					die("Invalid Group");
+
+				$this -> query("UPDATE {db_prefix}eve_rules SET name = '$name', main = $main, `group` = $group, andor = '$andor' WHERE ruleid = $id");
 			}
-			else
-				die("error id");
+			elseif($_POST["submit"] == "ADD")
+			{
+				if($_POST['id'] == "new")
+				{
+					$id = $this -> select("SELECT ruleid FROM {db_prefix}eve_rules ORDER BY ruleid DESC LIMIT 1");
+					if(!empty($id))
+						$id = $id[0][0]+1;
+					else
+						$id = 1;
+					$ids[] = $id;
+				}
+				elseif(is_numeric($_POST['id']))
+				{
+					$id = $_POST['id'];
+					$exists = TRUE;
+				}
+				else
+					die("error id");
 
-			$name = mysql_real_escape_string($_POST['name']);
+				$andor = $_POST['andor'];
+				if($andor != "AND" && $andor != "OR")
+					die("andor must be AND or OR");
 
-			if($_POST['main'] == "main")
-				$main = 1;
-			else
-				$main = 0;
+				$name = mysql_real_escape_string($_POST['name']);
 
-			if(isset($types[$_POST['type']]))
-				$type = $_POST['type'];
-			else
-				die("Unknown Type");
+				if($_POST['main'] == "main")
+					$main = 1;
+				else
+					$main = 0;
 
-			if($type == "corp" || $type == "alliance" || $type == "skill" || $type == "role" || $type == "title" || $type == "militia")
-				$value = mysql_real_escape_string($_POST['value']);
+				if(isset($types[$_POST['type']]))
+					$type = $_POST['type'];
+				else
+					die("Unknown Type");
 
-			if($type == "skill")
-				$extra = (int)$_POST['extra'];
+				if($type == "corp" || $type == "alliance" || $type == "skill" || $type == "role" || $type == "title" || $type == "militia")
+					$value = mysql_real_escape_string($_POST['value']);
 
-			if(isset($groups[$_POST['group']]))
-				$group = $_POST['group'];
-			elseif(!$exists)
-				die("Invalid Group");
+				if($type == "skill")
+					$extra = (int)$_POST['extra'];
 
-			if(!$exists)
-				$this -> query("INSERT INTO {db_prefix}eve_rules (ruleid, name, main, `group`) VALUES ($id, '$name', $main, $group)");
-			$this -> query("INSERT INTO {db_prefix}eve_conditions (ruleid, type, value, extra) VALUES ($id, '$type', '$value', '$extra')");
-			//if(!isset($types[$_POST['type']]))
-			//	error
-			//elseif(!is_numeric($_POST['id']) && $_POST['id'] != "new")
-			//	error
-			//elseif(!is_numeric($_POST['group']))
-			//	error
-			
+				if(isset($groups[$_POST['group']]))
+					$group = $_POST['group'];
+				elseif(!$exists)
+					die("Invalid Group");
+
+				if(!$exists)
+					$this -> query("INSERT INTO {db_prefix}eve_rules (ruleid, name, main, `group`, andor) VALUES ($id, '$name', $main, $group, '$andor')");
+				$this -> query("INSERT INTO {db_prefix}eve_conditions (ruleid, type, value, extra) VALUES ($id, '$type', '$value', '$extra')");
+				//if(!isset($types[$_POST['type']]))
+				//	error
+				//elseif(!is_numeric($_POST['id']) && $_POST['id'] != "new")
+				//	error
+				//elseif(!is_numeric($_POST['group']))
+				//	error
+			}
 		}
+		$cgq = $this -> select("SELECT id, main, additional FROM {db_prefix}eve_groups ORDER BY id");
+		if(!empty($cgq))
+		{
+			foreach($cgq as $cgqs)
+				$cg[$cgqs[0]] = array($cgqs[1], $cgqs[2]);
+		}
+		$agroups = $this -> MemberGroups(TRUE);
+		$out[0] .= 'Groups to Monitor and Remove<form name="groups" method="post" action="">
+		<table><tr><td>Name</td><td>Main</td><td>Additional</td></tr>
+		';
+		foreach($agroups as $id => $g)
+		{
+			$mcheck = '';
+			$acheck = '';
+			if($cg[$id][0] == 1)
+				$mcheck = 'checked';
+			if($cg[$id][1] == 1)
+				$acheck = 'checked';
+			$out[0] .= '<tr><td>'.$g.'</td><td><input type="checkbox" name="main_'.$id.'" value="main" '.$mcheck.' /></td><td>';
+			if($id != 0)
+				$out[0] .= '<input type="checkbox" name="adit_'.$id.'" value="adit" '.$acheck.' /></td>';
+			$out[0] .= '</tr>';
+		}
+		$out[0] .= '</table>
+			<input type="submit" name="mong" value="UPDATE">
+			</form></tr></table></dt>';
+		$out[1] = '';
+		$out[2] .= '<dt>';
+
 		$idl = $this -> select("SELECT ruleid, name, main, `group`, andor, enabled FROM {db_prefix}eve_rules ORDER BY ruleid");
 		if(!empty($idl))
 		{
@@ -1340,7 +1494,8 @@ class eve_api
 		}
 	//	echo '<pre>'; var_dump($list);die;
 
-		$out[0] = '<dt>* Rules for Main Group are done in Order of ID<br>* Rules with Same ID as Another act as Multi Requirments<br>* All conditions must be met by the same character if AND rule<br><table border="1">'.
+		$out[2] .= '* Rules for Main Group are done in Order of ID<br>* Rules with Same ID as Another act as Multi Requirments<br>* All conditions must be met by the same character if AND rule<br><br><b><u>Main Group Rules</b></u><form>
+		<table border="1">'.
 				'<tr><td>ID</td><td>Name</td><td>Rule</td><td>Group</td><td>AND / OR</td><td>Enabled</td></tr>';
 		if(!empty($list))
 		{
@@ -1349,28 +1504,30 @@ class eve_api
 				if($l['main'] == 1)
 				{
 					$span = count($l['conditions']);
-					$out[0] .= '<tr><td rowspan="'.$span.'">'.$id.'</td><td rowspan="'.$span.'">'.$l['name'].'</td>';
+					$out[2] .= '<tr><td rowspan="'.$span.'">'.$id.'</td><td rowspan="'.$span.'">'.$l['name'].'</td>';
 					$tr = '';
 					foreach($l['conditions'] as $r)
 					{
-						$out[0] .= $tr.'<td>'.$types[$r['type']].': '.$r['value'].'</td>';
+						$out[2] .= $tr.'<td>'.$types[$r['type']].': '.$r['value'];
+				//		if($span > 1)
+				//			$out[2] .= '<a href="javascript:edit('.$id.')"><img src="'.$this -> settings['images_url'].'/icons/quick_remove.gif"></a>';
+						$out[2] .= '</td>';
 						if($tr == '')
 						{
-							if($r[7] == 1)
-								$enabled = 'Yes';
+							if($l['enabled'] == 1)
+								$enabled = 'checked';
 							else
-								$enabled = 'No';
-							$out[0] .= '<td rowspan="'.$span.'">'.$groups[$l['group']].'</td><td rowspan="'.$span.'">'.$l['andor'].'</td><td rowspan="'.$span.'">'.$enabled.'</td>';
+								$enabled = '';
+							$out[2] .= '<td rowspan="'.$span.'">'.$groups[$l['group']].'</td><td rowspan="'.$span.'">'.$l['andor'].'</td><td rowspan="'.$span.'"><input type="checkbox" name="rule_'.$id.'" value="1" '.$enabled.' /><a href="javascript:edit('.$id.')"><img src="'.$this -> settings['images_url'].'/icons/config_sm.gif"></a><a href="javascript: delrule(\'delrule\', '.$id.')"><img src="'.$this -> settings['images_url'].'/icons/quick_remove.gif"></a></td>';
 						}
 						$tr = '</tr><tr>';
 					}
-					$out[0] .= '</tr>';
+					$out[2] .= '</tr>';
+					$javalist .= "rules[".$id."] = Array('".$l['name']."', 'true', '".$l['andor']."', '".$l['group']."');\n";
 				}
 			}
 		}
-		$out[0] .= '</tr></table></dt>';
-		$out[1] = '';
-		$out[2] .= '<dt><table border="1"><tr><td>ID</td><td>Name</td><td>Rule</td><td>Group</td><td>AND / OR</td><td>Enabled</td></tr>';
+		$out[2] .= '</tr></table><br><b><u>Additional Group Rules</b></u><table border="1"><tr><td>ID</td><td>Name</td><td>Rule</td><td>Group</td><td>AND / OR</td><td>Enabled</td></tr>';
 		if(!empty($list))
 		{
 			foreach($list as $id => $l)
@@ -1385,22 +1542,27 @@ class eve_api
 						$out[2] .= $tr.'<td>'.$types[$r['type']].': '.$r['value'].'</td>';
 						if($tr == '')
 						{
-							if($r[7] == 1)
-								$enabled = 'Yes';
+							if($l['enabled'] == 1)
+								$enabled = 'checked';
 							else
-								$enabled = 'No';
-							$out[2] .= '<td rowspan="'.$span.'">'.$groups[$l['group']].'</td><td rowspan="'.$span.'">'.$l['andor'].'</td><td rowspan="'.$span.'">'.$enabled.'</td>';
+								$enabled = '';
+							$out[2] .= '<td rowspan="'.$span.'">'.$groups[$l['group']].'</td><td rowspan="'.$span.'">'.$l['andor'].'</td><td rowspan="'.$span.'"><input type="checkbox" name="rule_'.$id.'" value="1" '.$enabled.' /><a href="javascript:edit('.$id.')"><img src="'.$this -> settings['images_url'].'/icons/config_sm.gif"></a><a href="javascript: delrule(\'delrule\', '.$id.')"><img src="'.$this -> settings['images_url'].'/icons/quick_remove.gif"></a></td>';
 						}
 						$tr = '</tr><tr>';
 					}
 					$out[2] .= '</tr>';
+					$javalist .= "rules[".$id."] = Array('".$l['name']."', '', '".$l['andor']."', '".$l['group']."');\n";
 				}
 			}
 		}
-		$out[2] .= '</tr></table></dt>';
+		$out[2] .= '</tr></table><br><input type="submit" name="enr" value="UPDATE"></form>';
+		$out[2] .= '<form name="miniform" method="post" action="">
+		<input type="hidden" name="minitype" value="" />
+		<input type="hidden" name="value" value="" />
+		</form></dt>';
 		$out[3] = '';
-		$out[4] = '<dt>Create Rule:<br>
-					</form><form name="makerule" method="post" action="">
+		$out[4] = '<dt><div id="formtitle">Create Rule:</div><br>
+					<form name="makerule" method="post" action="">
 			<table>
 			<tr>
 				<td width="134">Name:</td>
@@ -1408,7 +1570,7 @@ class eve_api
 			</tr>
 			<tr>
 				<td width="134">Rule ID:</td>
-				<td><select name="id" onchange="javascript: value_type()"><option value="new">new</option>';
+				<td><select name="id" onchange="javascript: value_type(false)"><option value="new">new</option>';
 		foreach($ids as $id)
 		{
 			$out[4] .= '<option value="'.$id.'">'.$id.'</option>';
@@ -1421,20 +1583,20 @@ class eve_api
 				<td><div id="eveapi_main"><input type="checkbox" name="main" value="main" /></div></td>
 			</tr>
 			<tr>
-				<td>Condition link:</td>
-				<td><select name="andor">
+				<td><div id="eveapi_linktxt">Condition link:</div></td>
+				<td><div id="eveapi_link"><select name="andor">
 						<option value="AND">AND</option>
 						<option value="OR">OR</option>
-					</select> should multiple conditions be treated as AND or OR</td>
+					</select> should multiple conditions be treated as AND or OR</div></td>
 			</tr>
 			<tr>
-				<td>Type:</td>
-				<td><select name="type" onchange="javascript: value_type()">';
+				<td><div id="eveapi_typetxt">Type:</div></td>
+				<td><div id="eveapi_type"><select name="type" onchange="javascript: value_type(false)">';
 		foreach($types as $value => $name)
 		{
 			$out[4] .= '<option value="'.$value.'">'.$name.'</option>';
 		}
-		$out[4] .= '</select></td>
+		$out[4] .= '</select></div></td>
 			</tr>
 
 				<tr>
@@ -1460,14 +1622,23 @@ class eve_api
 </dt>';
 $out[4] .= '
 <script type="text/javascript">
-function value_type()
+var rules = new Array();
+'.$javalist.'
+function value_type(fromedit)
 {
 	type = document.makerule.type.value;
 	id = document.makerule.id.value;
-	if(id == "new")
+	if(document.makerule.submit.value == "EDIT" && fromedit == false)
+	{
+		edit(id);
+		return;
+	}
+	if(id == "new" || fromedit == true)
 	{
 		document.getElementById(\'eveapi_maintxt\').innerHTML="Main Group:";
 		document.getElementById(\'eveapi_main\').innerHTML=\'<input type="checkbox" name="main" value="main" />\';
+		document.getElementById(\'eveapi_linktxt\').innerHTML="Condition link:";
+		document.getElementById(\'eveapi_link\').innerHTML=\'<select name="andor"><option value="AND">AND</option><option value="OR">OR</option></select> should multiple conditions be treated as AND or OR\';
 		document.getElementById(\'eveapi_grouptxt\').innerHTML="Group:";
 		document.getElementById(\'eveapi_group\').innerHTML=\'<select name="group"><option value="-">-</option>';
 		foreach($groups as $id => $group)
@@ -1480,6 +1651,8 @@ function value_type()
 	{
 		document.getElementById(\'eveapi_maintxt\').innerHTML="";
 		document.getElementById(\'eveapi_main\').innerHTML="";
+		document.getElementById(\'eveapi_linktxt\').innerHTML="";
+		document.getElementById(\'eveapi_link\').innerHTML="";
 		document.getElementById(\'eveapi_grouptxt\').innerHTML="";
 		document.getElementById(\'eveapi_group\').innerHTML="";
 	}
@@ -1519,6 +1692,32 @@ function value_type()
 		document.getElementById(\'eveapi_value\').innerHTML=\'<select name="value"><option value="Amarr Empire">Amarr Empire</option><option value="Caldari State">Caldari State		</option><option value="Gallente Federation">Gallente Federation</option><option value="Minmatar Republic">Minmatar Republic</option></select>\';
 	}
 }
+function edit(id)
+{
+	document.makerule.type.value="error";
+	value_type(true);
+	document.makerule.submit.value="EDIT";
+	document.getElementById(\'formtitle\').innerHTML="Edit Rule:";
+	document.getElementById(\'eveapi_typetxt\').innerHTML="";
+	document.getElementById(\'eveapi_type\').innerHTML="";
+	document.makerule.id.remove("new");
+	document.makerule.name.value=rules[id][0];
+	document.makerule.id.value=id;
+	document.makerule.main.checked=rules[id][1];
+	document.makerule.andor.value=rules[id][2];
+	document.makerule.group.value=rules[id][3];
+}
+function delrule(type, value)
+{
+	if (confirm(rules[value][0]+"\nAre you sure you want Delete this?"))
+		subform(type, value);
+}
+function subform(type, value)
+{
+	document.miniform.minitype.value=type;
+	document.miniform.value.value=value;
+	document.miniform.submit();
+}
 value_type();
 </script>
 ';
@@ -1556,7 +1755,7 @@ value_type();
 		prepareDBSettingContext($config_vars);
 	}
 
-	function MemberGroups()
+	function MemberGroups($all = FALSE)
 	{
 		$list = $this -> select('SELECT id_group, group_name FROM {db_prefix}membergroups WHERE min_posts = -1 ORDER BY group_name');
 		if(!empty($list))
@@ -1566,13 +1765,16 @@ value_type();
 				$groups[$l[0]] = $l[1];
 			}
 		}
-		unset($groups[1]);
+		if(!$all)
+		{
+			unset($groups[1]);
+		}
 		unset($groups[3]);
 		$groups[0] = "no membergroup";
 		Return $groups;
 	}
 
-	function EveApiAdd($memberID, $reg)
+	function TEAAdd($memberID, $reg)
 	{
 		if(!$this -> modSettings["eveapi_enable"])
 			Return;
@@ -1588,7 +1790,7 @@ value_type();
 			if($userid == "")
 				Continue;
 			$api = $_POST['eveapi_user_api'][$k];
-			$user = $this -> select("SELECT userid, api, status, status_change, auto FROM {db_prefix}eve_api WHERE ID_MEMBER = ".$memberID." AND userid = ".mysql_real_escape_string($userid));
+			$user = $this -> select("SELECT userid, api, status, status_change, auto FROM {db_prefix}tea_api WHERE ID_MEMBER = ".$memberID." AND userid = ".mysql_real_escape_string($userid));
 			if(!empty($user))
 			{
 				$duserid = $user[0][0];
@@ -1608,7 +1810,7 @@ value_type();
 			if($duserid != $userid || $dapi != $api)
 			{
 				$this -> query("
-					REPLACE INTO {db_prefix}eve_api
+					REPLACE INTO {db_prefix}tea_api
 						(ID_MEMBER, userid, api, status, status_change, auto)
 					VALUES 
 					($memberID, '" . mysql_real_escape_string($userid) . "', '" . mysql_real_escape_string($api) . "', 'unchecked', ".time().", $auto)");
@@ -1618,7 +1820,7 @@ value_type();
 		{
 			foreach($_POST['del_api'] as $userid)
 			{
-				$this -> query("DELETE FROM {db_prefix}eve_api WHERE ID_MEMBER = $memberID AND userid = '" . mysql_real_escape_string($userid) . "'");
+				$this -> query("DELETE FROM {db_prefix}tea_api WHERE ID_MEMBER = $memberID AND userid = '" . mysql_real_escape_string($userid) . "'");
 			}
 		}
 		unset($_POST['del_api']);
@@ -1674,7 +1876,7 @@ value_type();
 		if(!$this -> modSettings["eveapi_enable"])
 			Return;
 		return;
-		loadLanguage('Eve_API');
+		loadLanguage('TEA');
 		$ID_MEMBER = $context['user']['id'];
 		// Did we get the user by name...
 		if (isset($_REQUEST['user']))
@@ -1694,7 +1896,7 @@ value_type();
 			$allow = AllowedTo('eveapi_view_any');
 		if($allow)
 		{
-			$api = $this -> select("SELECT userid, api, charid, status, status_change FROM {$db_prefix}eve_api WHERE ID_MEMBER = ".$memberResult[0]);
+			$api = $this -> select("SELECT userid, api, charid, status, status_change FROM {db_prefix}tea_api WHERE ID_MEMBER = ".$memberResult[0]);
 			if(!empty($api))
 			{
 				$api = $api[0];
@@ -1753,7 +1955,7 @@ value_type();
 	//	prepareDBSettingContext($config_vars);
 	}
 
-	function UserModifyEveApi($memID, &$eveapiinfo)
+	function UserModifyTEA($memID, &$eveapiinfo)
 	{ // is this a valid function? clearly code for my other mod, but is it safe to delete, or is it partly in use and other code is junk
 		if(!$this -> modSettings["eveapi_enable"])
 			Return;
@@ -1762,7 +1964,7 @@ value_type();
 		//	isAllowedTo('eveapi_edit_any');
 		if(!is_numeric($memID))
 			die("Invalid User id");
-		$user = $this -> select("SELECT userid, api, status, matched, error FROM {db_prefix}eve_api WHERE ID_MEMBER = ".$memID);
+		$user = $this -> select("SELECT userid, api, status, matched, error FROM {db_prefix}tea_api WHERE ID_MEMBER = ".$memID);
 		if(!empty($user))
 		{
 			foreach($user as $u)
@@ -1806,7 +2008,7 @@ value_type();
 								$anames[] = $aname[0][0];
 						}
 					}
-					$aname = implode(", ", $aname);
+					$aname = implode(", ", $anames);
 				}
 				else
 					$aname = 'none';
@@ -1824,7 +2026,7 @@ value_type();
 		}
 	}
 
-	function RegistrationFields(&$db_prefix, &$txt)
+	function RegistrationFields()
 	{
 		if(!$this -> modSettings["eveapi_enable"])
 			Return;
@@ -1833,20 +2035,20 @@ value_type();
 //echo '							<table border="0" width="100%" cellpadding="3">';
 
 //		echo '<tr><td>
-//										<b>', $txt['eveapi_userid'], ':</b></td>
+//										<b>', $this -> txt['eveapi_userid'], ':</b></td>
 //										<td><input type="text" name="eveapi_user_id[]" value="'.$api[0].'" size="10" />
 //									</td>
 //								</tr><tr>
-//									<td width="40%">										<b>', $txt['eveapi_api'], ':</b></td>
+//									<td width="40%">										<b>', $this -> txt['eveapi_api'], ':</b></td>
 //										<td><input type="text" name="eveapi_user_api[]" value="'.$api[1].'" size="64" />
 //									</td>
 //								</tr>';
 		echo '<dl class="register_form"><dt>
-										<b>', $txt['eveapi_userid'], ':</b></dt>
+										<b>', $this -> txt['eveapi_userid'], ':</b></dt>
 										<dd><input type="text" name="eveapi_user_id[]" value="'.$api[0].'" size="10" />
 									</dd>
 								</dl><dl class="register_form">
-									<dt>										<b>', $txt['eveapi_api'], ':</b></dt>
+									<dt>										<b>', $this -> txt['eveapi_api'], ':</b></dt>
 										<dd><input type="text" name="eveapi_user_api[]" value="'.$api[1].'" size="64" />
 									</dd>
 								</dl>';
@@ -1940,22 +2142,22 @@ value_type();
 }
 function editeveapi($memID)
 {
-	global $eve_api, $eveapiinfo, $sourcedir, $context, $settings, $options, $scripturl, $modSettings, $txt, $db_prefix;
-	$eve_api -> UserModifyEveApi($memID, $eveapiinfo, $context, $settings, $options, $scripturl, $modSettings, $txt, $db_prefix);
+	global $tea, $eveapiinfo, $sourcedir, $context, $settings, $options, $scripturl, $modSettings, $txt, $db_prefix;
+	$tea -> UserModifyEveApi($memID, $eveapiinfo, $context, $settings, $options, $scripturl, $modSettings, $txt, $db_prefix);
 }
-function ModifyEveApiSettings()
+function ModifyTEASettings()
 {
-	global $eve_api, $sourcedir, $txt, $scripturl, $context, $settings, $sc;
+	global $tea, $sourcedir, $txt, $scripturl, $context, $settings, $sc;
 	// Will need the utility functions from here.
 	require_once($sourcedir . '/ManageServer.php');
 
 	$context['sub_template'] = 'show_settings';
-	$eve_api -> Settings($txt, $scripturl, $context, $settings, $sc);
+	$tea -> Settings($txt, $scripturl, $context, $settings, $sc);
 }
 
 function template_editeveapi()
 {
-	global $eve_api, $eveapiinfo, $sourcedir, $context, $settings, $options, $scripturl, $modSettings, $txt, $db_prefix;
+	global $tea, $eveapiinfo, $sourcedir, $context, $settings, $options, $scripturl, $modSettings, $txt, $db_prefix;
 	echo '
 		<form action="', $scripturl, '?action=profile;area=eveapi;save" method="post" accept-charset="', $context['character_set'], '" name="creator" id="creator">
 			<table border="0" width="100%" cellspacing="1" cellpadding="4" align="center" class="bordercolor">
