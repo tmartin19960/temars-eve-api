@@ -24,10 +24,10 @@ class TEA
 
 		$this -> version = "1.1.0";
 
-		$permissions["eveapi_view_own"] = 1;
-		$permissions["eveapi_view_any"] = 0;
-		$permissions["eveapi_edit_own"] = 1;
-		$permissions["eveapi_edit_any"] = 0;
+		$permissions["tea_view_own"] = 1;
+		$permissions["tea_view_any"] = 0;
+		$permissions["tea_edit_own"] = 1;
+		$permissions["tea_edit_any"] = 0;
 
 		$groups = array();
 		$groups2 = array();
@@ -62,7 +62,7 @@ class TEA
 
 	function update_api($apiuser, $apiecho=FALSE)
 	{
-		if(!$this -> modSettings["eveapi_enable"])
+		if(!$this -> modSettings["tea_enable"])
 			Return;
 		$this -> file = "\n\n\nDate: ".gmdate("F jS, Y H:i", time())."\n";
 
@@ -102,7 +102,7 @@ class TEA
 			}
 			unset($corps);
 		}
-		$data = $this -> get_xml($this -> modSettings["eveapi_userid"], $this -> modSettings["eveapi_api"], $this -> modSettings["eveapi_charid"], 'standings');
+		$data = $this -> get_xml($this -> modSettings["tea_userid"], $this -> modSettings["tea_api"], $this -> modSettings["tea_charid"], 'standings');
 
 		$temp[1] = $this -> xmlparse($data, "corporationStandings");
 		$temp[2] = $this -> xmlparse($data, "allianceStandings");
@@ -198,18 +198,13 @@ class TEA
 	function single($user, $echo, $group=FALSE)
 	{
 		$mongroups[0] = TRUE;
-		$mongroups[$this -> modSettings["eveapi_groupass_unknown"]] = TRUE;
-		$mongroups[$this -> modSettings["eveapi_groupass_corp"]] = TRUE;
-		$mongroups[$this -> modSettings["eveapi_groupass_alliance"]] = TRUE;
-		$mongroups[$this -> modSettings["eveapi_groupass_blue"]] = TRUE;
-		$mongroups[$this -> modSettings["eveapi_groupass_red"]] = TRUE;
-		$mongroups[$this -> modSettings["eveapi_groupass_neut"]] = TRUE;
+		$mongroups[$this -> modSettings["tea_groupass_unknown"]] = TRUE;
 
 		$this -> chars = array();
 
 		$txt = $this -> txt;
 
-		$cgq = $this -> select("SELECT id, main, additional FROM {db_prefix}eve_groups ORDER BY id");
+		$cgq = $this -> select("SELECT id, main, additional FROM {db_prefix}tea_groups ORDER BY id");
 		if(!empty($cgq))
 		{
 			foreach($cgq as $cgqs)
@@ -249,9 +244,9 @@ class TEA
 
 					if(!isset($mongroups[$group]) && $mongroups[$group] == 1)
 					{
-						$this -> file .= $txt['eveapi_run_custom']."\n";
+						$this -> file .= $txt['tea_run_custom']."\n";
 						if($echo)
-							echo $txt['eveapi_run_custom']."\n<br>";
+							echo $txt['tea_run_custom']."\n<br>";
 						$ignore = TRUE;
 					}
 					$chars = $this -> get_characters($apiuser, $apikey);
@@ -272,14 +267,14 @@ class TEA
 							$this -> query("UPDATE {db_prefix}tea_api SET status = 'OK', status_change = ".time()." WHERE ID_MEMBER = {int:id} AND userid = {int:userid}",
 						array('id' => $id, 'userid' => $apiuser));
 						// get main rules
-						$rules = $this -> select("SELECT ruleid, `group` FROM {db_prefix}eve_rules WHERE main = 1 AND enabled = 1 ORDER BY ruleid");
+						$rules = $this -> select("SELECT ruleid, `group` FROM {db_prefix}tea_rules WHERE main = 1 AND enabled = 1 ORDER BY ruleid");
 						if(!empty($rules) && !$ignore)
 						{
 							foreach($rules as $rule)
 							{
 								foreach($chars as $char)
 								{
-									$conditions = $this -> select("SELECT type, value, extra FROM {db_prefix}eve_conditions WHERE ruleid = {int:id}",
+									$conditions = $this -> select("SELECT type, value, extra FROM {db_prefix}tea_conditions WHERE ruleid = {int:id}",
 									array('id' => $rule[0]));
 									if(!empty($conditions))
 									{
@@ -394,7 +389,7 @@ class TEA
 							}
 						}
 						// get additional
-						$rules = $this -> select("SELECT ruleid, `group` FROM {db_prefix}eve_rules WHERE main = 0 AND enabled = 1 ORDER BY ruleid");
+						$rules = $this -> select("SELECT ruleid, `group` FROM {db_prefix}tea_rules WHERE main = 0 AND enabled = 1 ORDER BY ruleid");
 						if(!empty($rules))
 						{
 							foreach($rules as $rule)
@@ -403,7 +398,7 @@ class TEA
 									Break;
 								foreach($chars as $char)
 								{
-									$conditions = $this -> select("SELECT type, value, extra FROM {db_prefix}eve_conditions WHERE ruleid = ".$rule[0]);
+									$conditions = $this -> select("SELECT type, value, extra FROM {db_prefix}tea_conditions WHERE ruleid = ".$rule[0]);
 									if(!empty($conditions))
 									{
 										$match = TRUE;
@@ -522,7 +517,7 @@ class TEA
 			else
 			{	// no api on account, if monitored group change to unknown group
 				if(!$ignore)
-					$this -> query("UPDATE {db_prefix}members SET ID_GROUP = {int:group} WHERE ID_MEMBER = {int:id}", array('id' => $user, 'group' => $this -> modSettings["eveapi_groupass_unknown"]));
+					$this -> query("UPDATE {db_prefix}members SET ID_GROUP = {int:group} WHERE ID_MEMBER = {int:id}", array('id' => $user, 'group' => $this -> modSettings["tea_groupass_unknown"]));
 			}
 			$agroups = implode(',', $agroups);
 			// no api found remove all monitored groups
@@ -541,7 +536,7 @@ class TEA
 					//			$alliance = $this -> corps[$corp];
 								//echo "alliance!!!! $alliance\n<br>";
 							//}
-					//		if($corp == $this -> modSettings["eveapi_corpid"])
+					//		if($corp == $this -> modSettings["tea_corpid"])
 					//		{
 					//			$incorp = TRUE;
 					//		}
@@ -553,14 +548,14 @@ class TEA
 							// {
 								// $inreds = TRUE;
 							// }
-							// if($alliance == $this -> modSettings["eveapi_allianceid"])
+							// if($alliance == $this -> modSettings["tea_allianceid"])
 							// {
 								// $inalliance = TRUE;
 							// }
 						//	$corpinfo = $this -> corp_info($corp);
 						//	if(empty($corpinfo))
 						//		$corpinfo['ticker'] = "Unknown";
-						//	if($this -> modSettings["eveapi_corptag_options"] == 1)
+						//	if($this -> modSettings["tea_corptag_options"] == 1)
 						//	{
 						//		$this -> query("UPDATE {db_prefix}members SET usertitle = '".$corpinfo['ticker']."' WHERE ID_MEMBER = ".$id);
 						//	}
@@ -580,28 +575,28 @@ class TEA
 		//	}
 			// if($ignore)
 				// Return;
-			// if(isset($this -> modSettings["eveapi_groupass_unknown"]))
-				// $nogroup = $this -> modSettings["eveapi_groupass_unknown"];
+			// if(isset($this -> modSettings["tea_groupass_unknown"]))
+				// $nogroup = $this -> modSettings["tea_groupass_unknown"];
 			// else
 				// $nogroup = 0;
-			// if(isset($this -> modSettings["eveapi_groupass_corp"]))
-				// $corp = $this -> modSettings["eveapi_groupass_corp"];
+			// if(isset($this -> modSettings["tea_groupass_corp"]))
+				// $corp = $this -> modSettings["tea_groupass_corp"];
 			// else
 				// $corp = 0;
-			// if(isset($this -> modSettings["eveapi_groupass_alliance"]))
-				// $alliance = $this -> modSettings["eveapi_groupass_alliance"];
+			// if(isset($this -> modSettings["tea_groupass_alliance"]))
+				// $alliance = $this -> modSettings["tea_groupass_alliance"];
 			// else
 				// $alliance = 0;
-			// if(isset($this -> modSettings["eveapi_groupass_blue"]))
-				// $blue = $this -> modSettings["eveapi_groupass_blue"];
+			// if(isset($this -> modSettings["tea_groupass_blue"]))
+				// $blue = $this -> modSettings["tea_groupass_blue"];
 			// else
 				// $blue = 0;
-			// if(isset($this -> modSettings["eveapi_groupass_red"]))
-				// $red = $this -> modSettings["eveapi_groupass_red"];
+			// if(isset($this -> modSettings["tea_groupass_red"]))
+				// $red = $this -> modSettings["tea_groupass_red"];
 			// else
 				// $red = 0;
-			// if(isset($this -> modSettings["eveapi_groupass_neut"]))
-				// $neut = $this -> modSettings["eveapi_groupass_neut"];
+			// if(isset($this -> modSettings["tea_groupass_neut"]))
+				// $neut = $this -> modSettings["tea_groupass_neut"];
 			// else
 				// $neut = 0;
 
@@ -610,20 +605,20 @@ class TEA
 			// {
 				// $e = "";
 				// if($incorp)
-					// $e = " ".$txt['eveapi_run_alsocorp'];
+					// $e = " ".$txt['tea_run_alsocorp'];
 				// if($inblues)
-					// $e .= " ".$txt['eveapi_run_alsoblue'];
+					// $e .= " ".$txt['tea_run_alsoblue'];
 				// if($group == $red)
 				// {
-					// $this -> file .= $txt['eveapi_run_ared'].$e."\n";
+					// $this -> file .= $txt['tea_run_ared'].$e."\n";
 					// if($echo)
-						// echo $txt['eveapi_run_ared'].$e."\n<br>";
+						// echo $txt['tea_run_ared'].$e."\n<br>";
 				// }
 				// else
 				// {
-					// $this -> file .= $txt['eveapi_run_red'].$e."\n";
+					// $this -> file .= $txt['tea_run_red'].$e."\n";
 					// if($echo)
-						// echo $txt['eveapi_run_red'].$e."\n<br>";
+						// echo $txt['tea_run_red'].$e."\n<br>";
 					// $this -> query("UPDATE {db_prefix}members SET ID_GROUP = $red WHERE ID_MEMBER = ".$id);
 				// }
 				// $this -> query("UPDATE {db_prefix}tea_api SET status = 'red', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
@@ -632,18 +627,18 @@ class TEA
 			// {
 				// $e = "";
 				// if($inblues)
-					// $e = " ".$txt['eveapi_run_alsoblue'];
+					// $e = " ".$txt['tea_run_alsoblue'];
 				// if($group == $corp)
 				// {
-					// $this -> file .= $txt['eveapi_run_acorp'].$e."\n";
+					// $this -> file .= $txt['tea_run_acorp'].$e."\n";
 					// if($echo)
-						// echo $txt['eveapi_run_acorp'].$e."\n<br>";
+						// echo $txt['tea_run_acorp'].$e."\n<br>";
 				// }
 				// else
 				// {
-					// $this -> file .= $txt['eveapi_run_corp'].$e."\n";
+					// $this -> file .= $txt['tea_run_corp'].$e."\n";
 					// if($echo)
-						// echo $txt['eveapi_run_corp'].$e."\n<br>";
+						// echo $txt['tea_run_corp'].$e."\n<br>";
 					// $this -> query("UPDATE {db_prefix}members SET ID_GROUP = $corp WHERE ID_MEMBER = ".$id);
 				// }
 				// $this -> query("UPDATE {db_prefix}tea_api SET status = 'corp', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
@@ -652,18 +647,18 @@ class TEA
 			// {
 				// $e = "";
 				// if($inblues)
-					// $e = " ".$txt['eveapi_run_alsoblue'];
+					// $e = " ".$txt['tea_run_alsoblue'];
 				// if($group == $alliance)
 				// {
-					// $this -> file .= $txt['eveapi_run_aalliance'].$e."\n";
+					// $this -> file .= $txt['tea_run_aalliance'].$e."\n";
 					// if($echo)
-						// echo $txt['eveapi_run_aalliance'].$e."\n<br>";
+						// echo $txt['tea_run_aalliance'].$e."\n<br>";
 				// }
 				// else
 				// {
-					// $this -> file .= $txt['eveapi_run_alliance'].$e."\n";
+					// $this -> file .= $txt['tea_run_alliance'].$e."\n";
 					// if($echo)
-						// echo $txt['eveapi_run_alliance'].$e."\n<br>";
+						// echo $txt['tea_run_alliance'].$e."\n<br>";
 					// $this -> query("UPDATE {db_prefix}members SET ID_GROUP = $alliance WHERE ID_MEMBER = ".$id);
 				// }
 				// $this -> query("UPDATE {db_prefix}tea_api SET status = 'alliance', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
@@ -672,15 +667,15 @@ class TEA
 			// {
 				// if($group == $blue)
 				// {
-					// $this -> file .= $txt['eveapi_run_ablue']."\n";
+					// $this -> file .= $txt['tea_run_ablue']."\n";
 					// if($echo)
-						// echo $txt['eveapi_run_ablue']."\n<br>";
+						// echo $txt['tea_run_ablue']."\n<br>";
 				// }
 				// else
 				// {
-					// $this -> file .= $txt['eveapi_run_blue']."\n";
+					// $this -> file .= $txt['tea_run_blue']."\n";
 					// if($echo)
-						// echo $txt['eveapi_run_blue']."\n<br>";
+						// echo $txt['tea_run_blue']."\n<br>";
 					// $this -> query("UPDATE {db_prefix}members SET ID_GROUP = $blue WHERE ID_MEMBER = ".$id);
 				// }
 				// $this -> query("UPDATE {db_prefix}tea_api SET status = 'blue', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
@@ -689,32 +684,32 @@ class TEA
 			// {
 				// if($group == $neut)
 				// {
-					// $this -> file .= $txt['eveapi_run_aneut']."\n";
+					// $this -> file .= $txt['tea_run_aneut']."\n";
 					// if($echo)
-						// echo $txt['eveapi_run_aneut']."\n<br>";
+						// echo $txt['tea_run_aneut']."\n<br>";
 				// }
 				// else
 				// {
-					// $this -> file .= $txt['eveapi_run_neut']."\n";
+					// $this -> file .= $txt['tea_run_neut']."\n";
 					// if($echo)
-						// echo $txt['eveapi_run_neut']."\n<br>";
+						// echo $txt['tea_run_neut']."\n<br>";
 					// $this -> query("UPDATE {db_prefix}members SET ID_GROUP = $neut WHERE ID_MEMBER = ".$id);
 				// }
 				// $this -> query("UPDATE {db_prefix}tea_api SET status = 'neut', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
 			// }
 			// elseif($group != $nogroup)
 			// {
-				// $this -> file .= $txt['eveapi_run_reg']."\n";
+				// $this -> file .= $txt['tea_run_reg']."\n";
 				// if($echo)
-					// echo $txt['eveapi_run_reg']."\n<br>";
+					// echo $txt['tea_run_reg']."\n<br>";
 				// $this -> query("UPDATE {db_prefix}members SET ID_GROUP = $nogroup WHERE ID_MEMBER = ".$id);
 				// $this -> query("UPDATE {db_prefix}tea_api SET status = 'error', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
 			// }
 			// elseif($group == $nogroup)
 			// {
-				// $this -> file .= $txt['eveapi_run_areg']."\n";
+				// $this -> file .= $txt['tea_run_areg']."\n";
 				// if($echo)
-					// echo $txt['eveapi_run_areg']."\n<br>";
+					// echo $txt['tea_run_areg']."\n<br>";
 				// $this -> query("UPDATE {db_prefix}tea_api SET status = 'error', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
 			// }
 		// }
@@ -741,7 +736,7 @@ class TEA
 				$char = array_merge($char, $corpinfo);
 				$charlist[] = $char;
 				$this -> query("
-					REPLACE INTO {db_prefix}eve_characters
+					REPLACE INTO {db_prefix}tea_characters
 						(userid, charid, name, corpid, corp, corp_ticker, allianceid, alliance)
 					VALUES 
 					('" . mysql_real_escape_string($userid) . "', '" . mysql_real_escape_string($char['charid']) . "', '" . mysql_real_escape_string($char['name']) . "', '" . mysql_real_escape_string($char['corpid']) . "', '" . mysql_real_escape_string($char['corpname']) . "', '" . mysql_real_escape_string($char['ticker']) . "', '".$char['allainceid']."', '" . mysql_real_escape_string($char['alliance']) . "')");
@@ -794,7 +789,7 @@ class TEA
 
 	function get_acc_chars($userid)
 	{
-		$chars = $this -> select("SELECT charid, name, corp_ticker, corp, alliance FROM {db_prefix}eve_characters WHERE userid = ".$userid);
+		$chars = $this -> select("SELECT charid, name, corp_ticker, corp, alliance FROM {db_prefix}tea_characters WHERE userid = ".$userid);
 		if(!empty($chars))
 		{
 			foreach($chars as $char)
@@ -1144,9 +1139,9 @@ class TEA
 	function Settings(&$txt, $scripturl, &$context, $settings, $sc)
 	{
 		$context[$context['admin_menu_name']]['tab_data'] = array(
-			'title' => $txt['eveapi_title'],
+			'title' => $txt['tea_title'],
 		//	'help' => 'featuresettings',
-			'description' => $txt['eveapi_settings_message'],
+			'description' => $txt['tea_settings_message'],
 			'tabs' => array(
 				'settings' => array(
 				),
@@ -1188,15 +1183,15 @@ class TEA
 				$atime = 'Never';
 			if (isset($_GET['save']))
 			{
-				$charid = $_POST["eveapi_charid"];
-				$userid = $_POST["eveapi_userid"];
-				$api = $_POST["eveapi_api"];
+				$charid = $_POST["tea_charid"];
+				$userid = $_POST["tea_userid"];
+				$api = $_POST["tea_api"];
 			}
 			else
 			{
-				$charid = $this -> modSettings["eveapi_charid"];
-				$userid = $this -> modSettings["eveapi_userid"];
-				$api = $this -> modSettings["eveapi_api"];
+				$charid = $this -> modSettings["tea_charid"];
+				$userid = $this -> modSettings["tea_userid"];
+				$api = $this -> modSettings["tea_api"];
 			}
 			$chars = $this -> get_characters($userid, $api);
 			$charlist = array();
@@ -1227,35 +1222,35 @@ class TEA
 				$time = 'Never';
 			$groups = $this -> MemberGroups();
 			$config_vars = array(
-				'<dt>'.$txt['eveapi_version'].': '.$this -> version.'</dt>',
+				'<dt>'.$txt['tea_version'].': '.$this -> version.'</dt>',
 				'',
 					// enable?
-					array('check', 'eveapi_enable'),
+					array('check', 'tea_enable'),
 				'',
 					// api info
-					array('int', 'eveapi_userid', 10),
-					array('text', 'eveapi_api', 64),
-					array('select', 'eveapi_charid', $charlist),
-				'<dt>'.$txt['eveapi_standings_updated'].': '.$time.'</dt>',
-				'<dt>'.$txt['eveapi_standings_contains'].': '.count($cblues).' '.$txt['eveapi_standings_bluec'].', '.count($creds).' '.$txt['eveapi_standings_bluea'].', '.count($ablues).' '.$txt['eveapi_standings_redc'].', '.count($areds).' '.$txt['eveapi_standings_reda'].'</dt>',
-				'<dt>'.$txt['eveapi_corpl_updated'].': '.$atime.'</dt>',
-				'<dt>'.$txt['eveapi_corpl_contains'].': '.count($this -> corps).'</dt>',
+					array('int', 'tea_userid', 10),
+					array('text', 'tea_api', 64),
+					array('select', 'tea_charid', $charlist),
+				'<dt>'.$txt['tea_standings_updated'].': '.$time.'</dt>',
+				'<dt>'.$txt['tea_standings_contains'].': '.count($cblues).' '.$txt['tea_standings_bluec'].', '.count($creds).' '.$txt['tea_standings_bluea'].', '.count($ablues).' '.$txt['tea_standings_redc'].', '.count($areds).' '.$txt['tea_standings_reda'].'</dt>',
+				'<dt>'.$txt['tea_corpl_updated'].': '.$atime.'</dt>',
+				'<dt>'.$txt['tea_corpl_contains'].': '.count($this -> corps).'</dt>',
 				'',
-					array('check', 'eveapi_regreq'),
-					array('check', 'eveapi_usecharname'),
-					array('check', 'eveapi_avatar_enabled'),
-					array('int', 'eveapi_corpid', 10),
-					array('int', 'eveapi_allianceid', 10),
-					array('check', 'eveapi_useapiabove'),
-					array('select', 'eveapi_corptag_options', array(0 => 'Nothing', 1 => 'Custom Title', 2 => 'Part of Name')),
+					array('check', 'tea_regreq'),
+					array('check', 'tea_usecharname'),
+					array('check', 'tea_avatar_enabled'),
+					array('int', 'tea_corpid', 10),
+					array('int', 'tea_allianceid', 10),
+					array('check', 'tea_useapiabove'),
+					array('select', 'tea_corptag_options', array(0 => 'Nothing', 1 => 'Custom Title', 2 => 'Part of Name')),
 				'',
-				'<dt>'.$txt['eveapi_group_settings'].'</dt>',
-				//	array('select', 'eveapi_groupass_red', $groups),
-				//	array('select', 'eveapi_groupass_corp', $groups),
-				//	array('select', 'eveapi_groupass_alliance', $groups),
-				//	array('select', 'eveapi_groupass_blue', $groups),
-				//	array('select', 'eveapi_groupass_neut', $groups),
-					array('select', 'eveapi_groupass_unknown', $groups),
+				'<dt>'.$txt['tea_group_settings'].'</dt>',
+				//	array('select', 'tea_groupass_red', $groups),
+				//	array('select', 'tea_groupass_corp', $groups),
+				//	array('select', 'tea_groupass_alliance', $groups),
+				//	array('select', 'tea_groupass_blue', $groups),
+				//	array('select', 'tea_groupass_neut', $groups),
+					array('select', 'tea_groupass_unknown', $groups),
 				'',
 					// Who's online.
 			//		array('check', 'who_enabled'),
@@ -1264,23 +1259,23 @@ class TEA
 			// Saving?
 			if (isset($_GET['save']))
 			{
-				if(isset($_POST['eveapi_useapiabove']))
+				if(isset($_POST['tea_useapiabove']))
 				{
-					$_POST['eveapi_corpid'] = $corp;
-					$_POST['eveapi_allianceid'] = $alliance;
-					unset($_POST['eveapi_useapiabove']);
+					$_POST['tea_corpid'] = $corp;
+					$_POST['tea_allianceid'] = $alliance;
+					unset($_POST['tea_useapiabove']);
 				}
 				saveDBSettings($config_vars);
-				redirectexit('action=admin;area=eveapi');
+				redirectexit('action=admin;area=tea');
 
 				loadUserSettings();
 				writeLog();
 			}
 		}
 
-		$context['post_url'] = $scripturl . '?action=admin;area=eveapi;save';
-	//	$context['settings_title'] = $txt['eveapi_title'];
-	//	$context['settings_message'] = $txt['eveapi_settings_message'];
+		$context['post_url'] = $scripturl . '?action=admin;area=tea;save';
+	//	$context['settings_title'] = $txt['tea_title'];
+	//	$context['settings_message'] = $txt['tea_settings_message'];
 
 		prepareDBSettingContext($config_vars);
 	}
@@ -1311,13 +1306,13 @@ class TEA
 					elseif($g[0] == "adit")
 						$gs[$g[1]][1] = 1;
 				}
-				$this -> query("DELETE FROM {db_prefix}eve_groups");
+				$this -> query("DELETE FROM {db_prefix}tea_groups");
 				foreach($gs as $g => $v)
 				{
 					if($v[0] != 1) $v[0] = 0;
 					if($v[1] != 1) $v[1] = 0;
 					$this -> query("
-						INSERT INTO {db_prefix}eve_groups
+						INSERT INTO {db_prefix}tea_groups
 							(id, main, additional)
 						VALUES 
 							({int:id}, {int:main}, {int:adit})",
@@ -1334,13 +1329,13 @@ class TEA
 					elseif($g[0] == "adit")
 						$gs[$g[1]][1] = 1;
 				}
-				$this -> query("DELETE FROM {db_prefix}eve_groups");
+				$this -> query("DELETE FROM {db_prefix}tea_groups");
 				foreach($gs as $g => $v)
 				{
 					if($v[0] != 1) $v[0] = 0;
 					if($v[1] != 1) $v[1] = 0;
 					$this -> query("
-						INSERT INTO {db_prefix}eve_groups
+						INSERT INTO {db_prefix}tea_groups
 							(id, main, additional)
 						VALUES 
 							({int:id}, {int:main}, {int:adit})",
@@ -1353,8 +1348,8 @@ class TEA
 				{
 					if(!is_numeric($_POST['value']))
 						die("delete value must be number");
-					$this -> query("DELETE FROM {db_prefix}eve_rules WHERE ruleid = ".$_POST['value']);
-					$this -> query("DELETE FROM {db_prefix}eve_conditions WHERE ruleid = ".$_POST['value']);
+					$this -> query("DELETE FROM {db_prefix}tea_rules WHERE ruleid = ".$_POST['value']);
+					$this -> query("DELETE FROM {db_prefix}tea_conditions WHERE ruleid = ".$_POST['value']);
 				}
 				else
 				{
@@ -1387,13 +1382,13 @@ class TEA
 				elseif(!$exists)
 					die("Invalid Group");
 
-				$this -> query("UPDATE {db_prefix}eve_rules SET name = '$name', main = $main, `group` = $group, andor = '$andor' WHERE ruleid = $id");
+				$this -> query("UPDATE {db_prefix}tea_rules SET name = '$name', main = $main, `group` = $group, andor = '$andor' WHERE ruleid = $id");
 			}
 			elseif($_POST["submit"] == "ADD")
 			{
 				if($_POST['id'] == "new")
 				{
-					$id = $this -> select("SELECT ruleid FROM {db_prefix}eve_rules ORDER BY ruleid DESC LIMIT 1");
+					$id = $this -> select("SELECT ruleid FROM {db_prefix}tea_rules ORDER BY ruleid DESC LIMIT 1");
 					if(!empty($id))
 						$id = $id[0][0]+1;
 					else
@@ -1436,8 +1431,8 @@ class TEA
 					die("Invalid Group");
 
 				if(!$exists)
-					$this -> query("INSERT INTO {db_prefix}eve_rules (ruleid, name, main, `group`, andor) VALUES ($id, '$name', $main, $group, '$andor')");
-				$this -> query("INSERT INTO {db_prefix}eve_conditions (ruleid, type, value, extra) VALUES ($id, '$type', '$value', '$extra')");
+					$this -> query("INSERT INTO {db_prefix}tea_rules (ruleid, name, main, `group`, andor) VALUES ($id, '$name', $main, $group, '$andor')");
+				$this -> query("INSERT INTO {db_prefix}tea_conditions (ruleid, type, value, extra) VALUES ($id, '$type', '$value', '$extra')");
 				//if(!isset($types[$_POST['type']]))
 				//	error
 				//elseif(!is_numeric($_POST['id']) && $_POST['id'] != "new")
@@ -1446,7 +1441,7 @@ class TEA
 				//	error
 			}
 		}
-		$cgq = $this -> select("SELECT id, main, additional FROM {db_prefix}eve_groups ORDER BY id");
+		$cgq = $this -> select("SELECT id, main, additional FROM {db_prefix}tea_groups ORDER BY id");
 		if(!empty($cgq))
 		{
 			foreach($cgq as $cgqs)
@@ -1475,7 +1470,7 @@ class TEA
 		$out[1] = '';
 		$out[2] .= '<dt>';
 
-		$idl = $this -> select("SELECT ruleid, name, main, `group`, andor, enabled FROM {db_prefix}eve_rules ORDER BY ruleid");
+		$idl = $this -> select("SELECT ruleid, name, main, `group`, andor, enabled FROM {db_prefix}tea_rules ORDER BY ruleid");
 		if(!empty($idl))
 		{
 			foreach($idl as $id)
@@ -1484,7 +1479,7 @@ class TEA
 				$list[$id[0]] = array('name' => $id[1], 'main' => $id[2], 'group' => $id[3], 'andor' => $id[4], 'enabled' => $id[5], 'conditions' => array());
 			}
 		}
-		$idl = $this -> select("SELECT id, ruleid, type, value, extra FROM {db_prefix}eve_conditions ORDER BY ruleid");
+		$idl = $this -> select("SELECT id, ruleid, type, value, extra FROM {db_prefix}tea_conditions ORDER BY ruleid");
 		if(!empty($idl))
 		{
 			foreach($idl as $id)
@@ -1579,19 +1574,19 @@ class TEA
 		$out[4] .= '</select></td>
 			</tr>
 						<tr>
-				<td><div id="eveapi_maintxt">Main Group:</div></td>
-				<td><div id="eveapi_main"><input type="checkbox" name="main" value="main" /></div></td>
+				<td><div id="tea_maintxt">Main Group:</div></td>
+				<td><div id="tea_main"><input type="checkbox" name="main" value="main" /></div></td>
 			</tr>
 			<tr>
-				<td><div id="eveapi_linktxt">Condition link:</div></td>
-				<td><div id="eveapi_link"><select name="andor">
+				<td><div id="tea_linktxt">Condition link:</div></td>
+				<td><div id="tea_link"><select name="andor">
 						<option value="AND">AND</option>
 						<option value="OR">OR</option>
 					</select> should multiple conditions be treated as AND or OR</div></td>
 			</tr>
 			<tr>
-				<td><div id="eveapi_typetxt">Type:</div></td>
-				<td><div id="eveapi_type"><select name="type" onchange="javascript: value_type(false)">';
+				<td><div id="tea_typetxt">Type:</div></td>
+				<td><div id="tea_type"><select name="type" onchange="javascript: value_type(false)">';
 		foreach($types as $value => $name)
 		{
 			$out[4] .= '<option value="'.$value.'">'.$name.'</option>';
@@ -1600,11 +1595,11 @@ class TEA
 			</tr>
 
 				<tr>
-				<td><div id="eveapi_valuetxt"></div></td>
-				<td><div id="eveapi_value"></div></td>
+				<td><div id="tea_valuetxt"></div></td>
+				<td><div id="tea_value"></div></td>
 			</tr><tr>
-				<td><div id="eveapi_grouptxt">Group:</div></td>
-				<td><div id="eveapi_group"><select name="group">
+				<td><div id="tea_grouptxt">Group:</div></td>
+				<td><div id="tea_group"><select name="group">
 				<option value="-">-</option>';
 		foreach($groups as $id => $group)
 		{
@@ -1635,12 +1630,12 @@ function value_type(fromedit)
 	}
 	if(id == "new" || fromedit == true)
 	{
-		document.getElementById(\'eveapi_maintxt\').innerHTML="Main Group:";
-		document.getElementById(\'eveapi_main\').innerHTML=\'<input type="checkbox" name="main" value="main" />\';
-		document.getElementById(\'eveapi_linktxt\').innerHTML="Condition link:";
-		document.getElementById(\'eveapi_link\').innerHTML=\'<select name="andor"><option value="AND">AND</option><option value="OR">OR</option></select> should multiple conditions be treated as AND or OR\';
-		document.getElementById(\'eveapi_grouptxt\').innerHTML="Group:";
-		document.getElementById(\'eveapi_group\').innerHTML=\'<select name="group"><option value="-">-</option>';
+		document.getElementById(\'tea_maintxt\').innerHTML="Main Group:";
+		document.getElementById(\'tea_main\').innerHTML=\'<input type="checkbox" name="main" value="main" />\';
+		document.getElementById(\'tea_linktxt\').innerHTML="Condition link:";
+		document.getElementById(\'tea_link\').innerHTML=\'<select name="andor"><option value="AND">AND</option><option value="OR">OR</option></select> should multiple conditions be treated as AND or OR\';
+		document.getElementById(\'tea_grouptxt\').innerHTML="Group:";
+		document.getElementById(\'tea_group\').innerHTML=\'<select name="group"><option value="-">-</option>';
 		foreach($groups as $id => $group)
 		{
 			$out[4] .= '<option value="'.$id.'">'.$group.'</option>';
@@ -1649,47 +1644,47 @@ function value_type(fromedit)
 	}
 	else
 	{
-		document.getElementById(\'eveapi_maintxt\').innerHTML="";
-		document.getElementById(\'eveapi_main\').innerHTML="";
-		document.getElementById(\'eveapi_linktxt\').innerHTML="";
-		document.getElementById(\'eveapi_link\').innerHTML="";
-		document.getElementById(\'eveapi_grouptxt\').innerHTML="";
-		document.getElementById(\'eveapi_group\').innerHTML="";
+		document.getElementById(\'tea_maintxt\').innerHTML="";
+		document.getElementById(\'tea_main\').innerHTML="";
+		document.getElementById(\'tea_linktxt\').innerHTML="";
+		document.getElementById(\'tea_link\').innerHTML="";
+		document.getElementById(\'tea_grouptxt\').innerHTML="";
+		document.getElementById(\'tea_group\').innerHTML="";
 	}
 	if(type == "corp")
 	{
-		document.getElementById(\'eveapi_valuetxt\').innerHTML="Corp ID:";
-		document.getElementById(\'eveapi_value\').innerHTML=\'<input type="text" name="value" value="" />\';
+		document.getElementById(\'tea_valuetxt\').innerHTML="Corp ID:";
+		document.getElementById(\'tea_value\').innerHTML=\'<input type="text" name="value" value="" />\';
 	}
 	else if(type == "alliance")
 	{
-		document.getElementById(\'eveapi_valuetxt\').innerHTML="Alliance ID:";
-		document.getElementById(\'eveapi_value\').innerHTML=\'<input type="text" name="value" value="" />\';
+		document.getElementById(\'tea_valuetxt\').innerHTML="Alliance ID:";
+		document.getElementById(\'tea_value\').innerHTML=\'<input type="text" name="value" value="" />\';
 	}
 	else if(type == "blue" || type == "red" || type == "neut" || type == "error")
 	{
-		document.getElementById(\'eveapi_valuetxt\').innerHTML="";
-		document.getElementById(\'eveapi_value\').innerHTML="";
+		document.getElementById(\'tea_valuetxt\').innerHTML="";
+		document.getElementById(\'tea_value\').innerHTML="";
 	}
 	else if(type == "skill")
 	{
-		document.getElementById(\'eveapi_valuetxt\').innerHTML="Skill:";
-		document.getElementById(\'eveapi_value\').innerHTML=\'<input type="text" name="value" value="" /> % wildcard Allowed<br>Level: <input type="radio" name="extra" value="1" /> 1 <input type="radio" name="extra" value="1" /> 2 <input type="radio" name="extra" value="1" /> 3 <input type="radio" name="extra" value="1" /> 4 <input type="radio" name="extra" value="1" /> 5\';
+		document.getElementById(\'tea_valuetxt\').innerHTML="Skill:";
+		document.getElementById(\'tea_value\').innerHTML=\'<input type="text" name="value" value="" /> % wildcard Allowed<br>Level: <input type="radio" name="extra" value="1" /> 1 <input type="radio" name="extra" value="1" /> 2 <input type="radio" name="extra" value="1" /> 3 <input type="radio" name="extra" value="1" /> 4 <input type="radio" name="extra" value="1" /> 5\';
 	}
 	else if(type == "role")
 	{
-		document.getElementById(\'eveapi_valuetxt\').innerHTML="Role:";
-		document.getElementById(\'eveapi_value\').innerHTML=\'<input type="text" name="value" value="" />\';
+		document.getElementById(\'tea_valuetxt\').innerHTML="Role:";
+		document.getElementById(\'tea_value\').innerHTML=\'<input type="text" name="value" value="" />\';
 	}
 	else if(type == "title")
 	{
-		document.getElementById(\'eveapi_valuetxt\').innerHTML="Title:";
-		document.getElementById(\'eveapi_value\').innerHTML=\'<input type="text" name="value" value="" />\';
+		document.getElementById(\'tea_valuetxt\').innerHTML="Title:";
+		document.getElementById(\'tea_value\').innerHTML=\'<input type="text" name="value" value="" />\';
 	}
 	else if(type == "militia")
 	{
-		document.getElementById(\'eveapi_valuetxt\').innerHTML="Militia:";
-		document.getElementById(\'eveapi_value\').innerHTML=\'<select name="value"><option value="Amarr Empire">Amarr Empire</option><option value="Caldari State">Caldari State		</option><option value="Gallente Federation">Gallente Federation</option><option value="Minmatar Republic">Minmatar Republic</option></select>\';
+		document.getElementById(\'tea_valuetxt\').innerHTML="Militia:";
+		document.getElementById(\'tea_value\').innerHTML=\'<select name="value"><option value="Amarr Empire">Amarr Empire</option><option value="Caldari State">Caldari State		</option><option value="Gallente Federation">Gallente Federation</option><option value="Minmatar Republic">Minmatar Republic</option></select>\';
 	}
 }
 function edit(id)
@@ -1698,8 +1693,8 @@ function edit(id)
 	value_type(true);
 	document.makerule.submit.value="EDIT";
 	document.getElementById(\'formtitle\').innerHTML="Edit Rule:";
-	document.getElementById(\'eveapi_typetxt\').innerHTML="";
-	document.getElementById(\'eveapi_type\').innerHTML="";
+	document.getElementById(\'tea_typetxt\').innerHTML="";
+	document.getElementById(\'tea_type\').innerHTML="";
 	document.makerule.id.remove("new");
 	document.makerule.name.value=rules[id][0];
 	document.makerule.id.value=id;
@@ -1731,7 +1726,7 @@ value_type();
 	//	$txt = $this -> txt;
 		if (isset($_GET['update']))
 		{
-			if(!$this -> modSettings["eveapi_enable"])
+			if(!$this -> modSettings["tea_enable"])
 				$file = "API Mod is Disabled";
 			$this -> update_api(FALSE);
 			$file = str_replace("\n", "<br>", $this -> file);
@@ -1743,14 +1738,14 @@ value_type();
 		{
 
 			$config_vars = array(
-				'<dt><a href="'.$scripturl.'?action=admin;area=eveapi;sa=checks;update">'.$txt['eveapi_fullcheck'].'</a></dt>',
+				'<dt><a href="'.$scripturl.'?action=admin;area=tea;sa=checks;update">'.$txt['tea_fullcheck'].'</a></dt>',
 			);
 
 		}
 
-		//$context['post_url'] = $scripturl . '?action=admin;area=eveapi;sa=checks;save';
-//		$context['settings_title'] = $txt['eveapi_title'];
-//		$context['settings_message'] = $txt['eveapi_settings_message'];
+		//$context['post_url'] = $scripturl . '?action=admin;area=tea;sa=checks;save';
+//		$context['settings_title'] = $txt['tea_title'];
+//		$context['settings_message'] = $txt['tea_settings_message'];
 		$context['settings_save_dont_show'] = TRUE;
 		prepareDBSettingContext($config_vars);
 	}
@@ -1776,7 +1771,7 @@ value_type();
 
 	function TEAAdd($memberID, $reg)
 	{
-		if(!$this -> modSettings["eveapi_enable"])
+		if(!$this -> modSettings["tea_enable"])
 			Return;
 	//	echo $memberID." kk ".$db_prefix;
 	//	var_dump($_POST);
@@ -1784,12 +1779,12 @@ value_type();
 			return;
 
 		//var_dump($_POST);die;
-		$userids = $_POST['eveapi_user_id'];
+		$userids = $_POST['tea_user_id'];
 		foreach($userids as $k => $userid)
 		{
 			if($userid == "")
 				Continue;
-			$api = $_POST['eveapi_user_api'][$k];
+			$api = $_POST['tea_user_api'][$k];
 			$user = $this -> select("SELECT userid, api, status, status_change, auto FROM {db_prefix}tea_api WHERE ID_MEMBER = ".$memberID." AND userid = ".mysql_real_escape_string($userid));
 			if(!empty($user))
 			{
@@ -1824,8 +1819,8 @@ value_type();
 			}
 		}
 		unset($_POST['del_api']);
-		unset($_POST['eveapi_user_id']);
-		unset($_POST['eveapi_user_api']);
+		unset($_POST['tea_user_id']);
+		unset($_POST['tea_user_api']);
 		$this -> update_api($memberID);
 		if($reg)
 		{
@@ -1833,13 +1828,13 @@ value_type();
 			{
 				$corp = $char[3];
 				$alliance = $this -> corps[$corp];
-				if($corp == $this -> modSettings["eveapi_corpid"])
+				if($corp == $this -> modSettings["tea_corpid"])
 				{
 					$main = $char;
 					$match = 4;
 				}
 				$corp = $char[3];
-				if($match < 3 && $alliance == $this -> modSettings["eveapi_allianceid"])
+				if($match < 3 && $alliance == $this -> modSettings["tea_allianceid"])
 				{
 					$main = $char;
 					$match = 3;
@@ -1860,11 +1855,11 @@ value_type();
 					$match = 0;
 				}
 			}
-			if($modSettings['eveapi_usecharname'])
+			if($modSettings['tea_usecharname'])
 			{	
 				$this -> query("UPDATE {db_prefix}members SET real_name = '".$main[0]."' WHERE ID_MEMBER = ".$memberID);
 			}
-			if($modSettings['eveapi_avatar_enabled'])
+			if($modSettings['tea_avatar_enabled'])
 			{
 				
 			}
@@ -1873,7 +1868,7 @@ value_type();
 
 	function DisplayAPIinfo(&$context, &$modSettings, $db_prefix, &$txt)
 	{
-		if(!$this -> modSettings["eveapi_enable"])
+		if(!$this -> modSettings["tea_enable"])
 			Return;
 		return;
 		loadLanguage('TEA');
@@ -1891,9 +1886,9 @@ value_type();
 		if(!is_numeric($memberResult[0]))
 			die("Invalid User id");
 		if($ID_MEMBER == $memberResult[0])
-			$allow = AllowedTo(array('eveapi_view_own', 'eveapi_view_any'));
+			$allow = AllowedTo(array('tea_view_own', 'tea_view_any'));
 		else
-			$allow = AllowedTo('eveapi_view_any');
+			$allow = AllowedTo('tea_view_any');
 		if($allow)
 		{
 			$api = $this -> select("SELECT userid, api, charid, status, status_change FROM {db_prefix}tea_api WHERE ID_MEMBER = ".$memberResult[0]);
@@ -1903,26 +1898,26 @@ value_type();
 			}
 			echo '
 						</tr><tr>
-						<td><b>' . $txt['eveapi_userid_short'] . ': </b></td>
+						<td><b>' . $txt['tea_userid_short'] . ': </b></td>
 						<td>' . $api[0] . '</td>
 						</tr><tr>
-						<td><b>' . $txt['eveapi_api_short'] . ': </b></td>
+						<td><b>' . $txt['tea_api_short'] . ': </b></td>
 						<td>' . $api[1] . '</td>';
 		}
 	}
 
 	function EveApi($txt, $scripturl, &$context, $settings, $sc)
 	{ // old settings mod?
-		if(!$this -> modSettings["eveapi_enable"])
+		if(!$this -> modSettings["tea_enable"])
 			Return;
 		$config_vars = array(
 			'',
 				// enable?
-				array('check', 'eveapi_enable'),
+				array('check', 'tea_enable'),
 			'',
 				// api info
-				array('int', 'eveapi_userid', 10),
-				array('text', 'eveapi_api', 64),
+				array('int', 'tea_userid', 10),
+				array('text', 'tea_api', 64),
 		//		array('check', 'topbottomEnable'),
 		//		array('check', 'onlineEnable'),
 		//		array('check', 'enableVBStyleLogin'),
@@ -1942,26 +1937,26 @@ value_type();
 		if (isset($_GET['save']))
 		{
 			saveDBSettings($config_vars);
-			redirectexit('action=featuresettings;sa=eveapi');
+			redirectexit('action=featuresettings;sa=tea');
 
 			loadUserSettings();
 			writeLog();
 		}
 
-		$context['post_url'] = $scripturl . '?action=featuresettings2;save;sa=eveapi';
+		$context['post_url'] = $scripturl . '?action=featuresettings2;save;sa=tea';
 		$context['settings_title'] = $txt['mods_cat_layout'];
-		$context['settings_message'] = $txt['eveapi_settings_message'];
+		$context['settings_message'] = $txt['tea_settings_message'];
 
 	//	prepareDBSettingContext($config_vars);
 	}
 
-	function UserModifyTEA($memID, &$eveapiinfo)
+	function UserModifyTEA($memID, &$teainfo)
 	{ // is this a valid function? clearly code for my other mod, but is it safe to delete, or is it partly in use and other code is junk
-		if(!$this -> modSettings["eveapi_enable"])
+		if(!$this -> modSettings["tea_enable"])
 			Return;
 
 	//	loadLanguage('AOCharLink');
-		//	isAllowedTo('eveapi_edit_any');
+		//	isAllowedTo('tea_edit_any');
 		if(!is_numeric($memID))
 			die("Invalid User id");
 		$user = $this -> select("SELECT userid, api, status, matched, error FROM {db_prefix}tea_api WHERE ID_MEMBER = ".$memID);
@@ -1990,7 +1985,7 @@ value_type();
 				$matched = explode(";", $u[3], 2);
 				if(is_numeric($matched[0]))
 				{
-					$mname = $this -> select("SELECT name FROM {db_prefix}eve_rules WHERE ruleid = {int:id}", array('id' => $matched[0]));
+					$mname = $this -> select("SELECT name FROM {db_prefix}tea_rules WHERE ruleid = {int:id}", array('id' => $matched[0]));
 					if(!empty($mname))
 						$mname = $mname[0][0];
 				}
@@ -2003,7 +1998,7 @@ value_type();
 					{
 						if(is_numeric($a))
 						{
-							$aname = $this -> select("SELECT name FROM {db_prefix}eve_rules WHERE ruleid = {int:id}", array('id' => $a));
+							$aname = $this -> select("SELECT name FROM {db_prefix}tea_rules WHERE ruleid = {int:id}", array('id' => $a));
 							if(!empty($aname))
 								$anames[] = $aname[0][0];
 						}
@@ -2012,7 +2007,7 @@ value_type();
 				}
 				else
 					$aname = 'none';
-				$eveapiinfo[] = array(
+				$teainfo[] = array(
 				"userid" => $u[0],
 				"api" => $u[1],
 			//	"msg" => $msg,
@@ -2028,28 +2023,28 @@ value_type();
 
 	function RegistrationFields()
 	{
-		if(!$this -> modSettings["eveapi_enable"])
+		if(!$this -> modSettings["tea_enable"])
 			Return;
 
 
 //echo '							<table border="0" width="100%" cellpadding="3">';
 
 //		echo '<tr><td>
-//										<b>', $this -> txt['eveapi_userid'], ':</b></td>
-//										<td><input type="text" name="eveapi_user_id[]" value="'.$api[0].'" size="10" />
+//										<b>', $this -> txt['tea_userid'], ':</b></td>
+//										<td><input type="text" name="tea_user_id[]" value="'.$api[0].'" size="10" />
 //									</td>
 //								</tr><tr>
-//									<td width="40%">										<b>', $this -> txt['eveapi_api'], ':</b></td>
-//										<td><input type="text" name="eveapi_user_api[]" value="'.$api[1].'" size="64" />
+//									<td width="40%">										<b>', $this -> txt['tea_api'], ':</b></td>
+//										<td><input type="text" name="tea_user_api[]" value="'.$api[1].'" size="64" />
 //									</td>
 //								</tr>';
 		echo '<dl class="register_form"><dt>
-										<b>', $this -> txt['eveapi_userid'], ':</b></dt>
-										<dd><input type="text" name="eveapi_user_id[]" value="'.$api[0].'" size="10" />
+										<b>', $this -> txt['tea_userid'], ':</b></dt>
+										<dd><input type="text" name="tea_user_id[]" value="'.$api[0].'" size="10" />
 									</dd>
 								</dl><dl class="register_form">
-									<dt>										<b>', $this -> txt['eveapi_api'], ':</b></dt>
-										<dd><input type="text" name="eveapi_user_api[]" value="'.$api[1].'" size="64" />
+									<dt>										<b>', $this -> txt['tea_api'], ':</b></dt>
+										<dd><input type="text" name="tea_user_api[]" value="'.$api[1].'" size="64" />
 									</dd>
 								</dl>';
 
@@ -2096,7 +2091,7 @@ value_type();
 			}
 		}
 		echo '			</select>
-<br><img name="eavatar" id="eavatar" src="', !empty($this -> modSettings["eveapi_enable"]) && $this -> context['member']['avatar']['choice'] == 'tea' ? $this -> context['member']['avatar']['tea'] : $this -> modSettings['avatar_url'] . '/blank.gif', '" />
+<br><img name="eavatar" id="eavatar" src="', !empty($this -> modSettings["tea_enable"]) && $this -> context['member']['avatar']['choice'] == 'tea' ? $this -> context['member']['avatar']['tea'] : $this -> modSettings['avatar_url'] . '/blank.gif', '" />
 								</div>';
 	}
 
@@ -2140,10 +2135,10 @@ value_type();
 	//	}
 	}
 }
-function editeveapi($memID)
+function edittea($memID)
 {
-	global $tea, $eveapiinfo, $sourcedir, $context, $settings, $options, $scripturl, $modSettings, $txt, $db_prefix;
-	$tea -> UserModifyEveApi($memID, $eveapiinfo, $context, $settings, $options, $scripturl, $modSettings, $txt, $db_prefix);
+	global $tea, $teainfo, $sourcedir, $context, $settings, $options, $scripturl, $modSettings, $txt, $db_prefix;
+	$tea -> UserModifyTEA($memID, $teainfo, $context, $settings, $options, $scripturl, $modSettings, $txt, $db_prefix);
 }
 function ModifyTEASettings()
 {
@@ -2155,45 +2150,45 @@ function ModifyTEASettings()
 	$tea -> Settings($txt, $scripturl, $context, $settings, $sc);
 }
 
-function template_editeveapi()
+function template_edittea()
 {
-	global $tea, $eveapiinfo, $sourcedir, $context, $settings, $options, $scripturl, $modSettings, $txt, $db_prefix;
+	global $tea, $teainfo, $sourcedir, $context, $settings, $options, $scripturl, $modSettings, $txt, $db_prefix;
 	echo '
-		<form action="', $scripturl, '?action=profile;area=eveapi;save" method="post" accept-charset="', $context['character_set'], '" name="creator" id="creator">
+		<form action="', $scripturl, '?action=profile;area=tea;save" method="post" accept-charset="', $context['character_set'], '" name="creator" id="creator">
 			<table border="0" width="100%" cellspacing="1" cellpadding="4" align="center" class="bordercolor">
 				<tr class="titlebg">
 					<td height="26">
 						&nbsp;<img src="', $settings['images_url'], '/icons/profile_sm.gif" alt="" border="0" align="top" />&nbsp;
-						', $txt['eveapi_title'], '
+						', $txt['tea_title'], '
 					</td>
 				</tr><tr class="windowbg">
 					<td class="smalltext" height="25" style="padding: 2ex;">
-						', $txt['eveapi_userinfo'], '
+						', $txt['tea_userinfo'], '
 					</td>
 				</tr><tr>
 					<td class="windowbg2" style="padding-bottom: 2ex;">
 						<table border="0" width="100%" cellpadding="3">';
-	if(!$modSettings["eveapi_enable"])
+	if(!$modSettings["tea_enable"])
 	{
-		echo '<tr><td>'.$txt['eveapi_disabled'].'</td></tr>';
+		echo '<tr><td>'.$txt['tea_disabled'].'</td></tr>';
 	}
 	else
 	{
 			//if($user[3] == "unverified")
-				//echo "<tr><td>Please use this command to Verify the Character<br>".$eveapiinfo['msg']."<br></td></tr>";
-$eveapiinfo[] = array();
-				foreach($eveapiinfo as $i => $info)
+				//echo "<tr><td>Please use this command to Verify the Character<br>".$teainfo['msg']."<br></td></tr>";
+$teainfo[] = array();
+				foreach($teainfo as $i => $info)
 				{
 					echo '<tr><td colspan="3"><hr class="hrcolor" width="100%" size="1"/></td></tr>';
 		echo '<tr><td>
-					<b>', $txt['eveapi_status'], ':</b></td><td>'.$info['status'];
+					<b>', $txt['tea_status'], ':</b></td><td>'.$info['status'];
 		if($info['status'] == 'API Error')
 			echo ' ('.$info['error'].')';
 		echo '</td>
-			</tr><tr><td><b>', $txt['eveapi_mainrule'], ':</b></td><td>'.$info['mainrule'].'</td>
-			</tr><tr><td><b>', $txt['eveapi_aditrules'], ':</b></td><td>'.$info['aditrules'].'</td>
+			</tr><tr><td><b>', $txt['tea_mainrule'], ':</b></td><td>'.$info['mainrule'].'</td>
+			</tr><tr><td><b>', $txt['tea_aditrules'], ':</b></td><td>'.$info['aditrules'].'</td>
 			</tr><tr><td>
-										<b>', $txt['eveapi_characters'], ':</b></td><td>';
+										<b>', $txt['tea_characters'], ':</b></td><td>';
 		if(!empty($info['charnames']))
 		{
 			echo '<style type="text/css">
@@ -2211,19 +2206,19 @@ red {color:red}
 		}
 		echo '</td></tr>
 		<tr><td>
-										<b>', $txt['eveapi_userid'], ':</b></td>
+										<b>', $txt['tea_userid'], ':</b></td>
 										<td>';
 					if($info['userid'] == "")
-						echo '<input type="text" name="eveapi_user_id[]" value="'.$info['userid'].'" size="20" />';
+						echo '<input type="text" name="tea_user_id[]" value="'.$info['userid'].'" size="20" />';
 					else
 					{
-						echo '<input type="hidden" name="eveapi_user_id[]" value="'.$info['userid'].'" size="20" />';
+						echo '<input type="hidden" name="tea_user_id[]" value="'.$info['userid'].'" size="20" />';
 						echo $info['userid'].'</td><td> <input type="checkbox" name="del_api[]" value="'.$info['userid'].'" /> Delete</td>';
 					}
 						echo '			</td>
 								</tr><tr>
-									<td width="40%">										<b>', $txt['eveapi_api'], ':</b></td>
-										<td><input type="text" name="eveapi_user_api[]" value="'.$info['api'].'" size="64" />
+									<td width="40%">										<b>', $txt['tea_api'], ':</b></td>
+										<td><input type="text" name="tea_user_api[]" value="'.$info['api'].'" size="64" />
 									</td>
 								</tr>';
 				}
