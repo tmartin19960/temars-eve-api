@@ -214,7 +214,7 @@ class TEA
 		if(is_numeric($user))
 			$id = $this -> select("SELECT ID_MEMBER, ID_GROUP, additional_groups FROM {db_prefix}members WHERE ID_MEMBER = {int:id}", array('id' => $user));
 		if(empty($id))
-			$id = $this -> select("SELECT ID_MEMBER, ID_GROUP, additional_groups FROM {db_prefix}members WHERE member_name = '{string:user}'", array('user' => $user));
+			$id = $this -> select("SELECT ID_MEMBER, ID_GROUP, additional_groups FROM {db_prefix}members WHERE member_name = {string:user}", array('user' => $user));
 		if(!empty($id))
 		{
 			$group = $id[0][1];
@@ -280,6 +280,9 @@ class TEA
 							{
 								foreach($chars as $char)
 								{
+									if(empty($this -> matchedchar))
+										$this -> matchedchar = $char; // just to make sure we get 1
+
 									$conditions = $this -> select("SELECT type, value, extra FROM {db_prefix}tea_conditions WHERE ruleid = {int:id}",
 									array('id' => $rule[0]));
 									if(!empty($conditions))
@@ -382,6 +385,7 @@ class TEA
 										}
 										if($match)
 										{
+											$this -> matchedchar = $char;
 											$this -> query("UPDATE {db_prefix}members SET ID_GROUP = {int:idg} WHERE ID_MEMBER = {int:id}",
 											array('idg' => $rule[1], 'id' => $id));
 											if(!$error)
@@ -523,11 +527,11 @@ class TEA
 			else
 			{	// no api on account, if monitored group change to unknown group
 				if(!$ignore)
-					$this -> query("UPDATE {db_prefix}members SET ID_GROUP = {int:group} WHERE ID_MEMBER = {int:id}", array('id' => $user, 'group' => $this -> modSettings["tea_groupass_unknown"]));
+					$this -> query("UPDATE {db_prefix}members SET ID_GROUP = {int:group} WHERE ID_MEMBER = {int:id}", array('id' => $id, 'group' => $this -> modSettings["tea_groupass_unknown"]));
 			}
 			$agroups = implode(',', $agroups);
 			// no api found remove all monitored groups
-			$this -> query("UPDATE {db_prefix}members SET additional_groups = '".$agroups."' WHERE ID_MEMBER = {int:id}", array('id' => $user));
+			$this -> query("UPDATE {db_prefix}members SET additional_groups = '".$agroups."' WHERE ID_MEMBER = {int:id}", array('id' => $id));
 
 			//$this -> query("UPDATE {db_prefix}members SET ID_GROUP = ".$rule[1]." WHERE ID_MEMBER = ".$id);
 			//$this -> query("UPDATE {db_prefix}tea_api SET status = 'red', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
@@ -1402,8 +1406,8 @@ class TEA
 					die("error id");
 
 				$andor = $_POST['andor'];
-				if($andor != "AND" && $andor != "OR")
-					die("andor must be AND or OR");
+				//if($andor != "AND" && $andor != "OR")
+				//	die("andor must be AND or OR");
 
 				$name = mysql_real_escape_string($_POST['name']);
 
@@ -1822,40 +1826,50 @@ value_type();
 		$this -> update_api($memberID);
 		if($reg)
 		{
-			foreach($this -> chars as $char)
-			{
-				$corp = $char[3];
-				$alliance = $this -> corps[$corp];
-				if($corp == $this -> modSettings["tea_corpid"])
-				{
-					$main = $char;
-					$match = 4;
-				}
-				$corp = $char[3];
-				if($match < 3 && $alliance == $this -> modSettings["tea_allianceid"])
-				{
-					$main = $char;
-					$match = 3;
-				}
-				elseif($match < 3 && (isset($this -> cblues[$corp]) || isset($this -> ablues[$alliance])))
-				{
-					$main = $char;
-					$match = 2;
-				}
-				elseif($match < 2 && (isset($this -> creds[$corp]) || isset($this -> areds[$alliance])))
-				{
-					$main = $char;
-					$match = 1;
-				}
-				elseif($match < 1)
-				{
-					$main = $char;
-					$match = 0;
-				}
-			}
+			//$chars = 
+			// foreach($this -> chars as $char)
+			// {
+				// $corp = $char[3];
+				// $alliance = $this -> corps[$corp];
+				// if($corp == $this -> modSettings["tea_corpid"])
+				// {
+					// $main = $char;
+					// $match = 4;
+				// }
+				// $corp = $char[3];
+				// if($match < 3 && $alliance == $this -> modSettings["tea_allianceid"])
+				// {
+					// $main = $char;
+					// $match = 3;
+				// }
+				// elseif($match < 3 && (isset($this -> cblues[$corp]) || isset($this -> ablues[$alliance])))
+				// {
+					// $main = $char;
+					// $match = 2;
+				// }
+				// elseif($match < 2 && (isset($this -> creds[$corp]) || isset($this -> areds[$alliance])))
+				// {
+					// $main = $char;
+					// $match = 1;
+				// }
+				// elseif($match < 1)
+				// {
+					// $main = $char;
+					// $match = 0;
+				// }
+			// }
 			if($modSettings['tea_usecharname'])
 			{	
-				$this -> query("UPDATE {db_prefix}members SET real_name = '".$main[0]."' WHERE ID_MEMBER = ".$memberID);
+				$char = $this -> matchedchar;
+				if(!empty($char))
+				{
+					$name = $char['name'];
+					if($this -> modSettings["tea_corptag_options"] == 1)
+						$this -> query("UPDATE {db_prefix}members SET usertitle = '".$char['ticker']."' WHERE ID_MEMBER = ".$memberID);
+					elseif($this -> modSettings["tea_corptag_options"] == 2)
+						$name = '['.$char['ticker'].'] '.$name;
+					$this -> query("UPDATE {db_prefix}members SET real_name = '".$name."' WHERE ID_MEMBER = ".$memberID);
+				}
 			}
 			if($modSettings['tea_avatar_enabled'])
 			{
