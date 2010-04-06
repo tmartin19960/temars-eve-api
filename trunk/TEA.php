@@ -218,9 +218,13 @@ class TEA
 		if(!empty($id))
 		{
 			$group = $id[0][1];
-			$id[0][2] = explode(',', $id[0][2]);
-			foreach($id[0][2] as $g)
-				$agroups[$g] = $g;
+			$agroups = array();
+			if(!empty($id[0][2]))
+			{
+				$id[0][2] = explode(',', $id[0][2]);
+				foreach($id[0][2] as $g)
+					$agroups[$g] = $g;
+			}
 			//				remove all monitored groups
 			if(!empty($mongroups))
 			{
@@ -239,15 +243,17 @@ class TEA
 					$apikey = $apiuser[1];
 					$status = $apiuser[2];
 					$apiuser = $apiuser[0];
+					$error = FALSE;
 
 					$matched = array('none', array());
 
-					if(!isset($mongroups[$group]) && $mongroups[$group] == 1)
+					if(!isset($mongroups[$group]) || $mongroups[$group][0] == 0)
 					{
 						$this -> file .= $txt['tea_run_custom']."\n";
 						if($echo)
 							echo $txt['tea_run_custom']."\n<br>";
 						$ignore = TRUE;
+						$matched[0] = 'Not Monitored';
 					}
 					$chars = $this -> get_characters($apiuser, $apikey);
 					if(empty($chars))
@@ -328,14 +334,14 @@ class TEA
 													$skills = $this -> skill_list($apiuser, $apikey, $char['charid']);
 													if(strstr($cond[1], '%'))
 													{
-														$cond[1] = strtolower(str_replace('%', '(.+)', $cond[1]));
-														foreach($skills as $skill)
+														$cond[1] = str_replace('%', '(.+)', $cond[1]);
+														foreach($skills as $skill => $level)
 														{
-															if(preg_match("/".$cond[1]."/i", $skill))
+															if(preg_match("/".$cond[1]."/i", $skill) && $level >= $cond[2])
 																Break 2;
 														}
 													}
-													if(isset($skills[$cond[1]]))
+													if(isset($skills[strtolower($cond[1])]) && $level >= $cond[2])
 														Break;
 													else
 													{
@@ -344,7 +350,7 @@ class TEA
 													}
 												case 'role':
 													$roles = $this -> roles($apiuser, $apikey, $char['charid']);
-													if(isset($roles[strtolower($cond[1])]))
+													if(isset($roles['role'.strtolower($cond[1])]))
 														Break;
 													else
 													{
@@ -394,8 +400,8 @@ class TEA
 						{
 							foreach($rules as $rule)
 							{
-								if(isset($agroups[$rule[1]])) // group already assigned no point checking
-									Break;
+								//if(isset($agroups[$rule[1]])) // group already assigned no point checking
+								//	Break;
 								foreach($chars as $char)
 								{
 									$conditions = $this -> select("SELECT type, value, extra FROM {db_prefix}tea_conditions WHERE ruleid = ".$rule[0]);
@@ -451,14 +457,14 @@ class TEA
 													$skills = $this -> skill_list($apiuser, $apikey, $char['charid']);
 													if(strstr($cond[1], '%'))
 													{
-														$cond[1] = strtolower(str_replace('%', '(.+)', $cond[1]));
-														foreach($skills as $skill)
+														$cond[1] = str_replace('%', '(.+)', $cond[1]);
+														foreach($skills as $skill => $level)
 														{
-															if(preg_match("/".$cond[1]."/i", $skill))
+															if(preg_match("/".$cond[1]."/i", $skill) && $level >= $cond[2])
 																Break 2;
 														}
 													}
-													if(isset($skills[$cond[1]]))
+													if(isset($skills[strtolower($cond[1])]) && $level >= $cond[2])
 														Break;
 													else
 													{
@@ -467,7 +473,7 @@ class TEA
 													}
 												case 'role':
 													$roles = $this -> roles($apiuser, $apikey, $char['charid']);
-													if(isset($roles[strtolower($cond[1])]))
+													if(isset($roles['role'.strtolower($cond[1])]))
 														Break;
 													else
 													{
@@ -521,7 +527,7 @@ class TEA
 			}
 			$agroups = implode(',', $agroups);
 			// no api found remove all monitored groups
-			$this -> query("UPDATE {db_prefix}members SET additional_groups = '".$matched."' WHERE ID_MEMBER = {int:id}", array('id' => $user));
+			$this -> query("UPDATE {db_prefix}members SET additional_groups = '".$agroups."' WHERE ID_MEMBER = {int:id}", array('id' => $user));
 
 			//$this -> query("UPDATE {db_prefix}members SET ID_GROUP = ".$rule[1]." WHERE ID_MEMBER = ".$id);
 			//$this -> query("UPDATE {db_prefix}tea_api SET status = 'red', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
@@ -802,14 +808,14 @@ class TEA
 
 	function skill_list($id, $api, $charid)
 	{
-		require($this -> sourcedir.'TEA_SkillDump.php');
+		require_once($this -> sourcedir.'/TEA_SkillDump.php');
 		$skilllist = getSkillArray();
 		$xml = $this -> get_xml($id, $api, $charid, 'charsheet');
 		$xml = new SimpleXMLElement($xml);
 		foreach($xml -> result -> rowset[0] as $skill)
 		{
 			//echo "<pre>";var_dump($skill["typeID"]); echo '<hr>';
-			$skills[$skilllist[strtolower((string)$skill["typeID"])]] = (string)$skill["level"];
+			$skills[strtolower($skilllist[(string)$skill["typeID"]])] = (string)$skill["level"];
 		}
 		return $skills;
 	}
@@ -827,7 +833,7 @@ class TEA
 				$roles[strtolower((string)$role["roleName"])] = TRUE;
 			}
 		}
-		return $skills;
+		return $roles;
 	}
 
 	function titles($id, $api, $charid)
@@ -1196,17 +1202,18 @@ class TEA
 				$api = $this -> modSettings["tea_api"];
 			}
 			$chars = $this -> get_characters($userid, $api);
+
 			$charlist = array();
 			if(!empty($chars))
 			{
 				foreach($chars as $char)
 				{
 					//var_dump($char);
-					$charlist[$char[1]] = $char[0];
-					if($charid == $char[1])
+					$charlist[$char['charid']] = $char['name'];
+					if($charid == $char['charid'])
 					{
-						$corp = $char[3];
-						$alliance = $this -> corps[$corp];
+						$corp = $char['corpid'];
+						$alliance = $char['allianceid'];
 					}
 				}
 			}
@@ -1253,7 +1260,7 @@ class TEA
 				//	array('select', 'tea_groupass_blue', $groups),
 				//	array('select', 'tea_groupass_neut', $groups),
 					array('select', 'tea_groupass_unknown', $groups),
-				'',
+				//'',
 					// Who's online.
 			//		array('check', 'who_enabled'),
 			);
@@ -1323,25 +1330,14 @@ class TEA
 			}
 			elseif(isset($_POST['enr']))
 			{
-				foreach($_POST as $g => $v)
+				$this -> query("UPDATE {db_prefix}tea_rules SET enabled = 0");
+				foreach($_POST as $rule => $v)
 				{
-					$g = explode("_", $g, 2);
-					if($g[0] == "main")
-						$gs[$g[1]][0] = 1;
-					elseif($g[0] == "adit")
-						$gs[$g[1]][1] = 1;
-				}
-				$this -> query("DELETE FROM {db_prefix}tea_groups");
-				foreach($gs as $g => $v)
-				{
-					if($v[0] != 1) $v[0] = 0;
-					if($v[1] != 1) $v[1] = 0;
-					$this -> query("
-						INSERT INTO {db_prefix}tea_groups
-							(id, main, additional)
-						VALUES 
-							({int:id}, {int:main}, {int:adit})",
-							array('id' => $g, 'main' => $v[0], 'adit' => $v[1]));
+					$rule = explode("_", $rule);
+					if(!empty($rule[1]) && is_numeric($rule[1]) && $v == 1)
+					{
+						$this -> query("UPDATE {db_prefix}tea_rules SET enabled = 1 WHERE ruleid = ".$rule[1]);
+					}
 				}
 			}
 			elseif(isset($_POST['minitype']))
@@ -1491,7 +1487,7 @@ class TEA
 		}
 	//	echo '<pre>'; var_dump($list);die;
 
-		$out[2] .= '* Rules for Main Group are done in Order of ID<br>* Rules with Same ID as Another act as Multi Requirments<br>* All conditions must be met by the same character if AND rule<br><br><b><u>Main Group Rules</b></u><form>
+		$out[2] .= '* Rules for Main Group are done in Order of ID<br>* Rules with Same ID as Another act as Multi Requirments<br>* All conditions must be met by the same character if AND rule<br><br><b><u>Main Group Rules</b></u><form name="enablerules" method="post" action="">
 		<table border="1">'.
 				'<tr><td>ID</td><td>Name</td><td>Rule</td><td>Group</td><td>AND / OR</td><td>Enabled</td></tr>';
 		if(!empty($list))
@@ -1994,6 +1990,7 @@ value_type();
 				else
 					$mname = $matched[0];
 				$adits = explode(',', $matched[1]);
+				$anames = array();
 				if(!empty($adits) && $adits[0] != '')
 				{
 					foreach($adits as $a)
