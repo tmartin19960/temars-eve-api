@@ -273,11 +273,12 @@ class TEA
 							$this -> query("UPDATE {db_prefix}tea_api SET status = 'OK', status_change = ".time()." WHERE ID_MEMBER = {int:id} AND userid = {int:userid}",
 						array('id' => $id, 'userid' => $apiuser));
 						// get main rules
-						$rules = $this -> select("SELECT ruleid, `group` FROM {db_prefix}tea_rules WHERE main = 1 AND enabled = 1 ORDER BY ruleid");
+						$rules = $this -> select("SELECT ruleid, `group`, andor FROM {db_prefix}tea_rules WHERE main = 1 AND enabled = 1 ORDER BY ruleid");
 						if(!empty($rules) && !$ignore)
 						{
 							foreach($rules as $rule)
 							{
+								$andor = $rule[2];
 								foreach($chars as $char)
 								{
 									if(empty($this -> matchedchar))
@@ -295,7 +296,11 @@ class TEA
 											{
 												case 'corp':
 													if($char['corpid'] == $cond[1])
+													{
+														if($andor == 'OR')
+															Break 2;
 														Break;
+													}
 													else
 													{
 														$match = FALSE;
@@ -303,7 +308,11 @@ class TEA
 													}
 												case 'alliance':
 													if($char['allianceid'] == $cond[1])
+													{
+														if($andor == 'OR')
+															Break 2;
 														Break;
+													}
 													else
 													{
 														$match = FALSE;
@@ -311,7 +320,11 @@ class TEA
 													}
 												case 'blue':
 													if(isset($this -> cblues[$char['corpid']]) || isset($this -> ablues[$char['allianceid']]))
+													{
+														if($andor == 'OR')
+															Break 2;
 														Break;
+													}
 													else
 													{
 														$match = FALSE;
@@ -319,7 +332,11 @@ class TEA
 													}
 												case 'red':
 													if(isset($this -> creds[$char['corpid']]) || isset($this -> areds[$char['allianceid']]))
+													{
+														if($andor == 'OR')
+															Break 2;
 														Break;
+													}
 													else
 													{
 														$match = FALSE;
@@ -327,7 +344,11 @@ class TEA
 													}
 												case 'error':
 													if($error)
+													{
+														if($andor == 'OR')
+															Break 2;
 														Break;
+													}
 													else
 													{
 														$match = FALSE;
@@ -341,11 +362,19 @@ class TEA
 														foreach($skills as $skill => $level)
 														{
 															if(preg_match("/".$cond[1]."/i", $skill) && $level >= $cond[2])
+															{
+																if($andor == 'OR')
+																	Break 3;
 																Break 2;
+															}
 														}
 													}
 													if(isset($skills[strtolower($cond[1])]) && $level >= $cond[2])
+													{
+														if($andor == 'OR')
+															Break 2;
 														Break;
+													}
 													else
 													{
 														$match = FALSE;
@@ -354,7 +383,11 @@ class TEA
 												case 'role':
 													$roles = $this -> roles($apiuser, $apikey, $char['charid']);
 													if(isset($roles['role'.strtolower($cond[1])]))
+													{
+														if($andor == 'OR')
+															Break 2;
 														Break;
+													}
 													else
 													{
 														$match = FALSE;
@@ -363,7 +396,11 @@ class TEA
 												case 'title':
 													$titles = $this -> titles($apiuser, $apikey, $char['charid']);
 													if(isset($titles[strtolower($cond[1])]))
+													{
+														if($andor == 'OR')
+															Break 2;
 														Break;
+													}
 													else
 													{
 														$match = FALSE;
@@ -372,7 +409,11 @@ class TEA
 												case 'militia':
 													$militia = $this -> militia($apiuser, $apikey, $char['charid']);
 													if($militia == $cond[1])
+													{
+														if($andor == 'OR')
+															Break 2;
 														Break;
+													}
 													else
 													{
 														$match = FALSE;
@@ -399,13 +440,14 @@ class TEA
 							}
 						}
 						// get additional
-						$rules = $this -> select("SELECT ruleid, `group` FROM {db_prefix}tea_rules WHERE main = 0 AND enabled = 1 ORDER BY ruleid");
+						$rules = $this -> select("SELECT ruleid, `group`, andor FROM {db_prefix}tea_rules WHERE main = 0 AND enabled = 1 ORDER BY ruleid");
 						if(!empty($rules))
 						{
 							foreach($rules as $rule)
 							{
 								//if(isset($agroups[$rule[1]])) // group already assigned no point checking
 								//	Break;
+								$andor = $rule[2];
 								foreach($chars as $char)
 								{
 									$conditions = $this -> select("SELECT type, value, extra FROM {db_prefix}tea_conditions WHERE ruleid = ".$rule[0]);
@@ -419,7 +461,11 @@ class TEA
 											{
 												case 'corp':
 													if($char['corpid'] == $cond[1])
+													{
+														if($andor == 'OR')
+															Break 2;
 														Break;
+													}
 													else
 													{
 														$match = FALSE;
@@ -427,7 +473,11 @@ class TEA
 													}
 												case 'alliance':
 													if($char['allianceid'] == $cond[1])
+													{
+														if($andor == 'OR')
+															Break 2;
 														Break;
+													}
 													else
 													{
 														$match = FALSE;
@@ -435,7 +485,11 @@ class TEA
 													}
 												case 'blue':
 													if(isset($this -> cblues[$char['corpid']]) || isset($this -> ablues[$char['allianceid']]))
+													{
+														if($andor == 'OR')
+															Break 2;
 														Break;
+													}
 													else
 													{
 														$match = FALSE;
@@ -443,7 +497,11 @@ class TEA
 													}
 												case 'red':
 													if(isset($this -> creds[$char['corpid']]) || isset($this -> areds[$char['allianceid']]))
+													{
+														if($andor == 'OR')
+															Break 2;
 														Break;
+													}
 													else
 													{
 														$match = FALSE;
@@ -451,7 +509,11 @@ class TEA
 													}
 												case 'error':
 													if($status == 'error')
+													{
+														if($andor == 'OR')
+															Break 2;
 														Break;
+													}
 													else
 													{
 														$match = FALSE;
@@ -465,11 +527,19 @@ class TEA
 														foreach($skills as $skill => $level)
 														{
 															if(preg_match("/".$cond[1]."/i", $skill) && $level >= $cond[2])
+															{
+																if($andor == 'OR')
+																	Break 3;
 																Break 2;
+															}
 														}
 													}
 													if(isset($skills[strtolower($cond[1])]) && $level >= $cond[2])
+													{
+														if($andor == 'OR')
+															Break 2;
 														Break;
+													}
 													else
 													{
 														$match = FALSE;
@@ -478,7 +548,11 @@ class TEA
 												case 'role':
 													$roles = $this -> roles($apiuser, $apikey, $char['charid']);
 													if(isset($roles['role'.strtolower($cond[1])]))
+													{
+														if($andor == 'OR')
+															Break 2;
 														Break;
+													}
 													else
 													{
 														$match = FALSE;
@@ -487,7 +561,11 @@ class TEA
 												case 'title':
 													$titles = $this -> titles($apiuser, $apikey, $char['charid']);
 													if(isset($titles[strtolower($cond[1])]))
+													{
+														if($andor == 'OR')
+															Break 2;
 														Break;
+													}
 													else
 													{
 														$match = FALSE;
@@ -496,7 +574,11 @@ class TEA
 												case 'militia':
 													$militia = $this -> militia($apiuser, $apikey, $char['charid']);
 													if($militia == $cond[1])
+													{
+														if($andor == 'OR')
+															Break 2;
 														Break;
+													}
 													else
 													{
 														$match = FALSE;
@@ -527,7 +609,13 @@ class TEA
 			else
 			{	// no api on account, if monitored group change to unknown group
 				if(!$ignore)
-					$this -> query("UPDATE {db_prefix}members SET ID_GROUP = {int:group} WHERE ID_MEMBER = {int:id}", array('id' => $id, 'group' => $this -> modSettings["tea_groupass_unknown"]));
+				{
+					if($this -> modSettings["tea_groupass_unknown"])
+						$group = $this -> modSettings["tea_groupass_unknown"];
+					else
+						$group = 0;
+					$this -> query("UPDATE {db_prefix}members SET ID_GROUP = {int:group} WHERE ID_MEMBER = {int:id}", array('id' => $id, 'group' => $group));
+				}
 			}
 			$agroups = implode(',', $agroups);
 			// no api found remove all monitored groups
@@ -1562,8 +1650,8 @@ class TEA
 					<form name="makerule" method="post" action="">
 			<table>
 			<tr>
-				<td width="134">Name:</td>
-				<td><input type="text" name="name" value="" /> For reference only</td>
+				<td width="134"><div id="tea_nametxt">Name:</div></td>
+				<td><div id="tea_name"><input type="text" name="name" value="" /> For reference only</div></td>
 			</tr>
 			<tr>
 				<td width="134">Rule ID:</td>
@@ -1615,8 +1703,8 @@ class TEA
 			</tr>
 			</table>
 			</form>
-			TODO: language file
 </dt>';
+//			TODO: language file
 $out[4] .= '
 <script type="text/javascript">
 var rules = new Array();
@@ -1632,6 +1720,8 @@ function value_type(fromedit)
 	}
 	if(id == "new" || fromedit == true)
 	{
+		document.getElementById(\'tea_nametxt\').innerHTML="Name:";
+		document.getElementById(\'tea_name\').innerHTML=\'<input type="text" name="name" value="" /> For reference only\';
 		document.getElementById(\'tea_maintxt\').innerHTML="Main Group:";
 		document.getElementById(\'tea_main\').innerHTML=\'<input type="checkbox" name="main" value="main" />\';
 		document.getElementById(\'tea_linktxt\').innerHTML="Condition link:";
@@ -1646,6 +1736,8 @@ function value_type(fromedit)
 	}
 	else
 	{
+		document.getElementById(\'tea_nametxt\').innerHTML="";
+		document.getElementById(\'tea_name\').innerHTML="";
 		document.getElementById(\'tea_maintxt\').innerHTML="";
 		document.getElementById(\'tea_main\').innerHTML="";
 		document.getElementById(\'tea_linktxt\').innerHTML="";
@@ -1787,18 +1879,16 @@ value_type();
 			if($userid == "")
 				Continue;
 			$api = $_POST['tea_user_api'][$k];
-			$user = $this -> select("SELECT userid, api, status, status_change, auto FROM {db_prefix}tea_api WHERE ID_MEMBER = ".$memberID." AND userid = ".mysql_real_escape_string($userid));
+			$user = $this -> select("SELECT userid, api, status, status_change FROM {db_prefix}tea_api WHERE ID_MEMBER = ".$memberID." AND userid = ".mysql_real_escape_string($userid));
 			if(!empty($user))
 			{
 				$duserid = $user[0][0];
 				$dapi = $user[0][1];
-				$auto = $user[0][4];
 			//	$chars = $user[0][2];
 			//	$charid = $user[0][2];
 			}
 			else
 			{
-				$auto = 1;
 				$chars  = '';
 				$charid = 0;
 			}
@@ -1808,9 +1898,9 @@ value_type();
 			{
 				$this -> query("
 					REPLACE INTO {db_prefix}tea_api
-						(ID_MEMBER, userid, api, status, status_change, auto)
+						(ID_MEMBER, userid, api, status, status_change)
 					VALUES 
-					($memberID, '" . mysql_real_escape_string($userid) . "', '" . mysql_real_escape_string($api) . "', 'unchecked', ".time().", $auto)");
+					($memberID, '" . mysql_real_escape_string($userid) . "', '" . mysql_real_escape_string($api) . "', 'unchecked', ".time().")");
 			}
 		}
 		if(isset($_POST['del_api']))
