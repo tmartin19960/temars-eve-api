@@ -2141,15 +2141,58 @@ value_type();
 //										<td><input type="text" name="tea_user_api[]" value="'.$api[1].'" size="64" />
 //									</td>
 //								</tr>';
-		echo '<dl class="register_form"><dt>
+		echo '<dl class="register_form">
+									<dt>
 										<b>', $this -> txt['tea_userid'], ':</b></dt>
-										<dd><input type="text" name="tea_user_id[]" value="'.$api[0].'" size="10" />
+									<dd>
+										<input type="text" name="tea_user_id[]" value="'.$api[0].'" size="10" />
 									</dd>
 								</dl><dl class="register_form">
 									<dt>										<b>', $this -> txt['tea_api'], ':</b></dt>
-										<dd><input type="text" name="tea_user_api[]" value="'.$api[1].'" size="64" />
+									<dd>
+										<input type="text" name="tea_user_api[]" value="'.$api[1].'" size="64" />
 									</dd>
-								</dl>';
+								</dl>
+								</dl><dl class="register_form">
+									<dt>										<b>', $txt['tea_charid'], ':</b></dt>
+									<dd>
+										<select name="char">
+											<div id="chars"><option value="-">-</option></div> <A href="javascript: getchars()">get</A>
+										</select>
+									</dd>
+								</dl>
+function getchars()
+{
+	userid = document.registration.tea_user_id[0].value;
+	api = document.registration.tea_user_api[0].value;
+	include("Sources/TEA.xmlhttp.php?userid="+userid+"&api="+api);
+}
+function include(pURL)
+{
+	if (window.XMLHttpRequest) { // code for Mozilla, Safari, ** And Now IE 7 **, etc
+		xmlhttp=new XMLHttpRequest();
+	} else if (window.ActiveXObject) { //IE
+		xmlhttp=new ActiveXObject(\'Microsoft.XMLHTTP\');
+	}
+	if (typeof(xmlhttp)==\'object\')
+	{
+		xmlhttp.onreadystatechange=postFileReady;
+		xmlhttp.open(\'GET\', pURL, true);
+		xmlhttp.send(null);
+	}
+}
+
+function postFileReady()
+{
+	if (xmlhttp.readyState==4)
+	{
+		if (xmlhttp.status==200)
+		{
+			document.getElementById(\'chars\').innerHTML=xmlhttp.responseText;
+		}
+	}
+}
+								';
 
 
 		// Show the standard "Save Settings" profile button.
