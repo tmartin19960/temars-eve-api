@@ -1045,7 +1045,7 @@ class TEA
 		Return $data;
 	}
 
-	function select($sql, $params, $result_form=MYSQL_NUM, $error=TRUE)//MYSQL_ASSOC = field names
+	function select($sql, $params=NULL, $result_form=MYSQL_NUM, $error=TRUE)//MYSQL_ASSOC = field names
 	{
 		$data = "";
 	//	$result = mysql_query($sql);
@@ -1082,7 +1082,7 @@ class TEA
 		return $data;
 	}
 
-	function query($sql, $params)
+	function query($sql, $params=NULL)
 	{
 		$return = $this -> smcFunc['db_query']('', $sql, $params);
 
@@ -1882,12 +1882,21 @@ value_type();
 			return;
 
 		//var_dump($_POST);die;
-		$userids = $_POST['tea_user_id'];
+		if($new)
+		{
+			$userids = array($_POST['tea_user_id']);
+			$apis = ($_POST['tea_user_api']);
+		}
+		else
+		{
+			$userids = $_POST['tea_user_id'];
+			$apis = $_POST['tea_user_api'];
+		}
 		foreach($userids as $k => $userid)
 		{
 			if($userid == "")
 				Continue;
-			$api = $_POST['tea_user_api'][$k];
+			$api = $apis[$k];
 			$user = $this -> select("SELECT userid, api, status, status_change FROM {db_prefix}tea_api WHERE ID_MEMBER = ".$memberID." AND userid = ".mysql_real_escape_string($userid));
 			if(!empty($user))
 			{
@@ -1957,18 +1966,20 @@ value_type();
 					// $match = 0;
 				// }
 			// }
-			if($modSettings['tea_usecharname'])
+			//if($modSettings['tea_usecharname'])
+			if($_POST['tea_char'] != "-")
 			{	
-				$char = $this -> matchedchar;
-				if(!empty($char))
-				{
-					$name = $char['name'];
-					if($this -> modSettings["tea_corptag_options"] == 1)
-						$this -> query("UPDATE {db_prefix}members SET usertitle = '".$char['ticker']."' WHERE ID_MEMBER = ".$memberID);
-					elseif($this -> modSettings["tea_corptag_options"] == 2)
-						$name = '['.$char['ticker'].'] '.$name;
+				//$char = $this -> matchedchar;
+				$name = $_POST['tea_char'];
+				//if(!empty($char))
+				//{
+					//$name = $char['name'];
+					//if($this -> modSettings["tea_corptag_options"] == 1)
+					//	$this -> query("UPDATE {db_prefix}members SET usertitle = '".$char['ticker']."' WHERE ID_MEMBER = ".$memberID);
+					//elseif($this -> modSettings["tea_corptag_options"] == 2)
+					//	$name = '['.$char['ticker'].'] '.$name;
 					$this -> query("UPDATE {db_prefix}members SET real_name = '".$name."' WHERE ID_MEMBER = ".$memberID);
-				}
+				//}
 			}
 			if($modSettings['tea_avatar_enabled'])
 			{
@@ -2154,27 +2165,27 @@ value_type();
 									<dt>
 										<b>', $this -> txt['tea_userid'], ':</b></dt>
 									<dd>
-										<input type="text" name="tea_user_id[]" value="'.$api[0].'" size="10" />
+										<input type="text" name="tea_user_id" value="'.$api[0].'" size="10" />
 									</dd>
 								</dl><dl class="register_form">
 									<dt>										<b>', $this -> txt['tea_api'], ':</b></dt>
 									<dd>
-										<input type="text" name="tea_user_api[]" value="'.$api[1].'" size="64" />
+										<input type="text" name="tea_user_api" value="'.$api[1].'" size="64" />
 									</dd>
 								</dl>
 								</dl><dl class="register_form">
-									<dt>										<b>', $txt['tea_charid'], ':</b></dt>
+									<dt>										<b>', $this -> txt['tea_charid'], ':</b></dt>
 									<dd>
-										<select name="char">
-											<div id="chars"><option value="-">-</option> <A href="javascript: getchars()">get</A></div>
-										</select>
+										<div id="chars"><select name="tea_char">
+											<option value="-">-</option> 
+										</select> <A href="javascript: getchars()">get</A></div>
 									</dd>
 								</dl>
 <script type="text/javascript">
 function getchars()
 {
-	userid = document.registration.tea_user_id[0].value;
-	api = document.registration.tea_user_api[0].value;
+	userid = document.registration.tea_user_id.value;
+	api = document.registration.tea_user_api.value;
 	include("Sources/TEA.xmlhttp.php?userid="+userid+"&api="+api);
 }
 function include(pURL)

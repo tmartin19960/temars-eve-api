@@ -20,6 +20,7 @@
 		<modification type="file">mod_profile_template.xml</modification>
 		<require-file name="TEA.php" destination="$sourcedir" />
 		<require-file name="TEA_Cron.php" destination="$sourcedir" />
+		<require-file name="TEA_xmlhttp.php" destination="$sourcedir" />
 		<require-file name="TEA.english.php" destination="$languagedir" />
 		<code>tables.php</code>
 	</install>
@@ -34,6 +35,7 @@
 		<modification type="file">mod_profile_template_rc2.xml</modification>
 		<require-file name="TEA.php" destination="$sourcedir" />
 		<require-file name="TEA_Cron.php" destination="$sourcedir" />
+		<require-file name="TEA_xmlhttp.php" destination="$sourcedir" />
 		<require-file name="TEA.english.php" destination="$languagedir" />
 		<code>tables.php</code>
 	</install>
@@ -48,6 +50,7 @@
 		<modification type="file">mod_profile_template.xml</modification>
 		<require-file name="TEA.php" destination="$sourcedir" />
 		<require-file name="TEA_Cron.php" destination="$sourcedir" />
+		<require-file name="TEA_xmlhttp.php" destination="$sourcedir" />
 		<require-file name="TEA.english.php" destination="$languagedir" />
 		<code>tables.php</code>
 	</install>
@@ -62,6 +65,7 @@
 		<modification type="file" reverse="true">mod_profile_template.xml</modification>
 		<remove-file name="$sourcedir/TEA.php" />
 		<remove-file name="$sourcedir/TEA_Cron.php" />
+		<remove-file name="$sourcedir/TEA_xmlhttp.php" />
 		<remove-file name="$languagedir/TEA.english.php" />
 	</uninstall>
 	<upgrade from="1.0.0 - 1.0.5">
