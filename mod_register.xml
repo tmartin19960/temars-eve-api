@@ -11,7 +11,7 @@
 			<add><![CDATA[	global $tea;
 	if($modSettings['tea_regreq'])
 	{
-		$chars = $tea -> get_characters($_POST['tea_user_id'][0], $_POST['tea_user_api'][0]);
+		$chars = $tea -> get_characters($_POST['tea_user_id'], $_POST['tea_user_api']);
 		if(empty($chars)) // invalid api
 			$reg_errors[] = $txt['tea_regreq_error'];
 	}
