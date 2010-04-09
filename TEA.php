@@ -235,6 +235,15 @@ class TEA
 				}
 			}
 			$id = $id[0][0];
+			if(!isset($mongroups[$group]) || $mongroups[$group][0] == 0)
+			{
+				$this -> file .= $txt['tea_run_custom']."\n";
+				if($echo)
+					echo $txt['tea_run_custom']."\n<br>";
+				$ignore = TRUE;
+				$matched[0] = 'Not Monitored';
+			}
+
 			$apiusers = $this -> select("SELECT userid, api, status FROM {db_prefix}tea_api WHERE ID_MEMBER = {int:id}", array('id' => $id));
 			if(!empty($apiusers))
 			{
@@ -247,14 +256,6 @@ class TEA
 
 					$matched = array('none', array());
 
-					if(!isset($mongroups[$group]) || $mongroups[$group][0] == 0)
-					{
-						$this -> file .= $txt['tea_run_custom']."\n";
-						if($echo)
-							echo $txt['tea_run_custom']."\n<br>";
-						$ignore = TRUE;
-						$matched[0] = 'Not Monitored';
-					}
 					$chars = $this -> get_characters($apiuser, $apikey);
 					if(empty($chars))
 					{
@@ -1713,6 +1714,11 @@ function value_type(fromedit)
 {
 	type = document.makerule.type.value;
 	id = document.makerule.id.value;
+	name = document.makerule.name.value;
+	group = document.makerule.group.value;
+	main = document.makerule.main.checked;
+	andor = document.makerule.andor.value;
+
 	if(document.makerule.submit.value == "EDIT" && fromedit == false)
 	{
 		edit(id);
@@ -1721,7 +1727,7 @@ function value_type(fromedit)
 	if(id == "new" || fromedit == true)
 	{
 		document.getElementById(\'tea_nametxt\').innerHTML="Name:";
-		document.getElementById(\'tea_name\').innerHTML=\'<input type="text" name="name" value="" /> For reference only\';
+		document.getElementById(\'tea_name\').innerHTML=\'<input type="text" name="name" value="\'+name+\'" /> For reference only\';
 		document.getElementById(\'tea_maintxt\').innerHTML="Main Group:";
 		document.getElementById(\'tea_main\').innerHTML=\'<input type="checkbox" name="main" value="main" />\';
 		document.getElementById(\'tea_linktxt\').innerHTML="Condition link:";
@@ -1733,6 +1739,9 @@ function value_type(fromedit)
 			$out[4] .= '<option value="'.$id.'">'.$group.'</option>';
 		}
 		$out[4] .= '</select>\';
+		document.makerule.group.value = group;
+		document.makerule.main.checked = main;
+		document.makerule.andor.value = andor;
 	}
 	else
 	{
@@ -2157,10 +2166,11 @@ value_type();
 									<dt>										<b>', $txt['tea_charid'], ':</b></dt>
 									<dd>
 										<select name="char">
-											<div id="chars"><option value="-">-</option></div> <A href="javascript: getchars()">get</A>
+											<div id="chars"><option value="-">-</option> <A href="javascript: getchars()">get</A></div>
 										</select>
 									</dd>
 								</dl>
+<script type="text/javascript">
 function getchars()
 {
 	userid = document.registration.tea_user_id[0].value;
@@ -2192,9 +2202,7 @@ function postFileReady()
 		}
 	}
 }
-								';
-
-
+</script>';
 		// Show the standard "Save Settings" profile button.
 
 	//	echo '
