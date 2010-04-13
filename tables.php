@@ -33,9 +33,9 @@ elseif (!defined('SMF'))
 	die('<b>Error:</b> Cannot install - please verify you put this in the same place as SMF\'s index.php.');
 
 	
-	function eveapi_check_table($table, $columns)
+	function tea_check_table($table, $columns)
 	{
-		$fields = eveapi_select("EXPLAIN ".$table, MYSQL_ASSOC, FALSE);
+		$fields = tea_select("EXPLAIN ".$table, MYSQL_ASSOC, FALSE);
 
 		if (!empty($fields))
 		{
@@ -60,7 +60,7 @@ elseif (!defined('SMF'))
 			Return(array(TRUE));
 	}
 
-	function eveapi_select($sql, $result_form=MYSQL_NUM, $error=TRUE)//MYSQL_ASSOC = field names
+	function tea_select($sql, $result_form=MYSQL_NUM, $error=TRUE)//MYSQL_ASSOC = field names
 	{
 		$data = "";
 		$result = mysql_query($sql);
@@ -86,7 +86,7 @@ elseif (!defined('SMF'))
 		mysql_free_result($result);
 		return $data;
 	}
-	function query($sql)
+	function tea_query($sql)
 	{
 		$return = mysql_query($sql);
 
@@ -102,9 +102,9 @@ elseif (!defined('SMF'))
 		}
 	}
 
-$info[1]['old'] = 'eve_api';	
-$info[1]['name'] = 'tea_api';	
-$info[1]['primary'] = 'ID_MEMBER, userid';	
+$info[1]['old'] = 'eve_api';
+$info[1]['name'] = 'tea_api';
+$info[1]['primary'] = 'ID_MEMBER, userid';
 $tables[1]["ID_MEMBER"] = "INT";
 $tables[1]["userid"] = "INT DEFAULT NULL";
 $tables[1]["api"] = "VARCHAR(64) DEFAULT NULL";
@@ -164,20 +164,30 @@ $tables[5]["additional"] = "INT(1) DEFAULT 1";
 
 Global $db_prefix;
 
+require("esam_upgrade.php");
+
+$checkold = esamup_check_table($db_prefix.$info['old']);
+$check = esamup_check_table($db_prefix.$info['name']);
+$esam = esamup_check_table($db_prefix.$info['esam']);
+if(!$checkold && !$check && $esam) // tea never installed, esam has
+{
+	$esamupgrade = TRUE;
+}
+
 foreach($tables as $i => $table)
 {
-	$checkold = eveapi_check_table($db_prefix.$info[$i]['old'], $table);
-	$check = eveapi_check_table($db_prefix.$info[$i]['name'], $table);
+	$checkold = tea_check_table($db_prefix.$info[$i]['old'], $table);
+	$check = tea_check_table($db_prefix.$info[$i]['name'], $table);
 	if(($checkold[0] || (!$checkold[0] && $checkold[1])) && !$check[0] && !$check[1]) // if old table exists regardless of if needs changing and new doesnt then rename
-		query("RENAME TABLE ".$db_prefix.$info[$i]['old']." TO ".$db_prefix.$info[$i]['name']);
-	$check = eveapi_check_table($db_prefix.$info[$i]['name'], $table);
+		tea_query("RENAME TABLE ".$db_prefix.$info[$i]['old']." TO ".$db_prefix.$info[$i]['name']);
+	$check = tea_check_table($db_prefix.$info[$i]['name'], $table);
 	if(!$check[0])
 	{
 		if($check[1])
 		{
 			foreach($check[1] as $f)
 			{
-				query("ALTER TABLE ".$db_prefix.$info[$i]['name']." ADD ".$f." ".$table[$f]);
+				tea_query("ALTER TABLE ".$db_prefix.$info[$i]['name']." ADD ".$f." ".$table[$f]);
 			}
 		}
 		else
@@ -186,10 +196,10 @@ foreach($tables as $i => $table)
 			foreach($table as $c => $d)
 				$sql .= " `".$c."` ".$d.",";
 			$sql .= " PRIMARY KEY (".$info[$i]['primary']."))";
-			query($sql);
+			tea_query($sql);
 		}
 	}
-	$check = eveapi_check_table($db_prefix.$info[$i]['name'], $table);
+	$check = tea_check_table($db_prefix.$info[$i]['name'], $table);
 	if(!$check[0])
 	{
 		if($check[1])
@@ -202,6 +212,11 @@ foreach($tables as $i => $table)
 		else
 			echo '<b>Error:</b> Database modifications failed!';
 	}
-}	
+}
+
+if($esamupgrade)
+{
+	run_upgrade();
+}
 
 ?>

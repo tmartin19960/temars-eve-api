@@ -21,5 +21,5 @@ else
 	$error = $tea -> get_error($tea -> data);
 	echo 'Error '.$error[0].' ('.$error[1].')<Br><select name="tea_char"><option value="-">-</option>';
 }
-echo '</select> <A href="javascript: getchars()">get</A>';
+echo '</select> <A href="javascript: getchars()">Get Characters</A>';
 ?>
