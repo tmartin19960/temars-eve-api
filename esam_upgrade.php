@@ -174,12 +174,16 @@ function run_upgrade()
 						{
 							case 500001:
 								$value = 'Caldari State';
+								Break;
 							case 500002:
 								$value = 'Minmatar Republic';
+								Break;
 							case 500003:
 								$value = 'Amarr Empire';
+								Break;
 							case 500004:
 								$value = 'Gallente Federation';
+								Break;
 						}
 						Break;
 					Default:
