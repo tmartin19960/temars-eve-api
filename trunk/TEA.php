@@ -200,7 +200,7 @@ class TEA
 		$mongroups[0] = TRUE;
 		$mongroups[$this -> modSettings["tea_groupass_unknown"]] = TRUE;
 
-		$this -> chars = array();
+	//	$this -> chars = array();
 
 		$txt = $this -> txt;
 
@@ -292,7 +292,7 @@ class TEA
 										$match = TRUE;
 										foreach($conditions as $cond)
 										{
-											$this -> chars[] = $char;
+										//	$this -> chars[] = $char;
 											Switch($cond[0])
 											{
 												case 'corp':
@@ -457,7 +457,7 @@ class TEA
 										$match = TRUE;
 										foreach($conditions as $cond)
 										{
-											$this -> chars[] = $char;
+										//	$this -> chars[] = $char;
 											Switch($cond[0])
 											{
 												case 'corp':
@@ -834,6 +834,7 @@ class TEA
 				$corpinfo = $this -> corp_info($char['corpid']); // corpname, ticker, allianceid, alliance
 				$char = array_merge($char, $corpinfo);
 				$charlist[] = $char;
+				$this -> chars[$char['name']] = $char;
 				$this -> query("
 					REPLACE INTO {db_prefix}tea_characters
 						(userid, charid, name, corpid, corp, corp_ticker, allianceid, alliance)
@@ -1980,10 +1981,19 @@ value_type();
 					//	$name = '['.$char['ticker'].'] '.$name;
 					$this -> query("UPDATE {db_prefix}members SET real_name = '".$name."' WHERE ID_MEMBER = ".$memberID);
 				//}
-			}
-			if($modSettings['tea_avatar_enabled'])
-			{
-				
+				if($this -> modSettings['tea_avatar_enabled'])
+				{
+					if($this -> modSettings["tea_corptag_options"] == 2)
+					{
+						$name = explode("] ", $name, 2);
+						$name = $name[1];
+					}
+					if(isset($this -> chars[$name]['charid']))
+					{
+						require_once("Subs-Graphics.php");
+						downloadAvatar('http://img.eve.is/serv.asp?s=64&c='.$this -> chars[$name]['charid'], $memberID, 64, 64);
+					}
+				}
 			}
 		}
 	}
@@ -2178,7 +2188,7 @@ value_type();
 									<dd>
 										<div id="chars"><select name="tea_char">
 											<option value="-">-</option> 
-										</select> <A href="javascript: getchars()">get</A></div>
+										</select> <A href="javascript: getchars()">Get Characters</A></div>
 									</dd>
 								</dl>
 <script type="text/javascript">
@@ -2186,7 +2196,7 @@ function getchars()
 {
 	userid = document.registration.tea_user_id.value;
 	api = document.registration.tea_user_api.value;
-	include("Sources/TEA.xmlhttp.php?userid="+userid+"&api="+api);
+	include("Sources/TEA_xmlhttp.php?userid="+userid+"&api="+api);
 }
 function include(pURL)
 {
