@@ -237,11 +237,12 @@ class TEA
 			$id = $id[0][0];
 			if(!isset($mongroups[$group]) || $mongroups[$group][0] == 0)
 			{
-				$this -> file .= $txt['tea_run_custom']."\n";
-				if($echo)
-					echo $txt['tea_run_custom']."\n<br>";
+			//	$this -> file .= $txt['tea_run_custom']."\n";
+			//	if($echo)
+			//		echo $txt['tea_run_custom']."\n<br>";
 				$ignore = TRUE;
 				$matched[0] = 'Not Monitored';
+				$cr['main'] = 'Not Monitored';
 			}
 
 			$apiusers = $this -> select("SELECT userid, api, status FROM {db_prefix}tea_api WHERE ID_MEMBER = {int:id}", array('id' => $id));
@@ -434,6 +435,7 @@ class TEA
 												$this -> query("UPDATE {db_prefix}tea_api SET status = 'red', status_change = {int:time} WHERE ID_MEMBER = {int:id} AND status = 'OK'",
 											array('time' => time(), 'id' => $id));
 											$matched[0] = $rule[0];
+											$cr['main'] = $rule[0];
 											Break 2;
 										}
 									}
@@ -600,6 +602,7 @@ class TEA
 								}
 							}
 						}
+						$cr['additional'] = $matched[1];
 						$matched[1] = implode(',', $matched[1]);
 						$matched = implode(';', $matched);
 						if(!$error)
@@ -616,12 +619,13 @@ class TEA
 					else
 						$group = 0;
 					$this -> query("UPDATE {db_prefix}members SET ID_GROUP = {int:group} WHERE ID_MEMBER = {int:id}", array('id' => $id, 'group' => $group));
+					$cr['main'] = 'no api';
 				}
 			}
 			$agroups = implode(',', $agroups);
 			// no api found remove all monitored groups
 			$this -> query("UPDATE {db_prefix}members SET additional_groups = '".$agroups."' WHERE ID_MEMBER = {int:id}", array('id' => $id));
-
+			return $cr;
 			//$this -> query("UPDATE {db_prefix}members SET ID_GROUP = ".$rule[1]." WHERE ID_MEMBER = ".$id);
 			//$this -> query("UPDATE {db_prefix}tea_api SET status = 'red', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
 		}
@@ -952,22 +956,25 @@ class TEA
 
 	function all($apiecho)
 	{
-		if($apiecho)
-			echo "checking all...\n<br>";
+		//if($apiecho)
+		//	echo "checking all...\n<br>";
 		$api = $this -> select("SELECT member_name, ID_GROUP FROM {db_prefix}members");
 		if(!empty($api))
 		{
+			$this -> log .= '<table>';
 			foreach($api as $user)
 			{
-				if($apiecho)
-					echo $user[0];
-				$this -> file .= $user[0];
-				$this -> single($user[0], $apiecho, $user[1]);
+				$this -> log .= '<tr><td>'.$user[0].'</td>';
+				$cr = $this -> single($user[0], $apiecho, $user[1]);
+				if(is_array($cr['additional']))
+					$cr['additional'] = implode(', ', $cr['additional']);
+				$this -> log .= '<td>'.$cr['main'].'</td><td>'.$cr['additional'].'</td></tr>';
 			}
+			$this -> log .= '</table>';
 		}
-		$fp = fopen("api.log", 'a');
-		fwrite($fp, $this -> file);
-		fclose($fp);
+	//	$fp = fopen("api.log", 'a');
+	//	fwrite($fp, $this -> file);
+	//	fclose($fp);
 	}
 
 	function get_xml($id, $api, $charid=FALSE, $type=FALSE)
@@ -1788,7 +1795,7 @@ function value_type(fromedit)
 	else if(type == "militia")
 	{
 		document.getElementById(\'tea_valuetxt\').innerHTML="Militia:";
-		document.getElementById(\'tea_value\').innerHTML=\'<select name="value"><option value="Amarr Empire">Amarr Empire</option><option value="Caldari State">Caldari State		</option><option value="Gallente Federation">Gallente Federation</option><option value="Minmatar Republic">Minmatar Republic</option></select>\';
+		document.getElementById(\'tea_value\').innerHTML=\'<select name="value"><option value="Amarr Empire">Amarr Empire</option><option value="Caldari State">Caldari State</option><option value="Gallente Federation">Gallente Federation</option><option value="Minmatar Republic">Minmatar Republic</option></select>\';
 	}
 }
 function edit(id)
@@ -1833,7 +1840,7 @@ value_type();
 			if(!$this -> modSettings["tea_enable"])
 				$file = "API Mod is Disabled";
 			$this -> update_api(FALSE);
-			$file = str_replace("\n", "<br>", $this -> file);
+			$file = str_replace("\n", "<br>", $this -> log);
 			$config_vars = array(
 			'<dt>'.$file.'</dt>'
 			);
@@ -1883,10 +1890,10 @@ value_type();
 			return;
 
 		//var_dump($_POST);die;
-		if($new)
+		if($reg)
 		{
 			$userids = array($_POST['tea_user_id']);
-			$apis = ($_POST['tea_user_api']);
+			$apis = array($_POST['tea_user_api']);
 		}
 		else
 		{
