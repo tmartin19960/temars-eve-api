@@ -6,6 +6,8 @@ if (file_exists(dirname(__FILE__) . '/SSI.php') && !defined('SMF'))
 elseif (!defined('SMF'))
 	die('<b>Error:</b> Cannot install - please verify you put this in the same place as SMF\'s index.php.');
 
+if(isset($_GET['force']))
+	run_upgrade();
 	
 	function esamup_check_table($table)
 	{
@@ -84,10 +86,8 @@ function run_upgrade()
 	$cs['DISPLAY_EVE_PORTRAIT'] = array('tea_avatar_enabled', 1);
 	//$cs['DISPLAY_CORP_TITLES'] = array('tea_regreq', 1);
 
-	$checkold = esamup_check_table($db_prefix.$info['old']);
 	$check = esamup_check_table($db_prefix.$info['name']);
 	$esam = esamup_check_table($db_prefix.$info['esam']);
-	if(!$checkold && !$check && $esam) // tea never installed, esam has
 	if($check && $esam)
 	{
 		// settings
@@ -99,7 +99,7 @@ function run_upgrade()
 				if(isset($cs[$s[0]]) && $s[1] == 'true')
 				{
 					esamup_query("
-						REPLACE INTO ".$db_prefix."tea_api
+						REPLACE INTO ".$db_prefix."settings
 							(variable, value)
 						VALUES 
 						('".$cs[$s[0]][0]."', '".$cs[$s[0]][1]."')");
@@ -120,13 +120,17 @@ function run_upgrade()
 			}
 		}
 		// rules
-		$rules = esamup_select("SELECT ID_RULE, TYPE, ROLE, ROLE_ID, GROUP_ID, TITLE, SKILL_ID, SKILL_LVL FROM ".$db_prefix."esam_api");
+		$rules = esamup_select("SELECT ID_RULE, TYPE, ROLE, ROLE_ID, GROUP_ID, TITLE, SKILL_ID, SKILL_LVL FROM ".$db_prefix."esam_rules");
 		if(!empty($rules))
 		{
+			Global $sourcedir;
 			require_once($sourcedir.'/TEA_SkillDump.php');
 			$skills = getSkillArray();
 			foreach($rules as $rule)
 			{
+				$type = NULL;
+				$value = NULL;
+				$extra = NULL;
 				$id = esamup_select("SELECT ruleid FROM ".$db_prefix."tea_rules ORDER BY ruleid DESC LIMIT 1");
 				if(!empty($id))
 					$id = $id[0][0]+1;
@@ -145,17 +149,17 @@ function run_upgrade()
 				//if($andor != "AND" && $andor != "OR")
 				//	die("andor must be AND or OR");
 
-				$name = mysql_real_escape_string($_POST['name']);
+				$name = 'ESAM RULE '.$rule[0];
 
 			//	if($_POST['main'] == "main")
 			//		$main = 1;
 			//	else
 					$main = 0;
 
-				Switch(strtolower($rule[1]))
+				Switch(strtoupper($rule[1]))
 				{
 					case 'P': // pilot rule, ignore entire rule
-						Continue;
+						Continue 2;
 					case 'C':
 						$type = "corp";
 						$value = $rule[3];
@@ -179,7 +183,7 @@ function run_upgrade()
 						}
 						Break;
 					Default:
-						continue;
+						continue 2;
 				}
 			//	if(isset($types[$_POST['type']]))
 			//		$type = $_POST['type'];
@@ -207,25 +211,25 @@ function run_upgrade()
 				//elseif(!is_numeric($_POST['group']))
 				//	error
 
-				if($role[2] == 'roleDirector')
+				if($rule[2] == 'roleDirector')
 				{
 					$type = 'role';
 					$value = 'Director';
 					$extra = '';
 					esamup_query("INSERT INTO ".$db_prefix."tea_conditions (ruleid, type, value, extra) VALUES ($id, '$type', '$value', '$extra')");
 				}
-				if($role[5] != 'null' && !empty($role[5]))
+				if($rule[5] != 'null' && !empty($rule[5]))
 				{
 					$type = 'title';
-					$value = $role[5];
+					$value = $rule[5];
 					$extra = '';
 					esamup_query("INSERT INTO ".$db_prefix."tea_conditions (ruleid, type, value, extra) VALUES ($id, '$type', '$value', '$extra')");
 				}
-				if(!empty($role[6]))
+				if(!empty($rule[6]))
 				{
 					$type = 'skill';
-					$value = $skills[$role[6]];
-					$extra = $role[7];
+					$value = $skills[$rule[6]];
+					$extra = $rule[7];
 					esamup_query("INSERT INTO ".$db_prefix."tea_conditions (ruleid, type, value, extra) VALUES ($id, '$type', '$value', '$extra')");
 				}
 			}

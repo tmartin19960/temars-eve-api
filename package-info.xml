@@ -21,6 +21,7 @@
 		<require-file name="TEA.php" destination="$sourcedir" />
 		<require-file name="TEA_Cron.php" destination="$sourcedir" />
 		<require-file name="TEA_xmlhttp.php" destination="$sourcedir" />
+		<require-file name="TEA_SkillDump.php" destination="$sourcedir" />
 		<require-file name="TEA.english.php" destination="$languagedir" />
 		<require-file name="esam_upgrade.php" destination="$boarddir" />
 		<code>tables.php</code>
@@ -38,6 +39,7 @@
 		<require-file name="TEA.php" destination="$sourcedir" />
 		<require-file name="TEA_Cron.php" destination="$sourcedir" />
 		<require-file name="TEA_xmlhttp.php" destination="$sourcedir" />
+		<require-file name="TEA_SkillDump.php" destination="$sourcedir" />
 		<require-file name="TEA.english.php" destination="$languagedir" />
 		<require-file name="esam_upgrade.php" destination="$boarddir" />
 		<code>tables.php</code>
@@ -55,6 +57,7 @@
 		<require-file name="TEA.php" destination="$sourcedir" />
 		<require-file name="TEA_Cron.php" destination="$sourcedir" />
 		<require-file name="TEA_xmlhttp.php" destination="$sourcedir" />
+		<require-file name="TEA_SkillDump.php" destination="$sourcedir" />
 		<require-file name="TEA.english.php" destination="$languagedir" />
 		<require-file name="esam_upgrade.php" destination="$boarddir" />
 		<code>tables.php</code>
@@ -72,7 +75,9 @@
 		<remove-file name="$sourcedir/TEA.php" />
 		<remove-file name="$sourcedir/TEA_Cron.php" />
 		<remove-file name="$sourcedir/TEA_xmlhttp.php" />
+		<remove-file name="$sourcedir/TEA_SkillDump.php" />
 		<remove-file name="$languagedir/TEA.english.php" />
+		<remove-file name="$boarddir/esam_upgrade.php" />
 	</uninstall>
 	<upgrade from="1.0.0 - 1.0.5">
 		<readme type="file">readme.txt</readme>
