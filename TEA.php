@@ -1373,7 +1373,7 @@ class TEA
 			}
 			$config_vars = array(
 				'</form>
-				<form action="http://tea.temar.me/test/index.php?action=admin;area=tea;save" method="post" accept-charset="ISO-8859-1" name="tea_settings">',
+				<form action="'.$scripturl.'?action=admin;area=tea;save" method="post" accept-charset="ISO-8859-1" name="tea_settings">',
 				'<dt>'.$txt['tea_version'].': '.$this -> version.'</dt>',
 				'',
 					// enable?
