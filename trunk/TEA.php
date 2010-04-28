@@ -2404,7 +2404,12 @@ function postFileReady()
 		{
 			$chars = $this -> get_characters($_POST['tea_user_id'], $_POST['tea_user_api']);
 			if(empty($chars)) // invalid api
-				Return $this -> txt['tea_regreq_error'];
+			{
+				$ret = $this -> txt['tea_regreq_error'];
+				if(empty($ret))
+					$ret = 'A Valid API is Required to Register on this Forum';
+				Return $ret;
+			}
 		}
 		if(!empty($_POST['tea_user_id']) && (empty($_POST['tea_char']) || strlen($_POST['tea_char']) < 3))
 		{
@@ -2413,7 +2418,10 @@ function postFileReady()
 					auto = 1;
 				</script>
 			';
-			Return $this -> txt['tea_regchar_error'];
+			$ret = $this -> txt['tea_regreq_error'];
+			if(empty($ret))
+				$ret = 'Please Select a Character';
+			Return $ret;
 		}
 	}
 

@@ -10,6 +10,7 @@ $txt['tea_userid_short'] = 'User ID';
 $txt['tea_api_short'] = 'API Key';
 $txt['tea_userinfo'] = 'This section allows you to customize the setting for your API.';
 $txt['tea_regreq_error'] = 'A Valid API is Required to Register on this Forum';
+$txt['tea_regchar_error'] = 'Please Select a Character';
 $txt['tea_disabled'] = 'Eve Api Mod is Disabled.';
 $txt['tea_version'] = 'Version';
 
@@ -20,6 +21,7 @@ $txt['tea_settings_message'] = "The API info needed here is to get the Corp/Alli
 $txt['tea_enable'] = 'Enable Temars Eve Api Mod';
 $txt['tea_usecharname'] = 'Is Real name Locked to Characters';
 $txt['tea_avatar_enabled'] = 'Is Getting an Avatar of a Character Enabled';
+$txt['tea_avatar_locked'] = 'Is Getting an Avatar Locked to Characters';
 $txt['tea_regreq'] = 'Is a Valid Api required to Register?';
 $txt['tea_corpid'] = 'The Corp ID Required for Corp Group Access';
 $txt['tea_allianceid'] = 'The Alliance ID Required for Alliance Group Access';
@@ -89,6 +91,5 @@ $txt['tea_run_aneut'] = "..Already set as Neutral";
 $txt['tea_run_neut'] = "..Setting as Neutral";
 $txt['tea_run_reg'] = "..Setting as Regular Member";
 $txt['tea_run_areg'] = "..Already set as Regular Member";
-
 
 ?>
