@@ -5,7 +5,10 @@ if (!defined('SMF'))
 
 Global $tea, $db_prefix, $sourcedir, $modSettings, $user_info, $context, $txt, $smcFunc, $settings;
 loadLanguage('TEA');
+
 $tea = new TEA($db_prefix, $sourcedir, $modSettings, $user_info, $context, $txt, $smcFunc, $settings);
+Global $forum_copyright;
+$forum_copyright .= '<br><a href="http://code.google.com/p/temars-eve-api/" target="_blank" class="new_win">TEA '.$tea -> version.' © 2009-2010, Temars EVE API</a>';
 
 class TEA
 {
@@ -22,7 +25,7 @@ class TEA
 		$this -> smcFunc = &$smcFunc;
 		$this -> settings = &$settings;
 
-		$this -> version = "1.1.0";
+		$this -> version = "1.1.1";
 
 		$permissions["tea_view_own"] = 1;
 		$permissions["tea_view_any"] = 0;
@@ -527,13 +530,16 @@ class TEA
 													if(strstr($cond[1], '%'))
 													{
 														$cond[1] = str_replace('%', '(.+)', $cond[1]);
-														foreach($skills as $skill => $level)
+														if(!empty($skills))
 														{
-															if(preg_match("/".$cond[1]."/i", $skill) && $level >= $cond[2])
+															foreach($skills as $skill => $level)
 															{
-																if($andor == 'OR')
-																	Break 3;
-																Break 2;
+																if(preg_match("/".$cond[1]."/i", $skill) && $level >= $cond[2])
+																{
+																	if($andor == 'OR')
+																		Break 3;
+																	Break 2;
+																}
 															}
 														}
 													}
@@ -910,10 +916,13 @@ class TEA
 		$skilllist = getSkillArray();
 		$xml = $this -> get_xml($id, $api, $charid, 'charsheet');
 		$xml = new SimpleXMLElement($xml);
-		foreach($xml -> result -> rowset[0] as $skill)
+		if(!empty($xml -> result -> rowset[0]))
 		{
-			//echo "<pre>";var_dump($skill["typeID"]); echo '<hr>';
-			$skills[strtolower($skilllist[(string)$skill["typeID"]])] = (string)$skill["level"];
+			foreach($xml -> result -> rowset[0] as $skill)
+			{
+				//echo "<pre>";var_dump($skill["typeID"]); echo '<hr>';
+				$skills[strtolower($skilllist[(string)$skill["typeID"]])] = (string)$skill["level"];
+			}
 		}
 		return $skills;
 	}
@@ -926,9 +935,12 @@ class TEA
 		$rg = array(2, 3, 4, 5);
 		foreach($rg as $i)
 		{
-			foreach($xml -> result -> rowset[$i] as $role)
+			if(!empty($xml -> result -> rowset[$i]))
 			{
-				$roles[strtolower((string)$role["roleName"])] = TRUE;
+				foreach($xml -> result -> rowset[$i] as $role)
+				{
+					$roles[strtolower((string)$role["roleName"])] = TRUE;
+				}
 			}
 		}
 		return $roles;
@@ -992,7 +1004,9 @@ class TEA
 		elseif($type == 'charsheet')
 			$url = "http://api.eve-online.com/char/CharacterSheet.xml.aspx";
 		elseif($type == 'facwar')
-			$url = "http://api.eve-online.com/char/FacWarStats.xml.aspx ";
+			$url = "http://api.eve-online.com/char/FacWarStats.xml.aspx";
+		elseif($type == 'find')
+			$url = "http://api.eve-online.com/eve/CharacterID.xml.aspx";
 		else
 			$url = "http://api.eve-online.com/account/Characters.xml.aspx";
 
@@ -1004,8 +1018,23 @@ class TEA
 			$post[] = 'characterID='.$charid;
 		if(!empty($corpid))
 			$post[] = 'corporationID='.$corpid;
+		if(!empty($post))
+			$posts = implode('&', $post);
 
-		return $this -> get_site($url, $post);
+		$time = time() - 3600;
+		$db = $this -> select("SELECT xml FROM {db_prefix}tea_cache WHERE address = '".mysql_real_escape_string($url)."' AND post = '".mysql_real_escape_string($posts)."' AND time > ".$time);
+		if(!empty($db))
+		{
+			return $db[0][0];
+		}
+
+		$xml = $this -> get_site($url, $post);
+		$this -> query("
+			REPLACE INTO {db_prefix}tea_cache
+				(address, post, time, xml)
+			VALUES
+				('$url', '".mysql_real_escape_string($posts)."', ".time().", '".mysql_real_escape_string($xml)."')");
+		return $xml;
 	}
 
 	function get_site($url, $post=FALSE)
@@ -1331,7 +1360,20 @@ class TEA
 			else
 				$time = 'Never';
 			$groups = $this -> MemberGroups();
+			if(!empty($charlist))
+			{
+				foreach($charlist as $i => $c)
+				{
+					$options .= '<option value="'.$i.'"';
+					if($this -> modSettings["tea_charid"] == $i)
+						$options .= ' selected="selected"';
+					$options .= '>'.$c.'</option>
+					';
+				}
+			}
 			$config_vars = array(
+				'</form>
+				<form action="http://tea.temar.me/test/index.php?action=admin;area=tea;save" method="post" accept-charset="ISO-8859-1" name="tea_settings">',
 				'<dt>'.$txt['tea_version'].': '.$this -> version.'</dt>',
 				'',
 					// enable?
@@ -1340,7 +1382,49 @@ class TEA
 					// api info
 					array('int', 'tea_userid', 10),
 					array('text', 'tea_api', 64),
-					array('select', 'tea_charid', $charlist),
+				//	array('select', 'tea_charid', $charlist),
+				'<dt>
+					<a id="setting_tea_charid"></a> <span><label for="tea_charid">Character to use</label></span>
+				</dt>
+				<dd>
+					<div id="chars"><select name="tea_charid" id="tea_charid" >
+						'.$options.'
+					</select> <button type="button" onclick="javascript: getchars()">Get Characters</button></div>
+				</dd>
+				<script type="text/javascript">
+				function getchars()
+				{
+					userid = document.tea_settings.tea_userid.value;
+					api = document.tea_settings.tea_api.value;
+					include("Sources/TEA_xmlhttp.php?page=settings&userid="+userid+"&api="+api);
+				}
+				function include(pURL)
+				{
+					if (window.XMLHttpRequest) { // code for Mozilla, Safari, ** And Now IE 7 **, etc
+						xmlhttp=new XMLHttpRequest();
+					} else if (window.ActiveXObject) { //IE
+						xmlhttp=new ActiveXObject(\'Microsoft.XMLHTTP\');
+					}
+					if (typeof(xmlhttp)==\'object\')
+					{
+						xmlhttp.onreadystatechange=postFileReady;
+						xmlhttp.open(\'GET\', pURL, true);
+						xmlhttp.send(null);
+					}
+				}
+
+				function postFileReady()
+				{
+					if (xmlhttp.readyState==4)
+					{
+						if (xmlhttp.status==200)
+						{
+							document.getElementById(\'chars\').innerHTML=xmlhttp.responseText;
+						}
+					}
+				}
+				</script>
+				',
 				'<dt>'.$txt['tea_standings_updated'].': '.$time.'</dt>',
 				'<dt>'.$txt['tea_standings_contains'].': '.count($cblues).' '.$txt['tea_standings_bluec'].', '.count($creds).' '.$txt['tea_standings_bluea'].', '.count($ablues).' '.$txt['tea_standings_redc'].', '.count($areds).' '.$txt['tea_standings_reda'].'</dt>',
 				'<dt>'.$txt['tea_corpl_updated'].': '.$atime.'</dt>',
@@ -1349,6 +1433,7 @@ class TEA
 					array('check', 'tea_regreq'),
 					array('check', 'tea_usecharname'),
 					array('check', 'tea_avatar_enabled'),
+					array('check', 'tea_avatar_locked'),
 					array('int', 'tea_corpid', 10),
 					array('int', 'tea_allianceid', 10),
 					array('check', 'tea_useapiabove'),
@@ -1450,6 +1535,44 @@ class TEA
 					$this -> query("DELETE FROM {db_prefix}tea_rules WHERE ruleid = ".$_POST['value']);
 					$this -> query("DELETE FROM {db_prefix}tea_conditions WHERE ruleid = ".$_POST['value']);
 				}
+				elseif($_POST['minitype'] == 'up' || $_POST['minitype'] == 'down')
+				{
+					$id = $_POST['value'];
+					if(!is_numeric($id))
+						die("move id must be number");
+					$rules = $this -> select("SELECT ruleid, main FROM {db_prefix}tea_rules ORDER BY ruleid");
+					if(!empty($rules))
+					{
+						foreach($rules as $rule)
+						{
+							$rl[$rule[1]][$rule[0]] = $rule[0];
+							if($rule[0] == $id)
+								$main = $rule[1];
+						}
+						if(isset($main))
+						{
+							$rules = $rl[$main];
+							sort($rules);
+							foreach($rules as $i => $rule)
+							{
+								if($rule == $id)
+								{
+									if($_POST['minitype'] == 'up')
+										$move = $rules[$i-1];
+									elseif($_POST['minitype'] == 'down')
+										$move = $rules[$i+1];
+									$this -> query("UPDATE {db_prefix}tea_rules SET ruleid = -1 WHERE ruleid = ".$move);
+									$this -> query("UPDATE {db_prefix}tea_conditions SET ruleid = -1 WHERE ruleid = ".$move);
+									$this -> query("UPDATE {db_prefix}tea_rules SET ruleid = $move WHERE ruleid = ".$id);
+									$this -> query("UPDATE {db_prefix}tea_conditions SET ruleid = $move WHERE ruleid = ".$id);
+									$this -> query("UPDATE {db_prefix}tea_rules SET ruleid = $id WHERE ruleid = -1");
+									$this -> query("UPDATE {db_prefix}tea_conditions SET ruleid = $id WHERE ruleid = -1");
+									Break;
+								}
+							}
+						}
+					}
+				}
 				else
 				{
 					die("Unknown mini form type");
@@ -1518,10 +1641,15 @@ class TEA
 				else
 					die("Unknown Type");
 
-				if($type == "corp" || $type == "alliance" || $type == "skill" || $type == "role" || $type == "title" || $type == "militia")
+				if($type == "corp" || $type == "alliance")
+				{
+					
+					$value = mysql_real_escape_string($_POST['value']);
+				}
+				elseif($type == "skill" || $type == "role" || $type == "title" || $type == "militia")
 					$value = mysql_real_escape_string($_POST['value']);
 
-				if($type == "skill")
+				elseif($type == "skill")
 					$extra = (int)$_POST['extra'];
 
 				if(isset($groups[$_POST['group']]))
@@ -1593,6 +1721,12 @@ class TEA
 				'<tr><td>ID</td><td>Name</td><td>Rule</td><td>Group</td><td>AND / OR</td><td>Enabled</td></tr>';
 		if(!empty($list))
 		{
+			$first = TRUE;
+			foreach($list as $id => $l)
+			{
+				if($l['main'] == 1)
+					$last = $id;
+			}
 			foreach($list as $id => $l)
 			{
 				if($l['main'] == 1)
@@ -1612,12 +1746,23 @@ class TEA
 								$enabled = 'checked';
 							else
 								$enabled = '';
-							$out[2] .= '<td rowspan="'.$span.'">'.$groups[$l['group']].'</td><td rowspan="'.$span.'">'.$l['andor'].'</td><td rowspan="'.$span.'"><input type="checkbox" name="rule_'.$id.'" value="1" '.$enabled.' /><a href="javascript:edit('.$id.')"><img src="'.$this -> settings['images_url'].'/icons/config_sm.gif"></a><a href="javascript: delrule(\'delrule\', '.$id.')"><img src="'.$this -> settings['images_url'].'/icons/quick_remove.gif"></a></td>';
+							$out[2] .= '<td rowspan="'.$span.'">'.$groups[$l['group']].'</td><td rowspan="'.$span.'">'.$l['andor'].'</td><td rowspan="'.$span.'">
+							<table><tr><td><input type="checkbox" name="rule_'.$id.'" value="1" '.$enabled.' />';
+							$out[2] .= '</td><td width="20">';
+							if(!$first)
+								$out[2] .= '<a href="javascript:move('.$id.', \'up\')"><img src="'.$this -> settings['images_url'].'/sort_up.gif"></a>';
+							if($last != $id)
+								$out[2] .= '<a href="javascript:move('.$id.', \'down\')"><img src="'.$this -> settings['images_url'].'/sort_down.gif"></a>';
+							$out[2] .= '</td><td><a href="javascript:edit('.$id.')"><img src="'.$this -> settings['images_url'].'/icons/config_sm.gif"></a>
+							<a href="javascript: delrule(\'delrule\', '.$id.')"><img src="'.$this -> settings['images_url'].'/icons/quick_remove.gif"></a>
+							</td></tr></table>
+							</td>';
 						}
 						$tr = '</tr><tr>';
 					}
 					$out[2] .= '</tr>';
 					$javalist .= "rules[".$id."] = Array('".$l['name']."', 'true', '".$l['andor']."', '".$l['group']."');\n";
+					$first = FALSE;
 				}
 			}
 		}
@@ -1640,7 +1785,17 @@ class TEA
 								$enabled = 'checked';
 							else
 								$enabled = '';
-							$out[2] .= '<td rowspan="'.$span.'">'.$groups[$l['group']].'</td><td rowspan="'.$span.'">'.$l['andor'].'</td><td rowspan="'.$span.'"><input type="checkbox" name="rule_'.$id.'" value="1" '.$enabled.' /><a href="javascript:edit('.$id.')"><img src="'.$this -> settings['images_url'].'/icons/config_sm.gif"></a><a href="javascript: delrule(\'delrule\', '.$id.')"><img src="'.$this -> settings['images_url'].'/icons/quick_remove.gif"></a></td>';
+							$out[2] .= '<td rowspan="'.$span.'">'.$groups[$l['group']].'</td><td rowspan="'.$span.'">'.$l['andor'].'</td><td rowspan="'.$span.'">
+							<table><tr><td><input type="checkbox" name="rule_'.$id.'" value="1" '.$enabled.' />';
+							$out[2] .= '</td><td width="20">';
+							if(!$first)
+								$out[2] .= '<a href="javascript:move('.$id.', \'up\')"><img src="'.$this -> settings['images_url'].'/sort_up.gif"></a>';
+							if($last != $id)
+								$out[2] .= '<a href="javascript:move('.$id.', \'down\')"><img src="'.$this -> settings['images_url'].'/sort_down.gif"></a>';
+							$out[2] .= '</td><td><a href="javascript:edit('.$id.')"><img src="'.$this -> settings['images_url'].'/icons/config_sm.gif"></a>
+							<a href="javascript: delrule(\'delrule\', '.$id.')"><img src="'.$this -> settings['images_url'].'/icons/quick_remove.gif"></a>
+							</td></tr></table>
+							</td>';
 						}
 						$tr = '</tr><tr>';
 					}
@@ -1824,6 +1979,10 @@ function subform(type, value)
 	document.miniform.value.value=value;
 	document.miniform.submit();
 }
+function move(id, value)
+{
+	subform(value, id);
+}
 value_type();
 </script>
 ';
@@ -1986,7 +2145,7 @@ value_type();
 					//	$this -> query("UPDATE {db_prefix}members SET usertitle = '".$char['ticker']."' WHERE ID_MEMBER = ".$memberID);
 					//elseif($this -> modSettings["tea_corptag_options"] == 2)
 					//	$name = '['.$char['ticker'].'] '.$name;
-					$this -> query("UPDATE {db_prefix}members SET real_name = '".$name."' WHERE ID_MEMBER = ".$memberID);
+					$this -> query("UPDATE {db_prefix}members SET real_name = '".mysql_real_escape_string($name)."' WHERE ID_MEMBER = ".$memberID);
 				//}
 				if($this -> modSettings['tea_avatar_enabled'])
 				{
@@ -2182,12 +2341,12 @@ value_type();
 									<dt>
 										<b>', $this -> txt['tea_userid'], ':</b></dt>
 									<dd>
-										<input type="text" name="tea_user_id" value="'.$api[0].'" size="10" />
+										<input type="text" name="tea_user_id" value="'.$_POST['tea_user_id'].'" size="10" />
 									</dd>
 								</dl><dl class="register_form">
 									<dt>										<b>', $this -> txt['tea_api'], ':</b></dt>
 									<dd>
-										<input type="text" name="tea_user_api" value="'.$api[1].'" size="64" />
+										<input type="text" name="tea_user_api" value="'.$_POST['tea_user_api'].'" size="64" />
 									</dd>
 								</dl>
 								</dl><dl class="register_form">
@@ -2195,7 +2354,7 @@ value_type();
 									<dd>
 										<div id="chars"><select name="tea_char">
 											<option value="-">-</option> 
-										</select> <A href="javascript: getchars()">Get Characters</A></div>
+										</select> <button type="button" onclick="javascript: getchars()">Get Characters</button></div>
 									</dd>
 								</dl>
 <script type="text/javascript">
@@ -2205,6 +2364,8 @@ function getchars()
 	api = document.registration.tea_user_api.value;
 	include("Sources/TEA_xmlhttp.php?userid="+userid+"&api="+api);
 }
+if(auto)
+	getchars();
 function include(pURL)
 {
 	if (window.XMLHttpRequest) { // code for Mozilla, Safari, ** And Now IE 7 **, etc
@@ -2235,6 +2396,25 @@ function postFileReady()
 
 	//	echo '
 	//						</table>';
+	}
+
+	function reg_checks()
+	{
+		if($this -> modSettings['tea_regreq'])
+		{
+			$chars = $this -> get_characters($_POST['tea_user_id'], $_POST['tea_user_api']);
+			if(empty($chars)) // invalid api
+				Return $this -> txt['tea_regreq_error'];
+		}
+		if(!empty($_POST['tea_user_id']) && (empty($_POST['tea_char']) || strlen($_POST['tea_char']) < 3))
+		{
+			echo '
+				<script type="text/javascript">
+					auto = 1;
+				</script>
+			';
+			Return $this -> txt['tea_regchar_error'];
+		}
 	}
 
 	function avatar_option()
@@ -2275,6 +2455,16 @@ function postFileReady()
 		echo '			</select>
 <br><img name="eavatar" id="eavatar" src="', !empty($this -> modSettings["tea_enable"]) && $this -> context['member']['avatar']['choice'] == 'tea' ? $this -> context['member']['avatar']['tea'] : $this -> modSettings['avatar_url'] . '/blank.gif', '" />
 								</div>';
+	}
+
+	function avatar_option_lock()
+	{
+		if($this -> modSettings["tea_avatar_locked"])
+		{
+			$this -> context['member']['avatar']["allow_upload"] = FALSE;
+			$this -> context['member']['avatar']["allow_external"] = FALSE;
+			$this -> context['member']['avatar']["allow_server_stored"] = FALSE;
+		}
 	}
 
 	function avatar_save($memID, &$profile_vars, &$cur_profile)

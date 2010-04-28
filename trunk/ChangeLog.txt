@@ -1,0 +1,10 @@
+----------------------
+Version 1.1.0 -> 1.1.1
+----------------------
+- Added Check that Character is Selected if Api is Entered during registration
+- Added xml Cache
+- Fixed a Bug with registration when charname has an apostrophe in it
+- Added Option to Lock Avatars to Eve Characters Only
+- Changed Cron file to use Relitive path from File to get SSI.php
+- Added Ability to reorder Rules
+- You can now pull Characters under Settings Page with out the need to save

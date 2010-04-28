@@ -155,12 +155,12 @@ $tables[5]["id"] = "INT DEFAULT NULL";
 $tables[5]["main"] = "INT(1) DEFAULT 1";
 $tables[5]["additional"] = "INT(1) DEFAULT 1";
 
-// $info[6]['name'] = 'tea_cache';
-// $info[6]['primary'] = 'address, post';
-// $tables[6]["address"] = "VARCHAR(200) DEFAULT NULL";
-// $tables[6]["post"] = "VARCHAR(200) DEFAULT NULL";
-// $tables[6]["time"] = "INT DEFAULT 0";
-// $tables[6]["xml"] = "text";
+$info[6]['name'] = 'tea_cache';
+$info[6]['primary'] = 'address, post';
+$tables[6]["address"] = "VARCHAR(200) DEFAULT NULL";
+$tables[6]["post"] = "VARCHAR(200) DEFAULT NULL";
+$tables[6]["time"] = "INT DEFAULT 0";
+$tables[6]["xml"] = "text";
 
 Global $db_prefix;
 

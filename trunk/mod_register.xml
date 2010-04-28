@@ -9,12 +9,9 @@
 		<operation>
 			<search position="replace"><![CDATA[	// Lets check for other errors before trying to register the member.]]></search>
 			<add><![CDATA[	global $tea;
-	if($modSettings['tea_regreq'])
-	{
-		$chars = $tea -> get_characters($_POST['tea_user_id'], $_POST['tea_user_api']);
-		if(empty($chars)) // invalid api
-			$reg_errors[] = $txt['tea_regreq_error'];
-	}
+	$error = $tea -> reg_checks();
+	if(!empty($error)) //error
+		$reg_errors[] = $error;
 
 	// Lets check for other errors before trying to register the member.]]></add>
 		</operation>
