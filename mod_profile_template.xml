@@ -42,6 +42,18 @@ function template_error_message()]]></add>
 		</operation>
  -->
 		<operation>
+			<search position="replace"><![CDATA[function template_profile_avatar_select()
+{
+	global $context, $txt, $modSettings;
+]]></search>
+			<add><![CDATA[function template_profile_avatar_select()
+{
+	global $context, $txt, $modSettings;
+	Global $tea;
+	$tea -> avatar_option_lock();
+]]></add>
+		</operation>
+		<operation>
 			<search position="replace"><![CDATA[
 
 	echo '
