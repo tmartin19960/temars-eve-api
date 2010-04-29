@@ -4,7 +4,7 @@
 	<id>temar:TEA</id>
 	<name>Temars EVE API</name>
 	<type>modification</type>
-	<version>1.1.0</version>
+	<version>1.1.1</version>
 	<install for="1.1 - 1.1.99">
 		<readme type="file">readme.txt</readme>
 		<readme type="inline" parsebbc="true">[color=red]Error! This mod does not support your version of SMF.[/color]</readme>
@@ -40,6 +40,7 @@
 		<require-file name="TEA_Cron.php" destination="$sourcedir" />
 		<require-file name="TEA_xmlhttp.php" destination="$sourcedir" />
 		<require-file name="TEA_SkillDump.php" destination="$sourcedir" />
+		<require-file name="TEA_Roles.php" destination="$sourcedir" />
 		<require-file name="TEA.english.php" destination="$languagedir" />
 		<require-file name="esam_upgrade.php" destination="$boarddir" />
 		<code>tables.php</code>
@@ -58,6 +59,7 @@
 		<require-file name="TEA_Cron.php" destination="$sourcedir" />
 		<require-file name="TEA_xmlhttp.php" destination="$sourcedir" />
 		<require-file name="TEA_SkillDump.php" destination="$sourcedir" />
+		<require-file name="TEA_Roles.php" destination="$sourcedir" />
 		<require-file name="TEA.english.php" destination="$languagedir" />
 		<require-file name="esam_upgrade.php" destination="$boarddir" />
 		<code>tables.php</code>
@@ -75,12 +77,18 @@
 		<remove-file name="$sourcedir/TEA.php" />
 		<remove-file name="$sourcedir/TEA_Cron.php" />
 		<remove-file name="$sourcedir/TEA_xmlhttp.php" />
+		<remove-file name="$sourcedir/TEA_Roles.php" />
 		<remove-file name="$sourcedir/TEA_SkillDump.php" />
 		<remove-file name="$languagedir/TEA.english.php" />
 		<remove-file name="$boarddir/esam_upgrade.php" />
 	</uninstall>
-	<upgrade from="1.0.0 - 1.0.5">
+	<upgrade from="1.1.0">
 		<readme type="file">readme.txt</readme>
-		<readme type="inline" parsebbc="true">[color=red]Error! Please Uninstall Previous Version as there is too many changes<br>your Settings and API's wont be removed.[/color]</readme>
+		<require-file name="TEA.php" destination="$sourcedir" />
+		<require-file name="TEA_Cron.php" destination="$sourcedir" />
+		<require-file name="TEA_xmlhttp.php" destination="$sourcedir" />
+		<require-file name="TEA_Roles.php" destination="$sourcedir" />
+		<require-file name="TEA.english.php" destination="$languagedir" />
+		<modification type="file">upgrade_1_1_x.xml</modification>
 	</upgrade>
 </package-info>
