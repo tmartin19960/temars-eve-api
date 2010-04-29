@@ -2418,7 +2418,7 @@ function postFileReady()
 					auto = 1;
 				</script>
 			';
-			$ret = $this -> txt['tea_regreq_error'];
+			$ret = $this -> txt['tea_regchar_error'];
 			if(empty($ret))
 				$ret = 'Please Select a Character';
 			Return $ret;
