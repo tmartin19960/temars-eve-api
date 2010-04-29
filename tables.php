@@ -160,7 +160,7 @@ $info[6]['primary'] = 'address, post';
 $tables[6]["address"] = "VARCHAR(200) DEFAULT NULL";
 $tables[6]["post"] = "VARCHAR(200) DEFAULT NULL";
 $tables[6]["time"] = "INT DEFAULT 0";
-$tables[6]["xml"] = "text";
+$tables[6]["xml"] = "MEDIUMTEXT";
 
 Global $db_prefix;
 
