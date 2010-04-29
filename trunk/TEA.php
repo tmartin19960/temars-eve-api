@@ -105,7 +105,8 @@ class TEA
 			}
 			unset($corps);
 		}
-		$data = $this -> get_xml($this -> modSettings["tea_userid"], $this -> modSettings["tea_api"], $this -> modSettings["tea_charid"], 'standings');
+		$post = array('userID' => $this -> modSettings["tea_userid"], 'apiKey' => $this -> modSettings["tea_api"], 'characterID' => $this -> modSettings["tea_charid"]);
+		$data = $this -> get_xml('standings', $post);
 
 		$temp[1] = $this -> xmlparse($data, "corporationStandings");
 		$temp[2] = $this -> xmlparse($data, "allianceStandings");
@@ -831,7 +832,8 @@ class TEA
 
 	function get_characters($userid, $api)
 	{
-		$chars = $this -> get_xml($userid, $api);
+		$post = array('userID' => $userid, 'apiKey' => $api);
+		$chars = $this -> get_xml('charlist', $post);
 		$this -> data = $chars;
 		$chars = $this -> xmlparse($chars, "result");
 		$chars = $this -> parse($chars);
@@ -914,7 +916,8 @@ class TEA
 	{
 		require_once($this -> sourcedir.'/TEA_SkillDump.php');
 		$skilllist = getSkillArray();
-		$xml = $this -> get_xml($id, $api, $charid, 'charsheet');
+		$post = array('userID' => $id, 'apiKey' => $api, 'characterID' => $charid);
+		$xml = $this -> get_xml('charsheet', $post);
 		$xml = new SimpleXMLElement($xml);
 		if(!empty($xml -> result -> rowset[0]))
 		{
@@ -929,7 +932,8 @@ class TEA
 
 	function roles($id, $api, $charid)
 	{
-		$xml = $this -> get_xml($id, $api, $charid, 'charsheet');
+		$post = array('userID' => $id, 'apiKey' => $api, 'characterID' => $charid);
+		$xml = $this -> get_xml('charsheet', $post);
 	//	$xml = file_get_contents('me.xml');
 		$xml = new SimpleXMLElement($xml);
 		$rg = array(2, 3, 4, 5);
@@ -948,7 +952,8 @@ class TEA
 
 	function titles($id, $api, $charid)
 	{
-		$xml = $this -> get_xml($id, $api, $charid, 'charsheet');
+		$post = array('userID' => $id, 'apiKey' => $api, 'characterID' => $charid);
+		$xml = $this -> get_xml('charsheet', $post);
 	//	$xml = file_get_contents('me.xml');
 		$xml = new SimpleXMLElement($xml);
 		foreach($xml -> result -> rowset[6] as $title)
@@ -960,7 +965,8 @@ class TEA
 
 	function mititia($id, $api, $charid)
 	{
-		$xml = $this -> get_xml($id, $api, $charid, 'facwar');
+		$post = array('userID' => $id, 'apiKey' => $api, 'characterID' => $charid);
+		$xml = $this -> get_xml('facwar', $post);
 		$xml = new SimpleXMLElement($xml);
 		$faction = $xml -> result -> factionName;
 		return $faction;
@@ -989,40 +995,36 @@ class TEA
 	//	fclose($fp);
 	}
 
-	function get_xml($id, $api, $charid=FALSE, $type=FALSE)
+	function get_xml($type, $post = NULL)
 	{
 		if($type == 'standings')
 			$url = "http://api.eve-online.com/corp/Standings.xml.aspx";
 		elseif($type == 'alliances')
 			$url = "http://api.eve-online.com/eve/AllianceList.xml.aspx";
 		elseif($type == 'corp')
-		{
 			$url = "http://api.eve-online.com/corp/CorporationSheet.xml.aspx";
-			$corpid = $charid;
-			unset($charid);
-		}
 		elseif($type == 'charsheet')
 			$url = "http://api.eve-online.com/char/CharacterSheet.xml.aspx";
 		elseif($type == 'facwar')
 			$url = "http://api.eve-online.com/char/FacWarStats.xml.aspx";
 		elseif($type == 'find')
 			$url = "http://api.eve-online.com/eve/CharacterID.xml.aspx";
+		elseif($type == 'name')
+			$url = "http://api.eve-online.com/eve/CharacterName.xml.aspx ";
 		else
 			$url = "http://api.eve-online.com/account/Characters.xml.aspx";
 
-		if(!empty($id))
-			$post[] = 'userID='.$id;
-		if(!empty($api))
-			$post[] = 'apiKey='.$api;
-		if(!empty($charid))
-			$post[] = 'characterID='.$charid;
-		if(!empty($corpid))
-			$post[] = 'corporationID='.$corpid;
 		if(!empty($post))
-			$posts = implode('&', $post);
+		{
+			foreach($post as $i => $v)
+			{
+				$post[$i] = $i.'='.$v;
+			}
+			$post = implode('&', $post);
+		}
 
 		$time = time() - 3600;
-		$db = $this -> select("SELECT xml FROM {db_prefix}tea_cache WHERE address = '".mysql_real_escape_string($url)."' AND post = '".mysql_real_escape_string($posts)."' AND time > ".$time);
+		$db = $this -> select("SELECT xml FROM {db_prefix}tea_cache WHERE address = '".mysql_real_escape_string($url)."' AND post = '".mysql_real_escape_string($post)."' AND time > ".$time);
 		if(!empty($db))
 		{
 			return $db[0][0];
@@ -1033,7 +1035,7 @@ class TEA
 			REPLACE INTO {db_prefix}tea_cache
 				(address, post, time, xml)
 			VALUES
-				('$url', '".mysql_real_escape_string($posts)."', ".time().", '".mysql_real_escape_string($xml)."')");
+				('$url', '".mysql_real_escape_string($post)."', ".time().", '".mysql_real_escape_string($xml)."')");
 		return $xml;
 	}
 
@@ -1043,7 +1045,6 @@ class TEA
 
 		if(!empty($post))
 		{
-			$post = implode('&', $post);
 			curl_setopt($ch, CURLOPT_POST      ,1);
 			curl_setopt ($ch, CURLOPT_POSTFIELDS, $post);
 		}
@@ -1051,33 +1052,13 @@ class TEA
 		curl_setopt($ch, CURLOPT_URL, $url);
 		curl_setopt ($ch, CURLOPT_FOLLOWLOCATION, 1);
 
-
-		// You can use CURLAUTH_BASIC, CURLAUTH_DIGEST, CURLAUTH_GSSNEGOTIATE,
-		// CURLAUTH_NTLM, CURLAUTH_ANY, and CURLAUTH_ANYSAFE
-		//
-		// You can use the bitwise | (or) operator to combine more than one method.
-		// If you do this, CURL will poll the server to see what methods it supports and pick the best one.
-		//
-		// CURLAUTH_ANY is an alias for CURLAUTH_BASIC | CURLAUTH_DIGEST |
-		// CURLAUTH_GSSNEGOTIATE | CURLAUTH_NTLM
-		//
-		// CURLAUTH_ANYSAFE is an alias for CURLAUTH_DIGEST | CURLAUTH_GSSNEGOTIATE |
-		// CURLAUTH_NTLM
-		//
-		// Personally I prefer CURLAUTH_ANY as it covers all bases
-
-		// This is occassionally required to stop CURL from verifying the peer's certificate.
-		// CURLOPT_SSL_VERIFYHOST may also need to be TRUE or FALSE if
-		// CURLOPT_SSL_VERIFYPEER is disabled (it defaults to 2 - check the existence of a
-		// common name and also verify that it matches the hostname provided)
 		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 
-		// Optional: Return the result instead of printing it
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 
-		// The usual - get the data and close the session
 		$data = curl_exec($ch);
 		curl_close($ch);
+
 		//echo "<pre>"; var_dump($data); echo "</pre>";
 		Return $data;
 	}
@@ -1218,7 +1199,7 @@ class TEA
 		}
 		if(!$update)
 			Return;
-		$data = $this -> get_xml(FALSE, FALSE, FALSE, 'alliances');
+		$data = $this -> get_xml('alliances');
 		//$data = $this -> rowset2($data);
 		$data = explode("<row name=\"", $data);
 		unset($data[0]);
@@ -1264,13 +1245,18 @@ class TEA
 
 	function corp_info($corp)
 	{
-		$data = $this -> get_xml(FALSE, FALSE, $corp, 'corp');
-		$info['corpname'] = $this -> xmlparse($data, 'corporationName');
-		$info['ticker'] = $this -> xmlparse($data, 'ticker');
-		$info['allianceid'] = $this -> xmlparse($data, 'allianceID');
-		if(empty($info['allianceid']) || $info['allianceid'] == '')
-			$info['allianceid'] = 0;
-		$info['alliance'] = $this -> xmlparse($data, 'allianceName');
+		$post = array('corporationID' => $corp);
+		$xml2 = $this -> get_xml('corp', $post);
+		$xml = new SimpleXMLElement($xml2);
+		if(isset($xml -> result -> corporationName))
+		{
+			$info['corpname'] = (string)$xml -> result -> corporationName;
+			$info['ticker'] = (string)$xml -> result -> ticker;
+			$info['allianceid'] = (string)$xml -> result -> allianceID;
+			if(empty($info['allianceid']) || $info['allianceid'] == '')
+				$info['allianceid'] = 0;
+			$info['alliance'] = (string)$xml -> result -> allianceName;
+		}
 		Return ($info);
 	}
 
@@ -1643,8 +1629,77 @@ class TEA
 
 				if($type == "corp" || $type == "alliance")
 				{
-					
-					$value = mysql_real_escape_string($_POST['value']);
+					$value = $_POST['value'];
+					if(!is_numeric($value))
+					{
+						$post = array('names' => $value);
+						$xml = $this -> get_xml('find', $post);
+						$xml = new SimpleXMLElement($xml);
+						$xml = (int)$xml -> result -> rowset -> row[0]['characterID'];
+						if($type == "corp")
+						{
+							$check = $this -> corp_info($xml);
+							if(!empty($check))
+							{
+								$value = $xml;
+								$extra = $check['corpname'];
+							}
+							else
+							{
+								die("Unable to find Corp with name: ".$value);
+							}
+						}
+						else
+						{
+							$this -> alliance_list();
+							$alliances = $this -> corps;
+							$alliances = array_flip($alliances);
+							if(isset($alliances[$xml]))
+							{
+								$extra = $value;
+								$value = $xml;
+							}
+							else
+							{
+								die("Unable to find Alliance with name: ".$value);
+							}
+						}
+					}
+					else
+					{
+						if($type == "corp")
+						{
+							$check = $this -> corp_info($value);
+							if(!empty($check))
+							{
+								$extra = $check['corpname'];
+							}
+							else
+							{
+								echo "Warning: Unable to find Corp with id: ".$value;
+							}
+						}
+						else
+						{
+							$this -> alliance_list();
+							$alliances = $this -> corps;
+							$alliances = array_flip($alliances);
+							if(isset($alliances[$value]))
+							{
+								$post = array('ids' => $value);
+								$xml = $this -> get_xml('name', $post);
+								$xml = new SimpleXMLElement($xml);
+								$xml = (string)$xml -> result -> rowset -> row[0]['name'];
+								$extra = $xml;
+							}
+							else
+							{
+								echo "Warning: Unable to find Alliance with id: ".$value;
+							}
+						}
+					}
+					$value = mysql_real_escape_string($value);
+					$extra = mysql_real_escape_string($extra);
 				}
 				elseif($type == "skill" || $type == "role" || $type == "title" || $type == "militia")
 					$value = mysql_real_escape_string($_POST['value']);
@@ -1737,6 +1792,8 @@ class TEA
 					foreach($l['conditions'] as $r)
 					{
 						$out[2] .= $tr.'<td>'.$types[$r['type']].': '.$r['value'];
+						if($r['extra'] != "")
+							$out[2] .= " (".$r['extra'].")";
 				//		if($span > 1)
 				//			$out[2] .= '<a href="javascript:edit('.$id.')"><img src="'.$this -> settings['images_url'].'/icons/quick_remove.gif"></a>';
 						$out[2] .= '</td>';
@@ -1919,12 +1976,12 @@ function value_type(fromedit)
 	}
 	if(type == "corp")
 	{
-		document.getElementById(\'tea_valuetxt\').innerHTML="Corp ID:";
+		document.getElementById(\'tea_valuetxt\').innerHTML="Corp Name or ID:";
 		document.getElementById(\'tea_value\').innerHTML=\'<input type="text" name="value" value="" />\';
 	}
 	else if(type == "alliance")
 	{
-		document.getElementById(\'tea_valuetxt\').innerHTML="Alliance ID:";
+		document.getElementById(\'tea_valuetxt\').innerHTML="Alliance Name or ID:";
 		document.getElementById(\'tea_value\').innerHTML=\'<input type="text" name="value" value="" />\';
 	}
 	else if(type == "blue" || type == "red" || type == "neut" || type == "error")
