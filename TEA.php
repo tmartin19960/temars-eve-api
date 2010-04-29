@@ -269,7 +269,7 @@ class TEA
 						if(($error[0] >= 500 && $error[0] < 600) || ($error[0] >= 900 && $error[0] < 1000)) // Api System is Down
 							$ignore = TRUE;
 						else
-							$chars[] = array(1);
+							$chars[] = array('name' => NULL, 'charid' => NULL, 'corpname' => NULL, 'corpid' => NULL, 'ticker' => NULL, 'allianceid' => NULL, 'alliance' => NULL);
 						$status = 'error';
 						$error = TRUE;
 					}
@@ -832,6 +832,7 @@ class TEA
 
 	function get_characters($userid, $api)
 	{
+		$charlist = NULL;
 		$post = array('userID' => $userid, 'apiKey' => $api);
 		$chars = $this -> get_xml('charlist', $post);
 		$this -> data = $chars;
@@ -901,6 +902,7 @@ class TEA
 
 	function get_acc_chars($userid)
 	{
+		$charlist = NULL;
 		$chars = $this -> select("SELECT charid, name, corp_ticker, corp, alliance FROM {db_prefix}tea_characters WHERE userid = ".$userid);
 		if(!empty($chars))
 		{
@@ -914,6 +916,7 @@ class TEA
 
 	function skill_list($id, $api, $charid)
 	{
+		$skills = NULL;
 		require_once($this -> sourcedir.'/TEA_SkillDump.php');
 		$skilllist = getSkillArray();
 		$post = array('userID' => $id, 'apiKey' => $api, 'characterID' => $charid);
@@ -932,6 +935,7 @@ class TEA
 
 	function roles($id, $api, $charid)
 	{
+		$roles = NULL;
 		$post = array('userID' => $id, 'apiKey' => $api, 'characterID' => $charid);
 		$xml = $this -> get_xml('charsheet', $post);
 	//	$xml = file_get_contents('me.xml');
@@ -1119,7 +1123,8 @@ class TEA
 	function xmlparse($xml, $tag)
 	{
 		$tmp = explode("<" . $tag . ">", $xml);
-		$tmp = explode("</" . $tag . ">", $tmp[1]);
+		if($tmp[1])
+			$tmp = explode("</" . $tag . ">", $tmp[1]);
 		return $tmp[0];
 	}
 
@@ -1132,6 +1137,7 @@ class TEA
 
 	function parse($xml)
 	{
+		$chars = NULL;
 		$xml = explode("<row ", $xml);
 		unset($xml[0]);
 		if(!empty($xml))
@@ -1997,7 +2003,13 @@ function value_type(fromedit)
 	else if(type == "role")
 	{
 		document.getElementById(\'tea_valuetxt\').innerHTML="Role:";
-		document.getElementById(\'tea_value\').innerHTML=\'<input type="text" name="value" value="" />\';
+		document.getElementById(\'tea_value\').innerHTML=\'<select name="value">';
+		require($this -> sourcedir.'/TEA_Roles.php');
+		foreach($roles as $role => $i)
+		{
+			$out[4] .= '<option value="'.$role.'">'.$role.'</option>';
+		}
+		$out[4] .= '</select>\';
 	}
 	else if(type == "title")
 	{
@@ -2096,7 +2108,7 @@ value_type();
 		Return $groups;
 	}
 
-	function TEAAdd($memberID, $reg)
+	function TEAAdd($memberID, $reg=FALSE)
 	{
 		if(!$this -> modSettings["tea_enable"])
 			Return;
@@ -2126,13 +2138,6 @@ value_type();
 			{
 				$duserid = $user[0][0];
 				$dapi = $user[0][1];
-			//	$chars = $user[0][2];
-			//	$charid = $user[0][2];
-			}
-			else
-			{
-				$chars  = '';
-				$charid = 0;
 			}
 			if(!$userid || !$api)
 				Continue;
@@ -2158,38 +2163,6 @@ value_type();
 		$this -> update_api($memberID);
 		if($reg)
 		{
-			//$chars = 
-			// foreach($this -> chars as $char)
-			// {
-				// $corp = $char[3];
-				// $alliance = $this -> corps[$corp];
-				// if($corp == $this -> modSettings["tea_corpid"])
-				// {
-					// $main = $char;
-					// $match = 4;
-				// }
-				// $corp = $char[3];
-				// if($match < 3 && $alliance == $this -> modSettings["tea_allianceid"])
-				// {
-					// $main = $char;
-					// $match = 3;
-				// }
-				// elseif($match < 3 && (isset($this -> cblues[$corp]) || isset($this -> ablues[$alliance])))
-				// {
-					// $main = $char;
-					// $match = 2;
-				// }
-				// elseif($match < 2 && (isset($this -> creds[$corp]) || isset($this -> areds[$alliance])))
-				// {
-					// $main = $char;
-					// $match = 1;
-				// }
-				// elseif($match < 1)
-				// {
-					// $main = $char;
-					// $match = 0;
-				// }
-			// }
 			//if($modSettings['tea_usecharname'])
 			if($_POST['tea_char'] != "-")
 			{	
@@ -2346,7 +2319,8 @@ value_type();
 				}
 				else
 					$mname = $matched[0];
-				$adits = explode(',', $matched[1]);
+				if(!empty($matched[1]))
+					$adits = explode(',', $matched[1]);
 				$anames = array();
 				if(!empty($adits) && $adits[0] != '')
 				{
@@ -2613,7 +2587,16 @@ function template_edittea()
 	{
 			//if($user[3] == "unverified")
 				//echo "<tr><td>Please use this command to Verify the Character<br>".$teainfo['msg']."<br></td></tr>";
-$teainfo[] = array();
+$teainfo[] = array(
+				"userid" => '',
+				"api" => '',
+			//	"msg" => $msg,
+				'charnames' => '',
+				'status' => '',
+				'mainrule' => '',
+				'aditrules' => '',
+				'error' => ''
+				);
 				foreach($teainfo as $i => $info)
 				{
 					echo '<tr><td colspan="3"><hr class="hrcolor" width="100%" size="1"/></td></tr>';
