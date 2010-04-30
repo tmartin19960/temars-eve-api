@@ -2022,6 +2022,7 @@ function value_type(fromedit)
 		document.getElementById(\'tea_value\').innerHTML=\'<select name="value"><option value="Amarr Empire">Amarr Empire</option><option value="Caldari State">Caldari State</option><option value="Gallente Federation">Gallente Federation</option><option value="Minmatar Republic">Minmatar Republic</option></select>\';
 	}
 }
+newremoved = false;
 function edit(id)
 {
 	document.makerule.type.value="error";
@@ -2030,12 +2031,14 @@ function edit(id)
 	document.getElementById(\'formtitle\').innerHTML="Edit Rule:";
 	document.getElementById(\'tea_typetxt\').innerHTML="";
 	document.getElementById(\'tea_type\').innerHTML="";
-	document.makerule.id.remove("new");
+	if(!newremoved)
+		document.makerule.id.remove("new");
 	document.makerule.name.value=rules[id][0];
 	document.makerule.id.value=id;
 	document.makerule.main.checked=rules[id][1];
 	document.makerule.andor.value=rules[id][2];
 	document.makerule.group.value=rules[id][3];
+	newremoved = true;
 }
 function delrule(type, value)
 {
