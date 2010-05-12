@@ -22,6 +22,7 @@
 		<require-file name="TEA_Cron.php" destination="$sourcedir" />
 		<require-file name="TEA_xmlhttp.php" destination="$sourcedir" />
 		<require-file name="TEA_SkillDump.php" destination="$sourcedir" />
+		<require-file name="TEA_Roles.php" destination="$sourcedir" />
 		<require-file name="TEA.english.php" destination="$languagedir" />
 		<require-file name="esam_upgrade.php" destination="$boarddir" />
 		<code>tables.php</code>
