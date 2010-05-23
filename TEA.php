@@ -618,6 +618,8 @@ class TEA
 						$matched = implode(';', $matched);
 						if(!$error)
 							$this -> query("UPDATE {db_prefix}tea_api SET status = 'checked', matched = '".$matched."', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND userid = ".$apiuser);
+						else
+							$this -> query("UPDATE {db_prefix}tea_api SET matched = '".$matched."', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND userid = ".$apiuser);
 					}
 				}
 			}
@@ -634,204 +636,12 @@ class TEA
 				}
 			}
 			$agroups = implode(',', $agroups);
-			// no api found remove all monitored groups
+			// change additional groups
 			$this -> query("UPDATE {db_prefix}members SET additional_groups = '".$agroups."' WHERE ID_MEMBER = {int:id}", array('id' => $id));
 			return $cr;
 			//$this -> query("UPDATE {db_prefix}members SET ID_GROUP = ".$rule[1]." WHERE ID_MEMBER = ".$id);
 			//$this -> query("UPDATE {db_prefix}tea_api SET status = 'red', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
 		}
-					//}
-
-							//var_dump($char);
-							//$charlist[$char[1]] = array($char[0], ;
-					//		$corp = $char[3];
-							//if(isset($this -> corps[$corp]))
-							//{
-					//			$alliance = $this -> corps[$corp];
-								//echo "alliance!!!! $alliance\n<br>";
-							//}
-					//		if($corp == $this -> modSettings["tea_corpid"])
-					//		{
-					//			$incorp = TRUE;
-					//		}
-					//		elseif(isset($this -> cblues[$corp]) || isset($this -> ablues[$alliance]))
-					//		{
-							//	$inblues = TRUE;
-							// }
-							// if(isset($this -> creds[$corp]) || isset($this -> areds[$alliance]))
-							// {
-								// $inreds = TRUE;
-							// }
-							// if($alliance == $this -> modSettings["tea_allianceid"])
-							// {
-								// $inalliance = TRUE;
-							// }
-						//	$corpinfo = $this -> corp_info($corp);
-						//	if(empty($corpinfo))
-						//		$corpinfo['ticker'] = "Unknown";
-						//	if($this -> modSettings["tea_corptag_options"] == 1)
-						//	{
-						//		$this -> query("UPDATE {db_prefix}members SET usertitle = '".$corpinfo['ticker']."' WHERE ID_MEMBER = ".$id);
-						//	}
-						// }
-						// if(!$incorp && !$inblues && !$inreds)
-							// $inneuts = TRUE;
-					//	$charlist = implode(";", $charlist);
-					//	if($charlist != $charnames)
-					//		$this -> query("UPDATE {db_prefix}tea_api SET characters = '".mysql_real_escape_string($charlist)."' WHERE ID_MEMBER = ".$id." AND userid = ".$apiuser);
-						// $this -> query("UPDATE {db_prefix}tea_api SET status = 'OK', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND userid = ".$apiuser);
-					// }
-					// else
-					// {
-						//get error
-		//			}
-		//		}
-		//	}
-			// if($ignore)
-				// Return;
-			// if(isset($this -> modSettings["tea_groupass_unknown"]))
-				// $nogroup = $this -> modSettings["tea_groupass_unknown"];
-			// else
-				// $nogroup = 0;
-			// if(isset($this -> modSettings["tea_groupass_corp"]))
-				// $corp = $this -> modSettings["tea_groupass_corp"];
-			// else
-				// $corp = 0;
-			// if(isset($this -> modSettings["tea_groupass_alliance"]))
-				// $alliance = $this -> modSettings["tea_groupass_alliance"];
-			// else
-				// $alliance = 0;
-			// if(isset($this -> modSettings["tea_groupass_blue"]))
-				// $blue = $this -> modSettings["tea_groupass_blue"];
-			// else
-				// $blue = 0;
-			// if(isset($this -> modSettings["tea_groupass_red"]))
-				// $red = $this -> modSettings["tea_groupass_red"];
-			// else
-				// $red = 0;
-			// if(isset($this -> modSettings["tea_groupass_neut"]))
-				// $neut = $this -> modSettings["tea_groupass_neut"];
-			// else
-				// $neut = 0;
-
-			//15 = doom
-			// if($inreds)
-			// {
-				// $e = "";
-				// if($incorp)
-					// $e = " ".$txt['tea_run_alsocorp'];
-				// if($inblues)
-					// $e .= " ".$txt['tea_run_alsoblue'];
-				// if($group == $red)
-				// {
-					// $this -> file .= $txt['tea_run_ared'].$e."\n";
-					// if($echo)
-						// echo $txt['tea_run_ared'].$e."\n<br>";
-				// }
-				// else
-				// {
-					// $this -> file .= $txt['tea_run_red'].$e."\n";
-					// if($echo)
-						// echo $txt['tea_run_red'].$e."\n<br>";
-					// $this -> query("UPDATE {db_prefix}members SET ID_GROUP = $red WHERE ID_MEMBER = ".$id);
-				// }
-				// $this -> query("UPDATE {db_prefix}tea_api SET status = 'red', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
-			// }
-			// elseif($incorp)
-			// {
-				// $e = "";
-				// if($inblues)
-					// $e = " ".$txt['tea_run_alsoblue'];
-				// if($group == $corp)
-				// {
-					// $this -> file .= $txt['tea_run_acorp'].$e."\n";
-					// if($echo)
-						// echo $txt['tea_run_acorp'].$e."\n<br>";
-				// }
-				// else
-				// {
-					// $this -> file .= $txt['tea_run_corp'].$e."\n";
-					// if($echo)
-						// echo $txt['tea_run_corp'].$e."\n<br>";
-					// $this -> query("UPDATE {db_prefix}members SET ID_GROUP = $corp WHERE ID_MEMBER = ".$id);
-				// }
-				// $this -> query("UPDATE {db_prefix}tea_api SET status = 'corp', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
-			// }
-			// elseif($inalliance)
-			// {
-				// $e = "";
-				// if($inblues)
-					// $e = " ".$txt['tea_run_alsoblue'];
-				// if($group == $alliance)
-				// {
-					// $this -> file .= $txt['tea_run_aalliance'].$e."\n";
-					// if($echo)
-						// echo $txt['tea_run_aalliance'].$e."\n<br>";
-				// }
-				// else
-				// {
-					// $this -> file .= $txt['tea_run_alliance'].$e."\n";
-					// if($echo)
-						// echo $txt['tea_run_alliance'].$e."\n<br>";
-					// $this -> query("UPDATE {db_prefix}members SET ID_GROUP = $alliance WHERE ID_MEMBER = ".$id);
-				// }
-				// $this -> query("UPDATE {db_prefix}tea_api SET status = 'alliance', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
-			// }
-			// elseif($inblues)
-			// {
-				// if($group == $blue)
-				// {
-					// $this -> file .= $txt['tea_run_ablue']."\n";
-					// if($echo)
-						// echo $txt['tea_run_ablue']."\n<br>";
-				// }
-				// else
-				// {
-					// $this -> file .= $txt['tea_run_blue']."\n";
-					// if($echo)
-						// echo $txt['tea_run_blue']."\n<br>";
-					// $this -> query("UPDATE {db_prefix}members SET ID_GROUP = $blue WHERE ID_MEMBER = ".$id);
-				// }
-				// $this -> query("UPDATE {db_prefix}tea_api SET status = 'blue', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
-			// }
-			// elseif($inneuts)
-			// {
-				// if($group == $neut)
-				// {
-					// $this -> file .= $txt['tea_run_aneut']."\n";
-					// if($echo)
-						// echo $txt['tea_run_aneut']."\n<br>";
-				// }
-				// else
-				// {
-					// $this -> file .= $txt['tea_run_neut']."\n";
-					// if($echo)
-						// echo $txt['tea_run_neut']."\n<br>";
-					// $this -> query("UPDATE {db_prefix}members SET ID_GROUP = $neut WHERE ID_MEMBER = ".$id);
-				// }
-				// $this -> query("UPDATE {db_prefix}tea_api SET status = 'neut', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
-			// }
-			// elseif($group != $nogroup)
-			// {
-				// $this -> file .= $txt['tea_run_reg']."\n";
-				// if($echo)
-					// echo $txt['tea_run_reg']."\n<br>";
-				// $this -> query("UPDATE {db_prefix}members SET ID_GROUP = $nogroup WHERE ID_MEMBER = ".$id);
-				// $this -> query("UPDATE {db_prefix}tea_api SET status = 'error', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
-			// }
-			// elseif($group == $nogroup)
-			// {
-				// $this -> file .= $txt['tea_run_areg']."\n";
-				// if($echo)
-					// echo $txt['tea_run_areg']."\n<br>";
-				// $this -> query("UPDATE {db_prefix}tea_api SET status = 'error', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
-			// }
-		// }
-	}
-
-	function rule_check_corp()
-	{
-	
 	}
 
 	function get_characters($userid, $api)
@@ -2323,6 +2133,7 @@ value_type();
 			//	{
 			//		$msg = "You are Already Verified";
 			//	}
+				$adits = NULL;
 				$matched = explode(";", $u[3], 2);
 				if(is_numeric($matched[0]))
 				{
