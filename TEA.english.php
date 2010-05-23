@@ -17,7 +17,7 @@ $txt['tea_version'] = 'Version';
 //Settings Page
 $txt['tea_rules'] = "Rules";
 $txt['tea_checks'] = "Checks";
-$txt['tea_settings_message'] = "The API info needed here is to get the Corp/Alliance Info along with Standings<Br>A Full API Key is Required for Standings";
+$txt['tea_settings_message'] = "The API info needed here is to get Standings<Br>A Full API Key is Required for Standings";
 $txt['tea_enable'] = 'Enable Temars Eve Api Mod';
 $txt['tea_usecharname'] = 'Is Real name Locked to Characters';
 $txt['tea_avatar_enabled'] = 'Is Getting an Avatar of a Character Enabled';
