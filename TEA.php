@@ -1080,17 +1080,17 @@ class TEA
 		Return ($info);
 	}
 
-	function Settings(&$txt, $scripturl, &$context, $settings, $sc)
+	function Settings($scripturl)
 	{
-		$context[$context['admin_menu_name']]['tab_data'] = array(
-			'title' => $txt['tea_title'],
+		$this -> context[$this -> context['admin_menu_name']]['tab_data'] = array(
+			'title' => $this -> txt['tea_title'],
 		//	'help' => 'featuresettings',
-			'description' => $txt['tea_settings_message'],
+			'description' => $this -> txt['tea_settings_message'],
 			'tabs' => array(
 				'settings' => array(
 				),
 				'rules' => array(
-	//				'description' => $txt['signature_settings_desc'],
+	//				'description' => $this -> txt['signature_settings_desc'],
 				),
 				'checks' => array(
 				),
@@ -1098,16 +1098,15 @@ class TEA
 		);
 
 		if(isset($_GET['sa']) && strtolower($_GET['sa']) == "rules")
-			$this -> settings_rules(&$txt, $scripturl, &$context, $settings, $sc);
+			$this -> settings_rules($scripturl);
 		elseif(isset($_GET['sa']) && strtolower($_GET['sa']) == "checks")
-			$this -> settings_checks(&$txt, $scripturl, &$context, $settings, $sc);
+			$this -> settings_checks($scripturl);
 		else
-			$this -> settings_settings(&$txt, $scripturl, &$context, $settings, $sc);
+			$this -> settings_settings($scripturl);
 	}
 
-	function settings_settings(&$txt, $scripturl, &$context, $settings, $sc)
+	function settings_settings($scripturl)
 	{
-	//	$txt = $this -> txt;
 		if (isset($_GET['update']))
 		{
 			$this -> update_api(FALSE);
@@ -1180,7 +1179,7 @@ class TEA
 			$config_vars = array(
 				'</form>
 				<form action="'.$scripturl.'?action=admin;area=tea;save" method="post" accept-charset="ISO-8859-1" name="tea_settings">',
-				'<dt>'.$txt['tea_version'].': '.$this -> version.'</dt>',
+				'<dt>'.$this -> txt['tea_version'].': '.$this -> version.'</dt>',
 				'',
 					// enable?
 					array('check', 'tea_enable'),
@@ -1231,10 +1230,10 @@ class TEA
 				}
 				</script>
 				',
-				'<dt>'.$txt['tea_standings_updated'].': '.$time.'</dt>',
-				'<dt>'.$txt['tea_standings_contains'].': '.count($cblues).' '.$txt['tea_standings_bluec'].', '.count($creds).' '.$txt['tea_standings_bluea'].', '.count($ablues).' '.$txt['tea_standings_redc'].', '.count($areds).' '.$txt['tea_standings_reda'].'</dt>',
-				'<dt>'.$txt['tea_corpl_updated'].': '.$atime.'</dt>',
-				'<dt>'.$txt['tea_corpl_contains'].': '.count($this -> corps).'</dt>',
+				'<dt>'.$this -> txt['tea_standings_updated'].': '.$time.'</dt>',
+				'<dt>'.$this -> txt['tea_standings_contains'].': '.count($cblues).' '.$this -> txt['tea_standings_bluec'].', '.count($creds).' '.$this -> txt['tea_standings_bluea'].', '.count($ablues).' '.$this -> txt['tea_standings_redc'].', '.count($areds).' '.$this -> txt['tea_standings_reda'].'</dt>',
+				'<dt>'.$this -> txt['tea_corpl_updated'].': '.$atime.'</dt>',
+				'<dt>'.$this -> txt['tea_corpl_contains'].': '.count($this -> corps).'</dt>',
 				'',
 					array('check', 'tea_regreq'),
 					array('check', 'tea_usecharname'),
@@ -1245,7 +1244,7 @@ class TEA
 					array('check', 'tea_useapiabove'),
 					array('select', 'tea_corptag_options', array(0 => 'Nothing', 1 => 'Custom Title', 2 => 'Part of Name')),
 				'',
-				'<dt>'.$txt['tea_group_settings'].'</dt>',
+				'<dt>'.$this -> txt['tea_group_settings'].'</dt>',
 				//	array('select', 'tea_groupass_red', $groups),
 				//	array('select', 'tea_groupass_corp', $groups),
 				//	array('select', 'tea_groupass_alliance', $groups),
@@ -1274,14 +1273,14 @@ class TEA
 			}
 		}
 
-		$context['post_url'] = $scripturl . '?action=admin;area=tea;save';
+		$this -> context['post_url'] = $scripturl . '?action=admin;area=tea;save';
 	//	$context['settings_title'] = $txt['tea_title'];
 	//	$context['settings_message'] = $txt['tea_settings_message'];
 
 		prepareDBSettingContext($config_vars);
 	}
 
-	function settings_rules(&$txt, $scripturl, &$context, $settings, $sc)
+	function settings_rules($scripturl)
 	{
 		$types['corp'] = 'Corp';
 		$types['alliance'] = 'Alliance';
@@ -1877,13 +1876,12 @@ value_type();
 </script>
 ';
 		$config_vars = $out;
-		$context['settings_save_dont_show'] = TRUE;
+		$this -> context['settings_save_dont_show'] = TRUE;
 		prepareDBSettingContext($config_vars);
 	}
 
-	function settings_checks(&$txt, $scripturl, &$context, $settings, $sc)
+	function settings_checks($scripturl)
 	{
-	//	$txt = $this -> txt;
 		if (isset($_GET['update']))
 		{
 			if(!$this -> modSettings["tea_enable"])
@@ -1898,7 +1896,7 @@ value_type();
 		{
 
 			$config_vars = array(
-				'<dt><a href="'.$scripturl.'?action=admin;area=tea;sa=checks;update">'.$txt['tea_fullcheck'].'</a></dt>',
+				'<dt><a href="'.$scripturl.'?action=admin;area=tea;sa=checks;update">'.$this -> txt['tea_fullcheck'].'</a></dt>',
 			);
 
 		}
@@ -1906,7 +1904,7 @@ value_type();
 		//$context['post_url'] = $scripturl . '?action=admin;area=tea;sa=checks;save';
 //		$context['settings_title'] = $txt['tea_title'];
 //		$context['settings_message'] = $txt['tea_settings_message'];
-		$context['settings_save_dont_show'] = TRUE;
+		$this -> context['settings_save_dont_show'] = TRUE;
 		prepareDBSettingContext($config_vars);
 	}
 
@@ -2382,7 +2380,7 @@ function ModifyTEASettings()
 	require_once($sourcedir . '/ManageServer.php');
 
 	$context['sub_template'] = 'show_settings';
-	$tea -> Settings($txt, $scripturl, $context, $settings, $sc);
+	$tea -> Settings($scripturl);
 }
 
 function template_edittea()
