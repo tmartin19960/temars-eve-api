@@ -425,6 +425,10 @@ class TEA
 														$match = FALSE;
 														Break 2;
 													}
+												case 'valid':
+													if($andor == 'OR')
+														Break 2;
+													Break;
 												Default:
 													$match = FALSE;
 													Break 2;
@@ -1475,6 +1479,7 @@ class TEA
 		$types['red'] = 'Red';
 		$types['neut'] = 'Neutral';
 		$types['error'] = 'Invalid API';
+		$types['valid'] = 'Valid API';
 		$types['skill'] = 'Skill';
 		$types['role'] = 'Role';
 		$types['title'] = 'Title';
@@ -1990,7 +1995,7 @@ function value_type(fromedit)
 		document.getElementById(\'tea_valuetxt\').innerHTML="Alliance Name or ID:";
 		document.getElementById(\'tea_value\').innerHTML=\'<input type="text" name="value" value="" />\';
 	}
-	else if(type == "blue" || type == "red" || type == "neut" || type == "error")
+	else if(type == "blue" || type == "red" || type == "neut" || type == "error" || type == "valid")
 	{
 		document.getElementById(\'tea_valuetxt\').innerHTML="";
 		document.getElementById(\'tea_value\').innerHTML="";
