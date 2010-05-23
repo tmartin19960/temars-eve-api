@@ -157,8 +157,8 @@ $tables[5]["additional"] = "INT(1) DEFAULT 1";
 
 $info[6]['name'] = 'tea_cache';
 $info[6]['primary'] = 'address, post';
-$tables[6]["address"] = "VARCHAR(200) DEFAULT NULL";
-$tables[6]["post"] = "VARCHAR(200) DEFAULT NULL";
+$tables[6]["address"] = "VARCHAR(100) DEFAULT NULL";
+$tables[6]["post"] = "VARCHAR(233) DEFAULT NULL";
 $tables[6]["time"] = "INT DEFAULT 0";
 $tables[6]["xml"] = "MEDIUMTEXT";
 
