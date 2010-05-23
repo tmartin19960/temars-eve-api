@@ -1107,170 +1107,158 @@ class TEA
 
 	function settings_settings($scripturl)
 	{
-		if (isset($_GET['update']))
+		//echo "<pre>"; var_dump($this -> modSettings);die;
+		$atime = $this -> alliance_list(FALSE);
+		if($atime)
+			$atime = gmdate("G:i D d M y", $atime).' (GMT)';
+		else
+			$atime = 'Never';
+		if (isset($_GET['save']))
 		{
-			$this -> update_api(FALSE);
-			$file = str_replace("\n", "<br>", $this -> file);
-			$config_vars = array(
-			'',
-			$file
-			);
+			$charid = $_POST["tea_charid"];
+			$userid = $_POST["tea_userid"];
+			$api = $_POST["tea_api"];
 		}
 		else
 		{
-			//echo "<pre>"; var_dump($this -> modSettings);die;
-			$atime = $this -> alliance_list(FALSE);
-			if($atime)
-				$atime = gmdate("G:i D d M y", $atime).' (GMT)';
-			else
-				$atime = 'Never';
-			if (isset($_GET['save']))
-			{
-				$charid = $_POST["tea_charid"];
-				$userid = $_POST["tea_userid"];
-				$api = $_POST["tea_api"];
-			}
-			else
-			{
-				$charid = $this -> modSettings["tea_charid"];
-				$userid = $this -> modSettings["tea_userid"];
-				$api = $this -> modSettings["tea_api"];
-			}
-			$chars = $this -> get_characters($userid, $api);
+			$charid = $this -> modSettings["tea_charid"];
+			$userid = $this -> modSettings["tea_userid"];
+			$api = $this -> modSettings["tea_api"];
+		}
+		$chars = $this -> get_characters($userid, $api);
 
-			$charlist = array();
-			if(!empty($chars))
+		$charlist = array();
+		if(!empty($chars))
+		{
+			foreach($chars as $char)
 			{
-				foreach($chars as $char)
+				$charlist[$char['charid']] = $char['name'];
+				if($charid == $char['charid'])
 				{
-					//var_dump($char);
-					$charlist[$char['charid']] = $char['name'];
-					if($charid == $char['charid'])
+					$corp = $char['corpid'];
+					$alliance = $char['allianceid'];
+				}
+			}
+		}
+		$cblues = NULL;
+		$ablues = NULL;
+		$creds = NULL;
+		$areds = NULL;
+		$time = FALSE;
+		$file = $this -> sourcedir."/../cache/eve_standings.php";
+		if(file_exists($file))
+			require($file);
+		if($time)
+			$time = gmdate("G:i D d M y", $time).' (GMT)';
+		else
+			$time = 'Never';
+		$groups = $this -> MemberGroups();
+		if(!empty($charlist))
+		{
+			foreach($charlist as $i => $c)
+			{
+				$options .= '<option value="'.$i.'"';
+				if($this -> modSettings["tea_charid"] == $i)
+					$options .= ' selected="selected"';
+				$options .= '>'.$c.'</option>
+				';
+			}
+		}
+		$config_vars = array(
+			'</form>
+			<form action="'.$scripturl.'?action=admin;area=tea;save" method="post" accept-charset="ISO-8859-1" name="tea_settings">',
+			'<dt>'.$this -> txt['tea_version'].': '.$this -> version.'</dt>',
+			'',
+				// enable?
+				array('check', 'tea_enable'),
+			'',
+			'<dt>Full API for Standings, to be used with blue and red rules</dt>',
+				// api info
+				array('int', 'tea_userid', 10),
+				array('text', 'tea_api', 64),
+			//	array('select', 'tea_charid', $charlist),
+			'<dt>
+				<a id="setting_tea_charid"></a> <span><label for="tea_charid">Character to use</label></span>
+			</dt>
+			<dd>
+				<div id="chars"><select name="tea_charid" id="tea_charid" >
+					'.$options.'
+				</select> <button type="button" onclick="javascript: getchars()">Get Characters</button></div>
+			</dd>
+			<script type="text/javascript">
+			function getchars()
+			{
+				userid = document.tea_settings.tea_userid.value;
+				api = document.tea_settings.tea_api.value;
+				include("Sources/TEA_xmlhttp.php?page=settings&userid="+userid+"&api="+api);
+			}
+			function include(pURL)
+			{
+				if (window.XMLHttpRequest) { // code for Mozilla, Safari, ** And Now IE 7 **, etc
+					xmlhttp=new XMLHttpRequest();
+				} else if (window.ActiveXObject) { //IE
+					xmlhttp=new ActiveXObject(\'Microsoft.XMLHTTP\');
+				}
+				if (typeof(xmlhttp)==\'object\')
+				{
+					xmlhttp.onreadystatechange=postFileReady;
+					xmlhttp.open(\'GET\', pURL, true);
+					xmlhttp.send(null);
+				}
+			}
+
+			function postFileReady()
+			{
+				if (xmlhttp.readyState==4)
+				{
+					if (xmlhttp.status==200)
 					{
-						$corp = $char['corpid'];
-						$alliance = $char['allianceid'];
+						document.getElementById(\'chars\').innerHTML=xmlhttp.responseText;
 					}
 				}
 			}
-			$cblues = NULL;
-			$ablues = NULL;
-			$creds = NULL;
-			$areds = NULL;
-			$time = FALSE;
-			$file = $this -> sourcedir."/../cache/eve_standings.php";
-			if(file_exists($file))
-				require($file);
-			if($time)
-				$time = gmdate("G:i D d M y", $time).' (GMT)';
-			else
-				$time = 'Never';
-			$groups = $this -> MemberGroups();
-			if(!empty($charlist))
-			{
-				foreach($charlist as $i => $c)
-				{
-					$options .= '<option value="'.$i.'"';
-					if($this -> modSettings["tea_charid"] == $i)
-						$options .= ' selected="selected"';
-					$options .= '>'.$c.'</option>
-					';
-				}
-			}
-			$config_vars = array(
-				'</form>
-				<form action="'.$scripturl.'?action=admin;area=tea;save" method="post" accept-charset="ISO-8859-1" name="tea_settings">',
-				'<dt>'.$this -> txt['tea_version'].': '.$this -> version.'</dt>',
-				'',
-					// enable?
-					array('check', 'tea_enable'),
-				'',
-					// api info
-					array('int', 'tea_userid', 10),
-					array('text', 'tea_api', 64),
-				//	array('select', 'tea_charid', $charlist),
-				'<dt>
-					<a id="setting_tea_charid"></a> <span><label for="tea_charid">Character to use</label></span>
-				</dt>
-				<dd>
-					<div id="chars"><select name="tea_charid" id="tea_charid" >
-						'.$options.'
-					</select> <button type="button" onclick="javascript: getchars()">Get Characters</button></div>
-				</dd>
-				<script type="text/javascript">
-				function getchars()
-				{
-					userid = document.tea_settings.tea_userid.value;
-					api = document.tea_settings.tea_api.value;
-					include("Sources/TEA_xmlhttp.php?page=settings&userid="+userid+"&api="+api);
-				}
-				function include(pURL)
-				{
-					if (window.XMLHttpRequest) { // code for Mozilla, Safari, ** And Now IE 7 **, etc
-						xmlhttp=new XMLHttpRequest();
-					} else if (window.ActiveXObject) { //IE
-						xmlhttp=new ActiveXObject(\'Microsoft.XMLHTTP\');
-					}
-					if (typeof(xmlhttp)==\'object\')
-					{
-						xmlhttp.onreadystatechange=postFileReady;
-						xmlhttp.open(\'GET\', pURL, true);
-						xmlhttp.send(null);
-					}
-				}
+			</script>
+			',
+			'<dt>'.$this -> txt['tea_standings_updated'].': '.$time.'</dt>',
+			'<dt>'.$this -> txt['tea_standings_contains'].': '.count($cblues).' '.$this -> txt['tea_standings_bluec'].', '.count($creds).' '.$this -> txt['tea_standings_bluea'].', '.count($ablues).' '.$this -> txt['tea_standings_redc'].', '.count($areds).' '.$this -> txt['tea_standings_reda'].'</dt>',
+			'<dt>'.$this -> txt['tea_corpl_updated'].': '.$atime.'</dt>',
+			'<dt>'.$this -> txt['tea_corpl_contains'].': '.count($this -> corps).'</dt>',
+			'',
+				array('check', 'tea_regreq'),
+				array('check', 'tea_usecharname'),
+				array('check', 'tea_avatar_enabled'),
+				array('check', 'tea_avatar_locked'),
+			//	array('int', 'tea_corpid', 10),
+			//	array('int', 'tea_allianceid', 10),
+			//	array('check', 'tea_useapiabove'),
+				array('select', 'tea_corptag_options', array(0 => 'Nothing', 1 => 'Custom Title', 2 => 'Part of Name')),
+			'',
+			'<dt>'.$this -> txt['tea_group_settings'].'</dt>',
+			//	array('select', 'tea_groupass_red', $groups),
+			//	array('select', 'tea_groupass_corp', $groups),
+			//	array('select', 'tea_groupass_alliance', $groups),
+			//	array('select', 'tea_groupass_blue', $groups),
+			//	array('select', 'tea_groupass_neut', $groups),
+				array('select', 'tea_groupass_unknown', $groups),
+			//'',
+				// Who's online.
+		//		array('check', 'who_enabled'),
+		);
 
-				function postFileReady()
-				{
-					if (xmlhttp.readyState==4)
-					{
-						if (xmlhttp.status==200)
-						{
-							document.getElementById(\'chars\').innerHTML=xmlhttp.responseText;
-						}
-					}
-				}
-				</script>
-				',
-				'<dt>'.$this -> txt['tea_standings_updated'].': '.$time.'</dt>',
-				'<dt>'.$this -> txt['tea_standings_contains'].': '.count($cblues).' '.$this -> txt['tea_standings_bluec'].', '.count($creds).' '.$this -> txt['tea_standings_bluea'].', '.count($ablues).' '.$this -> txt['tea_standings_redc'].', '.count($areds).' '.$this -> txt['tea_standings_reda'].'</dt>',
-				'<dt>'.$this -> txt['tea_corpl_updated'].': '.$atime.'</dt>',
-				'<dt>'.$this -> txt['tea_corpl_contains'].': '.count($this -> corps).'</dt>',
-				'',
-					array('check', 'tea_regreq'),
-					array('check', 'tea_usecharname'),
-					array('check', 'tea_avatar_enabled'),
-					array('check', 'tea_avatar_locked'),
-					array('int', 'tea_corpid', 10),
-					array('int', 'tea_allianceid', 10),
-					array('check', 'tea_useapiabove'),
-					array('select', 'tea_corptag_options', array(0 => 'Nothing', 1 => 'Custom Title', 2 => 'Part of Name')),
-				'',
-				'<dt>'.$this -> txt['tea_group_settings'].'</dt>',
-				//	array('select', 'tea_groupass_red', $groups),
-				//	array('select', 'tea_groupass_corp', $groups),
-				//	array('select', 'tea_groupass_alliance', $groups),
-				//	array('select', 'tea_groupass_blue', $groups),
-				//	array('select', 'tea_groupass_neut', $groups),
-					array('select', 'tea_groupass_unknown', $groups),
-				//'',
-					// Who's online.
-			//		array('check', 'who_enabled'),
-			);
+		// Saving?
+		if (isset($_GET['save']))
+		{
+		//	if(isset($_POST['tea_useapiabove']))
+		//	{
+		//		$_POST['tea_corpid'] = $corp;
+		//		$_POST['tea_allianceid'] = $alliance;
+		//		unset($_POST['tea_useapiabove']);
+		//	}
+			saveDBSettings($config_vars);
+			redirectexit('action=admin;area=tea');
 
-			// Saving?
-			if (isset($_GET['save']))
-			{
-				if(isset($_POST['tea_useapiabove']))
-				{
-					$_POST['tea_corpid'] = $corp;
-					$_POST['tea_allianceid'] = $alliance;
-					unset($_POST['tea_useapiabove']);
-				}
-				saveDBSettings($config_vars);
-				redirectexit('action=admin;area=tea');
-
-				loadUserSettings();
-				writeLog();
-			}
+			loadUserSettings();
+			writeLog();
 		}
 
 		$this -> context['post_url'] = $scripturl . '?action=admin;area=tea;save';
@@ -1591,7 +1579,12 @@ class TEA
 		}
 	//	echo '<pre>'; var_dump($list);die;
 
-		$out[2] .= '* Rules for Main Group are done in Order of ID<br>* Rules with Same ID as Another act as Multi Requirments<br>* All conditions must be met by the same character if AND rule<br><br><b><u>Main Group Rules</b></u><form name="enablerules" method="post" action="">
+		$out[2] .= '* Rules for Main Group are checked in Order of ID
+		<br>* Rules with Same ID as Another act as Multi Requirments
+		<br>* All conditions must be met by the same character if AND rule
+		<br>* Remember if you create a rule for say Director, you need to add the corp or alliance condition too or it will be every director in eve
+		<br>* 
+		<br><br><b><u>Main Group Rules</b></u><form name="enablerules" method="post" action="">
 		<table border="1">'.
 				'<tr><td>ID</td><td>Name</td><td>Rule</td><td>Group</td><td>AND / OR</td><td>Enabled</td></tr>';
 		if(!empty($list))
