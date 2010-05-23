@@ -1846,7 +1846,10 @@ class TEA
 					$tr = '';
 					foreach($l['conditions'] as $r)
 					{
-						$out[2] .= $tr.'<td>'.$types[$r['type']].': '.$r['value'].'</td>';
+						$out[2] .= $tr.'<td>'.$types[$r['type']].': '.$r['value'];
+						if($r['extra'] != "")
+							$out[2] .= " (".$r['extra'].")";
+						$out[2] .= '</td>';
 						if($tr == '')
 						{
 							if($l['enabled'] == 1)
@@ -2141,6 +2144,8 @@ value_type();
 			if($userid == "")
 				Continue;
 			$api = $apis[$k];
+			$duserid = NULL;
+			$dapi = NULL;
 			$user = $this -> select("SELECT userid, api, status, status_change FROM {db_prefix}tea_api WHERE ID_MEMBER = ".$memberID." AND userid = ".mysql_real_escape_string($userid));
 			if(!empty($user))
 			{
