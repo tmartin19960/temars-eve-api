@@ -201,12 +201,19 @@ class TEA
 
 	function single($user, $echo, $group=FALSE)
 	{
-		$mongroups[0] = TRUE;
-		$mongroups[$this -> modSettings["tea_groupass_unknown"]] = TRUE;
+		if(isset($this -> modSettings["tea_groupass_unknown"]))
+			$mongroups[$this -> modSettings["tea_groupass_unknown"]] = TRUE;
+		else
+			$mongroups[0] = TRUE;
 
 	//	$this -> chars = array();
 
 		$txt = $this -> txt;
+		
+		// prevent undefined errors
+		$cr['main'] = NULL;
+		$cr['additional'] = NULL;
+		$ignore = FALSE;
 
 		$cgq = $this -> select("SELECT id, main, additional FROM {db_prefix}tea_groups ORDER BY id");
 		if(!empty($cgq))
@@ -267,9 +274,7 @@ class TEA
 						$error = $this -> get_error($this -> data);
 						$this -> query("UPDATE {db_prefix}tea_api SET status = 'API Error', errorid = '".$error[0]."', error = '".$error[1]."', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND userid = ".$apiuser);
 						if(($error[0] >= 500 && $error[0] < 600) || ($error[0] >= 900 && $error[0] < 1000)) // Api System is Down
-						{
 							Continue;
-						}
 						else
 							$chars[] = array('name' => NULL, 'charid' => NULL, 'corpname' => NULL, 'corpid' => NULL, 'ticker' => NULL, 'allianceid' => NULL, 'alliance' => NULL);
 						$status = 'error';
@@ -639,8 +644,7 @@ class TEA
 			}
 			$agroups = implode(',', $agroups);
 			// change additional groups
-			if(!$ignore)
-				$this -> query("UPDATE {db_prefix}members SET additional_groups = '".$agroups."' WHERE ID_MEMBER = {int:id}", array('id' => $id));
+			$this -> query("UPDATE {db_prefix}members SET additional_groups = '".$agroups."' WHERE ID_MEMBER = {int:id}", array('id' => $id));
 			return $cr;
 			//$this -> query("UPDATE {db_prefix}members SET ID_GROUP = ".$rule[1]." WHERE ID_MEMBER = ".$id);
 			//$this -> query("UPDATE {db_prefix}tea_api SET status = 'red', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND status = 'OK'");
