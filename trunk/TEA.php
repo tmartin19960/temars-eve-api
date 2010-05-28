@@ -215,7 +215,8 @@ class TEA
 		$cr['additional'] = NULL;
 		$ignore = FALSE;
 
-		$cgq = $this -> select("SELECT id, main, additional FROM {db_prefix}tea_groups ORDER BY id");
+		$cgq = $this -> smcFunc['db_query']('', "SELECT id, main, additional FROM {db_prefix}tea_groups ORDER BY id");
+		$cgq = $this -> select($cgq);
 		if(!empty($cgq))
 		{
 			foreach($cgq as $cgqs)
@@ -223,9 +224,15 @@ class TEA
 		}
 
 		if(is_numeric($user))
-			$id = $this -> select("SELECT ID_MEMBER, ID_GROUP, additional_groups FROM {db_prefix}members WHERE ID_MEMBER = {int:id}", array('id' => $user));
+		{
+			$id = $this -> smcFunc['db_query']('', "SELECT ID_MEMBER, ID_GROUP, additional_groups FROM {db_prefix}members WHERE ID_MEMBER = {int:id}", array('id' => $user));
+			$id = $this -> select($id);
+		}
 		if(empty($id))
-			$id = $this -> select("SELECT ID_MEMBER, ID_GROUP, additional_groups FROM {db_prefix}members WHERE member_name = {string:user}", array('user' => $user));
+		{
+			$id = $this -> smcFunc['db_query']('', "SELECT ID_MEMBER, ID_GROUP, additional_groups FROM {db_prefix}members WHERE member_name = {string:user}", array('user' => $user));
+			$id = $this -> select($id);
+		}
 		if(!empty($id))
 		{
 			$group = $id[0][1];
@@ -256,7 +263,8 @@ class TEA
 				$cr['main'] = 'Not Monitored';
 			}
 
-			$apiusers = $this -> select("SELECT userid, api, status FROM {db_prefix}tea_api WHERE ID_MEMBER = {int:id}", array('id' => $id));
+			$apiusers = $this -> smcFunc['db_query']('', "SELECT userid, api, status FROM {db_prefix}tea_api WHERE ID_MEMBER = {int:id}", array('id' => $id));
+			$apiusers = $this -> select($apiusers);
 			if(!empty($apiusers))
 			{
 				foreach($apiusers as $apiuser)
@@ -286,7 +294,8 @@ class TEA
 							$this -> query("UPDATE {db_prefix}tea_api SET status = 'OK', status_change = ".time()." WHERE ID_MEMBER = {int:id} AND userid = {int:userid}",
 						array('id' => $id, 'userid' => $apiuser));
 						// get main rules
-						$rules = $this -> select("SELECT ruleid, `group`, andor FROM {db_prefix}tea_rules WHERE main = 1 AND enabled = 1 ORDER BY ruleid");
+						$rules = $this -> smcFunc['db_query']('', "SELECT ruleid, `group`, andor FROM {db_prefix}tea_rules WHERE main = 1 AND enabled = 1 ORDER BY ruleid");
+						$rules = $this -> select($rules);
 						if(!empty($rules) && !$ignore)
 						{
 							foreach($rules as $rule)
@@ -297,8 +306,9 @@ class TEA
 									if(empty($this -> matchedchar))
 										$this -> matchedchar = $char; // just to make sure we get 1
 
-									$conditions = $this -> select("SELECT type, value, extra FROM {db_prefix}tea_conditions WHERE ruleid = {int:id}",
+									$conditions = $this -> smcFunc['db_query']('', "SELECT type, value, extra FROM {db_prefix}tea_conditions WHERE ruleid = {int:id}",
 									array('id' => $rule[0]));
+									$conditions = $this -> select($conditions);
 									if(!empty($conditions))
 									{
 										$match = TRUE;
@@ -458,7 +468,8 @@ class TEA
 							}
 						}
 						// get additional
-						$rules = $this -> select("SELECT ruleid, `group`, andor FROM {db_prefix}tea_rules WHERE main = 0 AND enabled = 1 ORDER BY ruleid");
+						$rules = $this -> smcFunc['db_query']('', "SELECT ruleid, `group`, andor FROM {db_prefix}tea_rules WHERE main = 0 AND enabled = 1 ORDER BY ruleid");
+						$rules = $this -> select($rules);
 						if(!empty($rules))
 						{
 							foreach($rules as $rule)
@@ -468,7 +479,8 @@ class TEA
 								$andor = $rule[2];
 								foreach($chars as $char)
 								{
-									$conditions = $this -> select("SELECT type, value, extra FROM {db_prefix}tea_conditions WHERE ruleid = ".$rule[0]);
+									$conditions = $this -> smcFunc['db_query']('', "SELECT type, value, extra FROM {db_prefix}tea_conditions WHERE ruleid = {int:ruleid}", array('ruleid' => $rule[0]));
+									$conditions = $this -> select($conditions);
 									if(!empty($conditions))
 									{
 										$match = TRUE;
@@ -693,7 +705,8 @@ class TEA
 			$memberResult = loadMemberData($ID_MEMBER, false, 'profile');
 		$memID = $memberResult[0];
 
-		$user = $this -> select("SELECT userid FROM {db_prefix}tea_api WHERE ID_MEMBER = ".$memID);
+		$user = $this -> smcFunc['db_query']('', "SELECT userid FROM {db_prefix}tea_api WHERE ID_MEMBER = {int:id}", array('id' => $memID));
+		$user = $this -> select($user);
 		if(!empty($user))
 		{
 			foreach($user as $acc)
@@ -724,7 +737,8 @@ class TEA
 	function get_acc_chars($userid)
 	{
 		$charlist = NULL;
-		$chars = $this -> select("SELECT charid, name, corp_ticker, corp, alliance FROM {db_prefix}tea_characters WHERE userid = ".$userid);
+		$chars = $this -> smcFunc['db_query']('', "SELECT charid, name, corp_ticker, corp, alliance FROM {db_prefix}tea_characters WHERE userid = {int:id}", array('id' => $userid));
+		$chars = $this -> select($chars);
 		if(!empty($chars))
 		{
 			foreach($chars as $char)
@@ -801,7 +815,8 @@ class TEA
 	{
 		//if($apiecho)
 		//	echo "checking all...\n<br>";
-		$api = $this -> select("SELECT member_name, ID_GROUP FROM {db_prefix}members");
+		$api = $this -> smcFunc['db_query']('', "SELECT member_name, ID_GROUP FROM {db_prefix}members");
+		$api = $this -> select($api);
 		if(!empty($api))
 		{
 			$this -> log .= '<table>';
@@ -888,7 +903,44 @@ class TEA
 		Return $data;
 	}
 
-	function select($sql, $params=NULL, $result_form=MYSQL_NUM, $error=TRUE)//MYSQL_ASSOC = field names
+	function select($result, $result_form=MYSQL_NUM, $error=TRUE)//MYSQL_ASSOC = field names
+	{
+		$data = "";
+	//	$result = mysql_query($sql);
+	//	$result = $this -> smcFunc['db_query']('', $sql, $params);
+		if (!$result)
+		{
+			echo $sql;
+			if($error)
+				echo "<BR>".$this -> smcFunc['db_error']."<BR>";
+			return false;
+		}
+
+		if (empty($result))
+		{
+			return false;
+		}
+
+		if($result_form == MYSQL_ASSOC)
+		{
+			while ($row = $this -> smcFunc['db_fetch_assoc']($result))
+			{
+				$data[] = $row;
+			}
+		}
+		else
+		{
+			while ($row = $this -> smcFunc['db_fetch_row']($result))
+			{
+				$data[] = $row;
+			}
+		}
+
+		$this -> smcFunc['db_free_result']($result);
+		return $data;
+	}
+
+	function selectold($sql, $params=NULL, $result_form=MYSQL_NUM, $error=TRUE)//MYSQL_ASSOC = field names
 	{
 		$data = "";
 	//	$result = mysql_query($sql);
@@ -1341,7 +1393,8 @@ class TEA
 					$id = $_POST['value'];
 					if(!is_numeric($id))
 						die("move id must be number");
-					$rules = $this -> select("SELECT ruleid, main FROM {db_prefix}tea_rules ORDER BY ruleid");
+					$rules = $this -> smcFunc['db_query']('', "SELECT ruleid, main FROM {db_prefix}tea_rules ORDER BY ruleid");
+					$rules = $this -> select($rules);
 					if(!empty($rules))
 					{
 						foreach($rules as $rule)
@@ -1411,7 +1464,8 @@ class TEA
 			{
 				if($_POST['id'] == "new")
 				{
-					$id = $this -> select("SELECT ruleid FROM {db_prefix}tea_rules ORDER BY ruleid DESC LIMIT 1");
+					$id = $this -> smcFunc['db_query']('', "SELECT ruleid FROM {db_prefix}tea_rules ORDER BY ruleid DESC LIMIT 1");
+					$id = $this -> select($id);
 					if(!empty($id))
 						$id = $id[0][0]+1;
 					else
@@ -1538,7 +1592,8 @@ class TEA
 				//	error
 			}
 		}
-		$cgq = $this -> select("SELECT id, main, additional FROM {db_prefix}tea_groups ORDER BY id");
+		$cgq = $this -> smcFunc['db_query']('', "SELECT id, main, additional FROM {db_prefix}tea_groups ORDER BY id");
+		$cgq = $this -> select($cgq);
 		if(!empty($cgq))
 		{
 			foreach($cgq as $cgqs)
@@ -1567,7 +1622,8 @@ class TEA
 		$out[1] = '';
 		$out[2] .= '<dt>';
 
-		$idl = $this -> select("SELECT ruleid, name, main, `group`, andor, enabled FROM {db_prefix}tea_rules ORDER BY ruleid");
+		$idl = $this -> smcFunc['db_query']('', "SELECT ruleid, name, main, `group`, andor, enabled FROM {db_prefix}tea_rules ORDER BY ruleid");
+		$idl = $this -> select($idl);
 		if(!empty($idl))
 		{
 			foreach($idl as $id)
@@ -1576,7 +1632,8 @@ class TEA
 				$list[$id[0]] = array('name' => $id[1], 'main' => $id[2], 'group' => $id[3], 'andor' => $id[4], 'enabled' => $id[5], 'conditions' => array());
 			}
 		}
-		$idl = $this -> select("SELECT id, ruleid, type, value, extra FROM {db_prefix}tea_conditions ORDER BY ruleid");
+		$idl = $this -> smcFunc['db_query']('', "SELECT id, ruleid, type, value, extra FROM {db_prefix}tea_conditions ORDER BY ruleid");
+		$idl = $this -> select($idl);
 		if(!empty($idl))
 		{
 			foreach($idl as $id)
@@ -1910,7 +1967,8 @@ value_type();
 
 	function MemberGroups($all = FALSE)
 	{
-		$list = $this -> select('SELECT id_group, group_name FROM {db_prefix}membergroups WHERE min_posts = -1 ORDER BY group_name');
+		$list = $this -> smcFunc['db_query']('', 'SELECT id_group, group_name FROM {db_prefix}membergroups WHERE min_posts = -1 ORDER BY group_name');
+		$list = $this -> select($list);
 		if(!empty($list))
 		{
 			foreach($list as $l)
@@ -1954,7 +2012,8 @@ value_type();
 			$api = $apis[$k];
 			$duserid = NULL;
 			$dapi = NULL;
-			$user = $this -> select("SELECT userid, api, status, status_change FROM {db_prefix}tea_api WHERE ID_MEMBER = ".$memberID." AND userid = ".mysql_real_escape_string($userid));
+			$user = $this -> smcFunc['db_query']('', "SELECT userid, api, status, status_change FROM {db_prefix}tea_api WHERE ID_MEMBER = ".$memberID." AND userid = ".mysql_real_escape_string($userid));
+			$user = $this -> select($user);
 			if(!empty($user))
 			{
 				$duserid = $user[0][0];
@@ -2040,7 +2099,8 @@ value_type();
 			$allow = AllowedTo('tea_view_any');
 		if($allow)
 		{
-			$api = $this -> select("SELECT userid, api, charid, status, status_change FROM {db_prefix}tea_api WHERE ID_MEMBER = ".$memberResult[0]);
+			$api = $this -> smcFunc['db_query']('', "SELECT userid, api, charid, status, status_change FROM {db_prefix}tea_api WHERE ID_MEMBER = ".$memberResult[0]);
+			$api = $this -> select($api);
 			if(!empty($api))
 			{
 				$api = $api[0];
@@ -2108,7 +2168,8 @@ value_type();
 		//	isAllowedTo('tea_edit_any');
 		if(!is_numeric($memID))
 			die("Invalid User id");
-		$user = $this -> select("SELECT userid, api, status, matched, error FROM {db_prefix}tea_api WHERE ID_MEMBER = ".$memID);
+		$user = $this -> smcFunc['db_query']('', "SELECT userid, api, status, matched, error FROM {db_prefix}tea_api WHERE ID_MEMBER = ".$memID);
+		$user = $this -> select($user);
 		if(!empty($user))
 		{
 			foreach($user as $u)
@@ -2135,7 +2196,8 @@ value_type();
 				$matched = explode(";", $u[3], 2);
 				if(is_numeric($matched[0]))
 				{
-					$mname = $this -> select("SELECT name FROM {db_prefix}tea_rules WHERE ruleid = {int:id}", array('id' => $matched[0]));
+					$mname = $this -> smcFunc['db_query']('', "SELECT name FROM {db_prefix}tea_rules WHERE ruleid = {int:id}", array('id' => $matched[0]));
+					$mname = $this -> select($mname);
 					if(!empty($mname))
 						$mname = $mname[0][0];
 				}
@@ -2150,7 +2212,8 @@ value_type();
 					{
 						if(is_numeric($a))
 						{
-							$aname = $this -> select("SELECT name FROM {db_prefix}tea_rules WHERE ruleid = {int:id}", array('id' => $a));
+							$aname = $this -> smcFunc['db_query']('', "SELECT name FROM {db_prefix}tea_rules WHERE ruleid = {int:id}", array('id' => $a));
+							$aname = $this -> select($aname);
 							if(!empty($aname))
 								$anames[] = $aname[0][0];
 						}
