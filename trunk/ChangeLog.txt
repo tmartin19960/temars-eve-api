@@ -8,3 +8,7 @@ Version 1.1.0 -> 1.1.1
 - Changed Cron file to use Relitive path from File to get SSI.php
 - Added Ability to reorder Rules
 - You can now pull Characters under Settings Page with out the need to save
+- Corp Name and Alliance Name can b used in rules and it gets ID for you
+- New Condition (Valid API) true for all valid API's
+- Corp / Alliance ID under Setting is no Longer used and has been Replaced by Rules
+- Additional groups no longer removed by api error caused by CCP server being down
