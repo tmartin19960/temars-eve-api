@@ -36,11 +36,12 @@ class TEA
 		$groups2 = array();
 
 		// Get all the non-postcount based groups.
-		$request = $this -> select("
+		$request = $this -> smcFunc['db_query']('', "
 		  SELECT ID_GROUP
 		  FROM {db_prefix}membergroups
 		  WHERE min_posts = {int:minposts}",
 		  array('minposts' => -1));
+		$request = $this -> select($request);
 
 		// Add -1 to this array if you want to give guests the same permission
 		$request[] = array(0);
