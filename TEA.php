@@ -865,7 +865,8 @@ class TEA
 		}
 
 		$time = time() - 3600;
-		$db = $this -> select("SELECT xml FROM {db_prefix}tea_cache WHERE address = '".mysql_real_escape_string($url)."' AND post = '".mysql_real_escape_string($post)."' AND time > ".$time);
+		$db = $this -> smcFunc['db_query']('', "SELECT xml FROM {db_prefix}tea_cache WHERE address = '".mysql_real_escape_string($url)."' AND post = '".mysql_real_escape_string($post)."' AND time > ".$time);
+		$db = $this -> select($db);
 		if(!empty($db))
 		{
 			return $db[0][0];
