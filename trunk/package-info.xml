@@ -20,7 +20,7 @@
 		<modification type="file">mod_profile_template.xml</modification>
 		<require-file name="TEA.php" destination="$sourcedir" />
 		<require-file name="TEA_Cron.php" destination="$sourcedir" />
-		<require-file name="TEA_xmlhttp.php" destination="$sourcedir" />
+		<require-file name="TEA_xmlhttp.php" destination="$boarddir" />
 		<require-file name="TEA_SkillDump.php" destination="$sourcedir" />
 		<require-file name="TEA_Roles.php" destination="$sourcedir" />
 		<require-file name="TEA.english.php" destination="$languagedir" />
@@ -58,7 +58,7 @@
 		<modification type="file">mod_profile_template.xml</modification>
 		<require-file name="TEA.php" destination="$sourcedir" />
 		<require-file name="TEA_Cron.php" destination="$sourcedir" />
-		<require-file name="TEA_xmlhttp.php" destination="$sourcedir" />
+		<require-file name="TEA_xmlhttp.php" destination="$boarddir" />
 		<require-file name="TEA_SkillDump.php" destination="$sourcedir" />
 		<require-file name="TEA_Roles.php" destination="$sourcedir" />
 		<require-file name="TEA.english.php" destination="$languagedir" />
@@ -78,6 +78,7 @@
 		<remove-file name="$sourcedir/TEA.php" />
 		<remove-file name="$sourcedir/TEA_Cron.php" />
 		<remove-file name="$sourcedir/TEA_xmlhttp.php" />
+		<remove-file name="$boarddir/TEA_xmlhttp.php" />
 		<remove-file name="$sourcedir/TEA_Roles.php" />
 		<remove-file name="$sourcedir/TEA_SkillDump.php" />
 		<remove-file name="$languagedir/TEA.english.php" />
@@ -87,7 +88,7 @@
 		<readme type="file">readme.txt</readme>
 		<require-file name="TEA.php" destination="$sourcedir" />
 		<require-file name="TEA_Cron.php" destination="$sourcedir" />
-		<require-file name="TEA_xmlhttp.php" destination="$sourcedir" />
+		<require-file name="TEA_xmlhttp.php" destination="$boarddir" />
 		<require-file name="TEA_Roles.php" destination="$sourcedir" />
 		<require-file name="TEA.english.php" destination="$languagedir" />
 		<modification type="file">upgrade_1_1_x.xml</modification>

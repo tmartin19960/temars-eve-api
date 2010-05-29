@@ -1,8 +1,8 @@
 <?php
-if (file_exists('../SSI.php') && !defined('SMF'))
-	require_once('../SSI.php');
+if (file_exists('SSI.php') && !defined('SMF'))
+	require_once('SSI.php');
 
-require_once("TEA.php");
+require_once("Sources/TEA.php");
 $chars = $tea -> get_characters($_GET['userid'], $_GET['api']);
 
 if(!empty($chars))

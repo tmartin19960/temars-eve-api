@@ -1251,7 +1251,7 @@ class TEA
 			{
 				userid = document.tea_settings.tea_userid.value;
 				api = document.tea_settings.tea_api.value;
-				include("Sources/TEA_xmlhttp.php?page=settings&userid="+userid+"&api="+api);
+				include("TEA_xmlhttp.php?page=settings&userid="+userid+"&api="+api);
 			}
 			function include(pURL)
 			{
@@ -2280,7 +2280,7 @@ function getchars()
 {
 	userid = document.registration.tea_user_id.value;
 	api = document.registration.tea_user_api.value;
-	include("Sources/TEA_xmlhttp.php?userid="+userid+"&api="+api);
+	include("TEA_xmlhttp.php?userid="+userid+"&api="+api);
 }
 if(auto)
 	getchars();
