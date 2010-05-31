@@ -304,7 +304,7 @@ class TEA
 									if(empty($this -> matchedchar))
 										$this -> matchedchar = $char; // just to make sure we get 1
 
-									$conditions = $this -> smcFunc['db_query']('', "SELECT type, value, extra FROM {db_prefix}tea_conditions WHERE ruleid = {int:id}",
+									$conditions = $this -> smcFunc['db_query']('', "SELECT type, value, extra, isisnt FROM {db_prefix}tea_conditions WHERE ruleid = {int:id}",
 									array('id' => $rule[0]));
 									$conditions = $this -> select($conditions);
 									if(!empty($conditions))
@@ -312,11 +312,18 @@ class TEA
 										$match = TRUE;
 										foreach($conditions as $cond)
 										{
+											//echo "<pre>"; var_dump($cond);die;
 										//	$this -> chars[] = $char;
 											Switch($cond[0])
 											{
 												case 'corp':
-													if($char['corpid'] == $cond[1])
+													if($cond[3] == 'is' && $char['corpid'] == $cond[1])
+													{
+														if($andor == 'OR')
+															Break 2;
+														Break;
+													}
+													elseif($cond[3] == 'isnt' && $char['corpid'] != $cond[1])
 													{
 														if($andor == 'OR')
 															Break 2;
@@ -328,7 +335,13 @@ class TEA
 														Break 2;
 													}
 												case 'alliance':
-													if($char['allianceid'] == $cond[1])
+													if($cond[3] == 'is' && $char['allianceid'] == $cond[1])
+													{
+														if($andor == 'OR')
+															Break 2;
+														Break;
+													}
+													elseif($cond[3] == 'isnt' && $char['allianceid'] != $cond[1])
 													{
 														if($andor == 'OR')
 															Break 2;
@@ -340,7 +353,13 @@ class TEA
 														Break 2;
 													}
 												case 'blue':
-													if(isset($this -> cblues[$char['corpid']]) || isset($this -> ablues[$char['allianceid']]))
+													if($cond[3] == 'is' && (isset($this -> cblues[$char['corpid']]) || isset($this -> ablues[$char['allianceid']])))
+													{
+														if($andor == 'OR')
+															Break 2;
+														Break;
+													}
+													elseif($cond[3] == 'isnt' && (!isset($this -> cblues[$char['corpid']]) && !isset($this -> ablues[$char['allianceid']])))
 													{
 														if($andor == 'OR')
 															Break 2;
@@ -352,7 +371,13 @@ class TEA
 														Break 2;
 													}
 												case 'red':
-													if(isset($this -> creds[$char['corpid']]) || isset($this -> areds[$char['allianceid']]))
+													if($cond[3] == 'is' && (isset($this -> creds[$char['corpid']]) || isset($this -> areds[$char['allianceid']])))
+													{
+														if($andor == 'OR')
+															Break 2;
+														Break;
+													}
+													elseif($cond[3] == 'isnt' && (!isset($this -> creds[$char['corpid']]) && !isset($this -> areds[$char['allianceid']])))
 													{
 														if($andor == 'OR')
 															Break 2;
@@ -364,7 +389,13 @@ class TEA
 														Break 2;
 													}
 												case 'error':
-													if($error)
+													if($cond[3] == 'is' && $error)
+													{
+														if($andor == 'OR')
+															Break 2;
+														Break;
+													}
+													if($cond[3] == 'isnt' && !$error)
 													{
 														if($andor == 'OR')
 															Break 2;
@@ -376,34 +407,78 @@ class TEA
 														Break 2;
 													}
 												case 'skill':
-													$skills = $this -> skill_list($apiuser, $apikey, $char['charid']);
-													if(strstr($cond[1], '%'))
+													if($cond[3] == 'is')
 													{
-														$cond[1] = str_replace('%', '(.+)', $cond[1]);
-														foreach($skills as $skill => $level)
+														$skills = $this -> skill_list($apiuser, $apikey, $char['charid']);
+														if(strstr($cond[1], '%'))
 														{
-															if(preg_match("/".$cond[1]."/i", $skill) && $level >= $cond[2])
+															$cond[1] = str_replace('%', '(.+)', $cond[1]);
+															foreach($skills as $skill => $level)
+															{
+																if(preg_match("/".$cond[1]."/i", $skill) && $level >= $cond[2])
+																{
+																	if($andor == 'OR')
+																		Break 3;
+																	Break 2;
+																}
+															}
+														}
+														if(isset($skills[strtolower($cond[1])]) && $skills[strtolower($cond[1])] >= $cond[2])
+														{
+															if($andor == 'OR')
+																Break 2;
+															Break;
+														}
+														else
+														{
+															$match = FALSE;
+															Break 2;
+														}
+													}
+													elseif($cond[3] == 'isnt')
+													{
+														$skills = $this -> skill_list($apiuser, $apikey, $char['charid']);
+														if(strstr($cond[1], '%'))
+														{
+															$cond[1] = str_replace('%', '(.+)', $cond[1]);
+															if(!empty($skills))
+															{
+																foreach($skills as $skill => $level)
+																{
+																	if(preg_match("/".$cond[1]."/i", $skill) && $level >= $cond[2])
+																	{
+																		$skillmatch = TRUE;
+																	}
+																}
+															}
+															if(!$skillmatch)
 															{
 																if($andor == 'OR')
 																	Break 3;
 																Break 2;
 															}
 														}
+														if(!(isset($skills[strtolower($cond[1])]) && $skills[strtolower($cond[1])] >= $cond[2]))
+														{
+															if($andor == 'OR')
+																Break 2;
+															Break;
+														}
+														else
+														{
+															$match = FALSE;
+															Break 2;
+														}
 													}
-													if(isset($skills[strtolower($cond[1])]) && $level >= $cond[2])
+												case 'role':
+													$roles = $this -> roles($apiuser, $apikey, $char['charid']);
+													if($cond[3] == 'is' && isset($roles['role'.strtolower($cond[1])]))
 													{
 														if($andor == 'OR')
 															Break 2;
 														Break;
 													}
-													else
-													{
-														$match = FALSE;
-														Break 2;
-													}
-												case 'role':
-													$roles = $this -> roles($apiuser, $apikey, $char['charid']);
-													if(isset($roles['role'.strtolower($cond[1])]))
+													elseif($cond[3] == 'isnt' && !isset($roles['role'.strtolower($cond[1])]))
 													{
 														if($andor == 'OR')
 															Break 2;
@@ -416,7 +491,13 @@ class TEA
 													}
 												case 'title':
 													$titles = $this -> titles($apiuser, $apikey, $char['charid']);
-													if(isset($titles[strtolower($cond[1])]))
+													if($cond[3] == 'is' && isset($titles[strtolower($cond[1])]))
+													{
+														if($andor == 'OR')
+															Break 2;
+														Break;
+													}
+													elseif($cond[3] == 'isnt' && !isset($titles[strtolower($cond[1])]))
 													{
 														if($andor == 'OR')
 															Break 2;
@@ -429,7 +510,13 @@ class TEA
 													}
 												case 'militia':
 													$militia = $this -> militia($apiuser, $apikey, $char['charid']);
-													if($militia == $cond[1])
+													if($cond[3] == 'is' && $militia == $cond[1])
+													{
+														if($andor == 'OR')
+															Break 2;
+														Break;
+													}
+													elseif($cond[3] == 'isnt' && $militia != $cond[1])
 													{
 														if($andor == 'OR')
 															Break 2;
@@ -441,9 +528,17 @@ class TEA
 														Break 2;
 													}
 												case 'valid':
-													if($andor == 'OR')
+													if($cond[3] == 'is')
+													{
+														if($andor == 'OR')
+															Break 2;
+														Break;
+													}
+													else
+													{
+														$match = FALSE;
 														Break 2;
-													Break;
+													}
 												Default:
 													$match = FALSE;
 													Break 2;
@@ -477,7 +572,7 @@ class TEA
 								$andor = $rule[2];
 								foreach($chars as $char)
 								{
-									$conditions = $this -> smcFunc['db_query']('', "SELECT type, value, extra FROM {db_prefix}tea_conditions WHERE ruleid = {int:ruleid}", array('ruleid' => $rule[0]));
+									$conditions = $this -> smcFunc['db_query']('', "SELECT type, value, extra, isisnt FROM {db_prefix}tea_conditions WHERE ruleid = {int:ruleid}", array('ruleid' => $rule[0]));
 									$conditions = $this -> select($conditions);
 									if(!empty($conditions))
 									{
@@ -488,7 +583,13 @@ class TEA
 											Switch($cond[0])
 											{
 												case 'corp':
-													if($char['corpid'] == $cond[1])
+													if($cond[3] == 'is' && $char['corpid'] == $cond[1])
+													{
+														if($andor == 'OR')
+															Break 2;
+														Break;
+													}
+													elseif($cond[3] == 'isnt' && $char['corpid'] != $cond[1])
 													{
 														if($andor == 'OR')
 															Break 2;
@@ -500,7 +601,13 @@ class TEA
 														Break 2;
 													}
 												case 'alliance':
-													if($char['allianceid'] == $cond[1])
+													if($cond[3] == 'is' && $char['allianceid'] == $cond[1])
+													{
+														if($andor == 'OR')
+															Break 2;
+														Break;
+													}
+													elseif($cond[3] == 'isnt' && $char['allianceid'] != $cond[1])
 													{
 														if($andor == 'OR')
 															Break 2;
@@ -512,7 +619,13 @@ class TEA
 														Break 2;
 													}
 												case 'blue':
-													if(isset($this -> cblues[$char['corpid']]) || isset($this -> ablues[$char['allianceid']]))
+													if($cond[3] == 'is' && (isset($this -> cblues[$char['corpid']]) || isset($this -> ablues[$char['allianceid']])))
+													{
+														if($andor == 'OR')
+															Break 2;
+														Break;
+													}
+													elseif($cond[3] == 'isnt' && (!isset($this -> cblues[$char['corpid']]) && !isset($this -> ablues[$char['allianceid']])))
 													{
 														if($andor == 'OR')
 															Break 2;
@@ -524,7 +637,13 @@ class TEA
 														Break 2;
 													}
 												case 'red':
-													if(isset($this -> creds[$char['corpid']]) || isset($this -> areds[$char['allianceid']]))
+													if($cond[3] == 'is' && (isset($this -> creds[$char['corpid']]) || isset($this -> areds[$char['allianceid']])))
+													{
+														if($andor == 'OR')
+															Break 2;
+														Break;
+													}
+													elseif($cond[3] == 'isnt' && (!isset($this -> creds[$char['corpid']]) && !isset($this -> areds[$char['allianceid']])))
 													{
 														if($andor == 'OR')
 															Break 2;
@@ -536,7 +655,13 @@ class TEA
 														Break 2;
 													}
 												case 'error':
-													if($status == 'error')
+													if($cond[3] == 'is' && $error)
+													{
+														if($andor == 'OR')
+															Break 2;
+														Break;
+													}
+													if($cond[3] == 'isnt' && !$error)
 													{
 														if($andor == 'OR')
 															Break 2;
@@ -548,37 +673,79 @@ class TEA
 														Break 2;
 													}
 												case 'skill':
-													$skills = $this -> skill_list($apiuser, $apikey, $char['charid']);
-													if(strstr($cond[1], '%'))
+													//	echo "<pre>"; var_dump($cond);die;
+													if($cond[3] == 'is')
 													{
-														$cond[1] = str_replace('%', '(.+)', $cond[1]);
-														if(!empty($skills))
+														$skills = $this -> skill_list($apiuser, $apikey, $char['charid']);
+														if(strstr($cond[1], '%'))
 														{
+															$cond[1] = str_replace('%', '(.+)', $cond[1]);
+															if(!empty($skills))
+															{
+																foreach($skills as $skill => $level)
+																{
+																	if(preg_match("/".$cond[1]."/i", $skill) && $level >= $cond[2])
+																	{
+																		if($andor == 'OR')
+																			Break 3;
+																		Break 2;
+																	}
+																}
+															}
+														}
+														if(isset($skills[strtolower($cond[1])]) && $skills[strtolower($cond[1])] >= $cond[2])
+														{
+															if($andor == 'OR')
+																Break 2;
+															Break;
+														}
+														else
+														{
+															$match = FALSE;
+															Break 2;
+														}
+													}
+													elseif($cond[3] == 'isnt')
+													{
+														$skills = $this -> skill_list($apiuser, $apikey, $char['charid']);
+														if(strstr($cond[1], '%'))
+														{
+															$cond[1] = str_replace('%', '(.+)', $cond[1]);
 															foreach($skills as $skill => $level)
 															{
 																if(preg_match("/".$cond[1]."/i", $skill) && $level >= $cond[2])
 																{
-																	if($andor == 'OR')
-																		Break 3;
-																	Break 2;
+																	$skillmatch = TRUE;
 																}
 															}
+															if(!$skillmatch)
+															{
+																if($andor == 'OR')
+																	Break 3;
+																Break 2;
+															}
+														}
+														if(!(isset($skills[strtolower($cond[1])]) && $skills[strtolower($cond[1])] >= $cond[2]))
+														{
+															if($andor == 'OR')
+																Break 2;
+															Break;
+														}
+														else
+														{
+															$match = FALSE;
+															Break 2;
 														}
 													}
-													if(isset($skills[strtolower($cond[1])]) && $level >= $cond[2])
+												case 'role':
+													$roles = $this -> roles($apiuser, $apikey, $char['charid']);
+													if($cond[3] == 'is' && isset($roles['role'.strtolower($cond[1])]))
 													{
 														if($andor == 'OR')
 															Break 2;
 														Break;
 													}
-													else
-													{
-														$match = FALSE;
-														Break 2;
-													}
-												case 'role':
-													$roles = $this -> roles($apiuser, $apikey, $char['charid']);
-													if(isset($roles['role'.strtolower($cond[1])]))
+													elseif($cond[3] == 'isnt' && !isset($roles['role'.strtolower($cond[1])]))
 													{
 														if($andor == 'OR')
 															Break 2;
@@ -591,7 +758,13 @@ class TEA
 													}
 												case 'title':
 													$titles = $this -> titles($apiuser, $apikey, $char['charid']);
-													if(isset($titles[strtolower($cond[1])]))
+													if($cond[3] == 'is' && isset($titles[strtolower($cond[1])]))
+													{
+														if($andor == 'OR')
+															Break 2;
+														Break;
+													}
+													elseif($cond[3] == 'isnt' && !isset($titles[strtolower($cond[1])]))
 													{
 														if($andor == 'OR')
 															Break 2;
@@ -604,7 +777,25 @@ class TEA
 													}
 												case 'militia':
 													$militia = $this -> militia($apiuser, $apikey, $char['charid']);
-													if($militia == $cond[1])
+													if($cond[3] == 'is' && $militia == $cond[1])
+													{
+														if($andor == 'OR')
+															Break 2;
+														Break;
+													}
+													elseif($cond[3] == 'isnt' && $militia != $cond[1])
+													{
+														if($andor == 'OR')
+															Break 2;
+														Break;
+													}
+													else
+													{
+														$match = FALSE;
+														Break 2;
+													}
+												case 'valid':
+													if($cond[3] == 'is')
 													{
 														if($andor == 'OR')
 															Break 2;
@@ -1495,6 +1686,11 @@ class TEA
 				else
 					die("Unknown Type");
 
+				if($_POST['isisnt'] == 'isnt')
+					$isisnt = 'isnt';
+				else
+					$isisnt = 'is';
+
 				if($type == "corp" || $type == "alliance")
 				{
 					$value = $_POST['value'];
@@ -1582,7 +1778,7 @@ class TEA
 
 				if(!$exists)
 					$this -> query("INSERT INTO {db_prefix}tea_rules (ruleid, name, main, `group`, andor) VALUES ($id, '$name', $main, $group, '$andor')");
-				$this -> query("INSERT INTO {db_prefix}tea_conditions (ruleid, type, value, extra) VALUES ($id, '$type', '$value', '$extra')");
+				$this -> query("INSERT INTO {db_prefix}tea_conditions (ruleid, isisnt, type, value, extra) VALUES ($id, '$isisnt', '$type', '$value', '$extra')");
 				//if(!isset($types[$_POST['type']]))
 				//	error
 				//elseif(!is_numeric($_POST['id']) && $_POST['id'] != "new")
@@ -1631,13 +1827,13 @@ class TEA
 				$list[$id[0]] = array('name' => $id[1], 'main' => $id[2], 'group' => $id[3], 'andor' => $id[4], 'enabled' => $id[5], 'conditions' => array());
 			}
 		}
-		$idl = $this -> smcFunc['db_query']('', "SELECT id, ruleid, type, value, extra FROM {db_prefix}tea_conditions ORDER BY ruleid");
+		$idl = $this -> smcFunc['db_query']('', "SELECT id, ruleid, isisnt, type, value, extra FROM {db_prefix}tea_conditions ORDER BY ruleid");
 		$idl = $this -> select($idl);
 		if(!empty($idl))
 		{
 			foreach($idl as $id)
 			{
-				$list[$id[1]]['conditions'][] = array('id' => $id[0], 'type' => $id[2], 'value' => $id[3], 'extra' => $id[4]);
+				$list[$id[1]]['conditions'][] = array('id' => $id[0], 'isisnt' => $id[2], 'type' => $id[3], 'value' => $id[4], 'extra' => $id[5]);
 			}
 		}
 	//	echo '<pre>'; var_dump($list);die;
@@ -1662,11 +1858,23 @@ class TEA
 				if($l['main'] == 1)
 				{
 					$span = count($l['conditions']);
-					$out[2] .= '<tr><td rowspan="'.$span.'">'.$id.'</td><td rowspan="'.$span.'">'.$l['name'].'</td>';
+					if($l['enabled'] == 1)
+					{
+						$enabled = 'checked';
+						$color = 'lightgreen';
+					}
+					else
+					{
+						$enabled = '';
+						$color = 'red';
+					}
+					$out[2] .= '<tr bgcolor="'.$color.'"><td rowspan="'.$span.'">'.$id.'</td><td rowspan="'.$span.'">'.$l['name'].'</td>';
 					$tr = '';
 					foreach($l['conditions'] as $r)
 					{
-						$out[2] .= $tr.'<td>'.$types[$r['type']].': '.$r['value'];
+						$out[2] .= $tr.'<td>'.strtoupper($r['isisnt']).' => '.$types[$r['type']];
+						if($r['type'] != 'red' && $r['type'] != 'blue' && $r['type'] != 'neut' && $r['type'] != 'error' && $r['type'] != 'valid')
+							$out[2] .= ': '.$r['value'];
 						if($r['extra'] != "")
 							$out[2] .= " (".$r['extra'].")";
 				//		if($span > 1)
@@ -1674,10 +1882,6 @@ class TEA
 						$out[2] .= '</td>';
 						if($tr == '')
 						{
-							if($l['enabled'] == 1)
-								$enabled = 'checked';
-							else
-								$enabled = '';
 							$out[2] .= '<td rowspan="'.$span.'">'.$groups[$l['group']].'</td><td rowspan="'.$span.'">'.$l['andor'].'</td><td rowspan="'.$span.'">
 							<table><tr><td><input type="checkbox" name="rule_'.$id.'" value="1" '.$enabled.' />';
 							$out[2] .= '</td><td width="20">';
@@ -1690,7 +1894,7 @@ class TEA
 							</td></tr></table>
 							</td>';
 						}
-						$tr = '</tr><tr>';
+						$tr = '</tr><tr bgcolor="'.$color.'">';
 					}
 					$out[2] .= '</tr>';
 					$javalist .= "rules[".$id."] = Array('".$l['name']."', 'true', '".$l['andor']."', '".$l['group']."');\n";
@@ -1706,20 +1910,28 @@ class TEA
 				if($l['main'] == 0)
 				{
 					$span = count($l['conditions']);
-					$out[2] .= '<tr><td rowspan="'.$span.'">'.$id.'</td><td rowspan="'.$span.'">'.$l['name'].'</td>';
+					if($l['enabled'] == 1)
+					{
+						$enabled = 'checked';
+						$color = 'lightgreen';
+					}
+					else
+					{
+						$enabled = '';
+						$color = 'red';
+					}
+					$out[2] .= '<tr bgcolor="'.$color.'"><td rowspan="'.$span.'">'.$id.'</td><td rowspan="'.$span.'">'.$l['name'].'</td>';
 					$tr = '';
 					foreach($l['conditions'] as $r)
 					{
-						$out[2] .= $tr.'<td>'.$types[$r['type']].': '.$r['value'];
+						$out[2] .= $tr.'<td>'.strtoupper($r['isisnt']).' => '.$types[$r['type']];
+						if($r['type'] != 'red' && $r['type'] != 'blue' && $r['type'] != 'neut' && $r['type'] != 'error' && $r['type'] != 'valid')
+							$out[2] .= ': '.$r['value'];
 						if($r['extra'] != "")
 							$out[2] .= " (".$r['extra'].")";
 						$out[2] .= '</td>';
 						if($tr == '')
 						{
-							if($l['enabled'] == 1)
-								$enabled = 'checked';
-							else
-								$enabled = '';
 							$out[2] .= '<td rowspan="'.$span.'">'.$groups[$l['group']].'</td><td rowspan="'.$span.'">'.$l['andor'].'</td><td rowspan="'.$span.'">
 							<table><tr><td><input type="checkbox" name="rule_'.$id.'" value="1" '.$enabled.' />';
 							$out[2] .= '</td><td width="20">';
@@ -1732,7 +1944,7 @@ class TEA
 							</td></tr></table>
 							</td>';
 						}
-						$tr = '</tr><tr>';
+						$tr = '</tr><tr bgcolor="'.$color.'">';
 					}
 					$out[2] .= '</tr>';
 					$javalist .= "rules[".$id."] = Array('".$l['name']."', '', '".$l['andor']."', '".$l['group']."');\n";
@@ -1772,6 +1984,13 @@ class TEA
 						<option value="AND">AND</option>
 						<option value="OR">OR</option>
 					</select> should multiple conditions be treated as AND or OR</div></td>
+			</tr>
+			<tr>
+				<td><div id="tea_isisnttxt">IS or ISNT:</div></td>
+				<td><div id="tea_isisnt"><select name="isisnt">
+						<option value="is">IS</option>
+						<option value="isnt">ISNT</option>
+					</select></div></td>
 			</tr>
 			<tr>
 				<td><div id="tea_typetxt">Type:</div></td>
@@ -1834,7 +2053,7 @@ function value_type(fromedit)
 		document.getElementById(\'tea_group\').innerHTML=\'<select name="group"><option value="-">-</option>';
 		foreach($groups as $id => $group)
 		{
-			$out[4] .= '<option value="'.$id.'">'.$group.'</option>';
+			$out[4] .= '<option value="'.$id.'">'.str_replace("'", "\'", $group).'</option>';
 		}
 		$out[4] .= '</select>\';
 		document.makerule.group.value = group;
@@ -1903,6 +2122,8 @@ function edit(id)
 	document.getElementById(\'formtitle\').innerHTML="Edit Rule:";
 	document.getElementById(\'tea_typetxt\').innerHTML="";
 	document.getElementById(\'tea_type\').innerHTML="";
+	document.getElementById(\'tea_isisnttxt\').innerHTML="";
+	document.getElementById(\'tea_isisnt\').innerHTML="";
 	if(!newremoved)
 		document.makerule.id.remove("new");
 	document.makerule.name.value=rules[id][0];
