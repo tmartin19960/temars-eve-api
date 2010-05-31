@@ -998,7 +998,7 @@ class TEA
 	function xmlparse($xml, $tag)
 	{
 		$tmp = explode("<" . $tag . ">", $xml);
-		if($tmp[1])
+		if(isset($tmp[1]))
 			$tmp = explode("</" . $tag . ">", $tmp[1]);
 		return $tmp[0];
 	}
@@ -2243,6 +2243,14 @@ value_type();
 		if(!$this -> modSettings["tea_enable"])
 			Return;
 
+		if(isset($_POST['tea_user_id']))
+			$post['id'] = $_POST['tea_user_id'];
+		else
+			$post['id'] = '';
+		if(isset($_POST['tea_user_api']))
+			$post['api'] = $_POST['tea_user_api'];
+		else
+			$post['api'] = '';
 
 //echo '							<table border="0" width="100%" cellpadding="3">';
 
@@ -2259,12 +2267,12 @@ value_type();
 									<dt>
 										<b>', $this -> txt['tea_userid'], ':</b></dt>
 									<dd>
-										<input type="text" name="tea_user_id" value="'.$_POST['tea_user_id'].'" size="10" />
+										<input type="text" name="tea_user_id" value="'.$post['id'].'" size="10" />
 									</dd>
 								</dl><dl class="register_form">
 									<dt>										<b>', $this -> txt['tea_api'], ':</b></dt>
 									<dd>
-										<input type="text" name="tea_user_api" value="'.$_POST['tea_user_api'].'" size="64" />
+										<input type="text" name="tea_user_api" value="'.$post['api'].'" size="64" />
 									</dd>
 								</dl>
 								</dl><dl class="register_form">
