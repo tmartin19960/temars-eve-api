@@ -64,7 +64,7 @@ class TEA
 		}
 	}
 
-	function update_api($apiuser, $apiecho=FALSE)
+	function update_api($apiuser=NULL)
 	{
 		if(!$this -> modSettings["tea_enable"])
 			Return;
@@ -74,10 +74,10 @@ class TEA
 		//echo "<pre>"; var_dump($this -> modSettings);die;
 		$this -> alliance_list();
 		$this -> standings();
-		$this -> main($apiuser, $apiecho);
+		$this -> main($apiuser);
 	}
 
-	function main($user, $apiecho)
+	function main($user)
 	{
 		if(!function_exists('curl_init'))
 		{
@@ -85,9 +85,9 @@ class TEA
 			Return;
 		}
 		if(!empty($user))
-			$this -> single($user, $apiecho);
+			$this -> single($user);
 		else
-			$this -> all($apiecho);
+			$this -> all();
 	}
 
 	function standings()
@@ -200,7 +200,7 @@ class TEA
 	//	var_dump($this -> areds);die;
 	}
 
-	function single($user, $echo, $group=FALSE)
+	function single($user)
 	{
 		if(isset($this -> modSettings["tea_groupass_unknown"]))
 			$mongroups[$this -> modSettings["tea_groupass_unknown"]] = TRUE;
@@ -244,7 +244,7 @@ class TEA
 				foreach($id[0][2] as $g)
 					$agroups[$g] = $g;
 			}
-			//				remove all monitored groups
+			//	remove all monitored groups
 			if(!empty($mongroups))
 			{
 				foreach($mongroups as $g => $m)
@@ -256,9 +256,6 @@ class TEA
 			$id = $id[0][0];
 			if(!isset($mongroups[$group]) || $mongroups[$group][0] == 0)
 			{
-			//	$this -> file .= $txt['tea_run_custom']."\n";
-			//	if($echo)
-			//		echo $txt['tea_run_custom']."\n<br>";
 				$ignore = TRUE;
 				$matched[0] = 'Not Monitored';
 				$cr['main'] = 'Not Monitored';
@@ -812,19 +809,19 @@ class TEA
 		return $faction;
 	}
 
-	function all($apiecho)
+	function all()
 	{
 		//if($apiecho)
 		//	echo "checking all...\n<br>";
-		$api = $this -> smcFunc['db_query']('', "SELECT member_name, ID_GROUP FROM {db_prefix}members");
-		$api = $this -> select($api);
-		if(!empty($api))
+		$users = $this -> smcFunc['db_query']('', "SELECT id_member, member_name, ID_GROUP FROM {db_prefix}members");
+		$users = $this -> select($users);
+		if(!empty($users))
 		{
 			$this -> log .= '<table>';
-			foreach($api as $user)
+			foreach($users as $user)
 			{
-				$this -> log .= '<tr><td>'.$user[0].'</td>';
-				$cr = $this -> single($user[0], $apiecho, $user[1]);
+				$this -> log .= '<tr><td>'.$user[1].'</td>';
+				$cr = $this -> single($user[0]);
 				if(is_array($cr['additional']))
 					$cr['additional'] = implode(', ', $cr['additional']);
 				$this -> log .= '<td>'.$cr['main'].'</td><td>'.$cr['additional'].'</td></tr>';
@@ -1649,7 +1646,6 @@ class TEA
 		<br>* Rules with Same ID as Another act as Multi Requirments
 		<br>* All conditions must be met by the same character if AND rule
 		<br>* Remember if you create a rule for say Director, you need to add the corp or alliance condition too or it will be every director in eve
-		<br>* 
 		<br><br><b><u>Main Group Rules</b></u><form name="enablerules" method="post" action="">
 		<table border="1">'.
 				'<tr><td>ID</td><td>Name</td><td>Rule</td><td>Group</td><td>AND / OR</td><td>Enabled</td></tr>';
@@ -1945,7 +1941,7 @@ value_type();
 		{
 			if(!$this -> modSettings["tea_enable"])
 				$file = "API Mod is Disabled";
-			$this -> update_api(FALSE);
+			$this -> update_api();
 			$file = str_replace("\n", "<br>", $this -> log);
 			$config_vars = array(
 			'<dt>'.$file.'</dt>'
