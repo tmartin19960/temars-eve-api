@@ -144,6 +144,7 @@ $info[4]['name'] = 'tea_conditions';
 $info[4]['primary'] = 'id';
 $tables[4]["id"] = "INT DEFAULT NULL AUTO_INCREMENT";
 $tables[4]["ruleid"] = "INT DEFAULT NULL";
+$tables[4]["isisnt"] = "VARCHAR(4) DEFAULT 'is'";
 $tables[4]["type"] = "VARCHAR(50) DEFAULT NULL";
 $tables[4]["value"] = "VARCHAR(250) DEFAULT NULL";
 $tables[4]["extra"] = "VARCHAR(250) DEFAULT NULL";
