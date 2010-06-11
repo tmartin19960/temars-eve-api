@@ -576,7 +576,7 @@ class TEA
 									$conditions = $this -> select($conditions);
 									if(!empty($conditions))
 									{
-										$match = TRUE;
+										$amatch = TRUE;
 										foreach($conditions as $cond)
 										{
 										//	$this -> chars[] = $char;
@@ -597,7 +597,7 @@ class TEA
 													}
 													else
 													{
-														$match = FALSE;
+														$amatch = FALSE;
 														Break 2;
 													}
 												case 'alliance':
@@ -615,7 +615,7 @@ class TEA
 													}
 													else
 													{
-														$match = FALSE;
+														$amatch = FALSE;
 														Break 2;
 													}
 												case 'blue':
@@ -633,7 +633,7 @@ class TEA
 													}
 													else
 													{
-														$match = FALSE;
+														$amatch = FALSE;
 														Break 2;
 													}
 												case 'red':
@@ -651,7 +651,7 @@ class TEA
 													}
 													else
 													{
-														$match = FALSE;
+														$amatch = FALSE;
 														Break 2;
 													}
 												case 'error':
@@ -669,7 +669,7 @@ class TEA
 													}
 													else
 													{
-														$match = FALSE;
+														$amatch = FALSE;
 														Break 2;
 													}
 												case 'skill':
@@ -701,7 +701,7 @@ class TEA
 														}
 														else
 														{
-															$match = FALSE;
+															$amatch = FALSE;
 															Break 2;
 														}
 													}
@@ -733,7 +733,7 @@ class TEA
 														}
 														else
 														{
-															$match = FALSE;
+															$amatch = FALSE;
 															Break 2;
 														}
 													}
@@ -753,7 +753,7 @@ class TEA
 													}
 													else
 													{
-														$match = FALSE;
+														$amatch = FALSE;
 														Break 2;
 													}
 												case 'title':
@@ -772,7 +772,7 @@ class TEA
 													}
 													else
 													{
-														$match = FALSE;
+														$amatch = FALSE;
 														Break 2;
 													}
 												case 'militia':
@@ -791,7 +791,7 @@ class TEA
 													}
 													else
 													{
-														$match = FALSE;
+														$amatch = FALSE;
 														Break 2;
 													}
 												case 'valid':
@@ -803,15 +803,15 @@ class TEA
 													}
 													else
 													{
-														$match = FALSE;
+														$amatch = FALSE;
 														Break 2;
 													}
 												Default:
-													$match = FALSE;
+													$amatch = FALSE;
 													Break 2;
 											}
 										}
-										if($match)
+										if($amatch)
 										{
 											$agroups[$rule[1]] = $rule[1];
 											$matched[1][] = $rule[0];
