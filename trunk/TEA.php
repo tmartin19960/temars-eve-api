@@ -830,6 +830,16 @@ class TEA
 							$this -> query("UPDATE {db_prefix}tea_api SET matched = '".$matched."', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND userid = ".$apiuser);
 					}
 				}
+				if(!$match && !$ignore)
+				{
+					// doesnt match any rule, remove group
+					$this -> query("UPDATE {db_prefix}members SET ID_GROUP = 0 WHERE ID_MEMBER = {int:id}",
+					array('id' => $id));
+					if(!$error)
+						$this -> query("UPDATE {db_prefix}tea_api SET status = 'nomatch', status_change = {int:time} WHERE ID_MEMBER = {int:id} AND status = 'OK'",
+						array('time' => time(), 'id' => $id));
+					$cr['main'] = 'No Match';
+				}
 			}
 			else
 			{	// no api on account, if monitored group change to unknown group
