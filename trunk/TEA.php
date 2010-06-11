@@ -265,6 +265,7 @@ class TEA
 			$apiusers = $this -> select($apiusers);
 			if(!empty($apiusers))
 			{
+				$mainmatch = FALSE;
 				foreach($apiusers as $apiuser)
 				{
 					$apikey = $apiuser[1];
@@ -554,6 +555,7 @@ class TEA
 											array('time' => time(), 'id' => $id));
 											$matched[0] = $rule[0];
 											$cr['main'] = $rule[0];
+											$mainmatch = TRUE;
 											Break 2;
 										}
 									}
@@ -830,7 +832,7 @@ class TEA
 							$this -> query("UPDATE {db_prefix}tea_api SET matched = '".$matched."', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND userid = ".$apiuser);
 					}
 				}
-				if(!$match && !$ignore)
+				if(!$mainmatch && !$ignore)
 				{
 					// doesnt match any rule, remove group
 					$this -> query("UPDATE {db_prefix}members SET ID_GROUP = 0 WHERE ID_MEMBER = {int:id}",
