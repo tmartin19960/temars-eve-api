@@ -1000,7 +1000,7 @@ class TEA
 		{
 			$titles[strtolower((string)$title["titleName"])] = TRUE;
 		}
-		return $skills;
+		return $titles;
 	}
 
 	function mititia($id, $api, $charid)
