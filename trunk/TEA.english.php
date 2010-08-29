@@ -44,10 +44,33 @@ $txt['tea_corpl_updated'] = 'Alliance Corp List Last Updated';
 $txt['tea_corpl_contains'] = 'Alliance Corp List Contains';
 $txt['tea_group_settings'] = 'Group Setting for Users with no API';
 $txt['tea_main'] = 'Main group';
+$txt['tea_getchar'] = 'Get Characters';
+
+$txt['tea_corp'] = 'Corp';
+$txt['tea_alliance'] = 'Alliance';
+$txt['tea_blue'] = 'Blue';
+$txt['tea_red'] = 'Red';
+$txt['tea_neut'] = 'Neutral';
+$txt['tea_error'] = 'Invalid API';
+$txt['tea_valid'] = 'Valid API';
+$txt['tea_skill'] = 'Skill';
+$txt['tea_role'] = 'Role';
+$txt['tea_title'] = 'Title';
+$txt['tea_militia'] = 'Militia';
+
+$txt['tea_cantfindcorp'] = 'Unable to find Corp with name: ';
+$txt['tea_cantfindalliance'] = 'Unable to find Alliance with name: ';
+$txt['tea_groupmon'] = 'Groups to Monitor and Remove';
+$txt['tea_rulesinfo'] = '* Rules for Main Group are checked in Order of ID
+		<br>* Rules with Same ID as Another act as Multi Requirments
+		<br>* All conditions must be met by the same character if AND rule
+		<br>* Remember if you create a rule for say Director, you need to add the corp or alliance condition too or it will be every director in eve';
 
 //profile
 $txt['tea_mainrule'] = 'Main Matched Rule';
 $txt['tea_aditrules'] = 'Additional Matched Rules';
+$txt['tea_nomatch'] = 'No Match';
+$txt['tea_noapi'] = 'No API';
 
 $txt['tea_avatar'] = 'I want to Use my EVE Avatar';
 
