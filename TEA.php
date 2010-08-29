@@ -6,11 +6,13 @@ if (!defined('SMF'))
 Global $tea, $db_prefix, $sourcedir, $modSettings, $user_info, $context, $txt, $smcFunc, $settings;
 loadLanguage('TEA');
 
+require_once($sourcedir.'TEAC.php');
+
 $tea = new TEA($db_prefix, $sourcedir, $modSettings, $user_info, $context, $txt, $smcFunc, $settings);
 Global $forum_copyright;
 $forum_copyright .= '<br><a href="http://code.google.com/p/temars-eve-api/" target="_blank" class="new_win">TEA '.$tea -> version.' © 2009-2010, Temars EVE API</a>';
 
-class TEA
+class TEA extends TEAC
 {
 	var $corps;
 
@@ -840,7 +842,7 @@ class TEA
 					if(!$error)
 						$this -> query("UPDATE {db_prefix}tea_api SET status = 'nomatch', status_change = {int:time} WHERE ID_MEMBER = {int:id} AND status = 'OK'",
 						array('time' => time(), 'id' => $id));
-					$cr['main'] = 'No Match';
+					$cr['main'] = $txt['tea_nomatch'];
 				}
 			}
 			else
@@ -852,7 +854,7 @@ class TEA
 					else
 						$group = 0;
 					$this -> query("UPDATE {db_prefix}members SET ID_GROUP = {int:group} WHERE ID_MEMBER = {int:id}", array('id' => $id, 'group' => $group));
-					$cr['main'] = 'no api';
+					$cr['main'] = $txt['tea_noapi'];
 				}
 			}
 			$agroups = implode(',', $agroups);
@@ -1433,18 +1435,18 @@ class TEA
 				// enable?
 				array('check', 'tea_enable'),
 			'',
-			'<dt>Full API for Standings, to be used with blue and red rules</dt>',
+			'<dt>'.$this -> txt['tea_settings_message'].'</dt>',
 				// api info
 				array('int', 'tea_userid', 10),
 				array('text', 'tea_api', 64),
 			//	array('select', 'tea_charid', $charlist),
 			'<dt>
-				<a id="setting_tea_charid"></a> <span><label for="tea_charid">Character to use</label></span>
+				<a id="setting_tea_charid"></a> <span><label for="tea_charid">'.$this -> txt['tea_charid'].'</label></span>
 			</dt>
 			<dd>
 				<div id="chars"><select name="tea_charid" id="tea_charid" >
 					'.$options.'
-				</select> <button type="button" onclick="javascript: getchars()">Get Characters</button></div>
+				</select> <button type="button" onclick="javascript: getchars()">'.$this -> txt['tea_getchar'].'</button></div>
 			</dd>
 			<script type="text/javascript">
 			function getchars()
@@ -1531,17 +1533,17 @@ class TEA
 
 	function settings_rules($scripturl)
 	{
-		$types['corp'] = 'Corp';
-		$types['alliance'] = 'Alliance';
-		$types['blue'] = 'Blue';
-		$types['red'] = 'Red';
-		$types['neut'] = 'Neutral';
-		$types['error'] = 'Invalid API';
-		$types['valid'] = 'Valid API';
-		$types['skill'] = 'Skill';
-		$types['role'] = 'Role';
-		$types['title'] = 'Title';
-		$types['militia'] = 'Militia';
+		$types['corp'] = $this -> txt['tea_corp'];
+		$types['alliance'] = $this -> txt['tea_alliance'];
+		$types['blue'] = $this -> txt['tea_blue'];
+		$types['red'] = $this -> txt['tea_red'];
+		$types['neut'] = $this -> txt['tea_neut'];
+		$types['error'] = $this -> txt['tea_error'];
+		$types['valid'] = $this -> txt['tea_valid'];
+		$types['skill'] = $this -> txt['tea_skill'];
+		$types['role'] = $this -> txt['tea_role'];
+		$types['title'] = $this -> txt['tea_title'];
+		$types['militia'] = $this -> txt['tea_militia'];
 		$groups = $this -> MemberGroups();
 		if(!empty($_POST))
 		{
@@ -1722,7 +1724,7 @@ class TEA
 							}
 							else
 							{
-								die("Unable to find Corp with name: ".$value);
+								die($this -> txt['tea_cantfindcorp'].$value);
 							}
 						}
 						else
@@ -1737,7 +1739,7 @@ class TEA
 							}
 							else
 							{
-								die("Unable to find Alliance with name: ".$value);
+								die($this -> txt['tea_cantfindalliance'].$value);
 							}
 						}
 					}
@@ -1807,7 +1809,7 @@ class TEA
 				$cg[$cgqs[0]] = array($cgqs[1], $cgqs[2]);
 		}
 		$agroups = $this -> MemberGroups(TRUE);
-		$out[0] .= 'Groups to Monitor and Remove<form name="groups" method="post" action="">
+		$out[0] .= $this -> txt['tea_groupmon'].'<form name="groups" method="post" action="">
 		<table><tr><td>Name</td><td>Main</td><td>Additional</td></tr>
 		';
 		foreach($agroups as $id => $g)
@@ -1850,11 +1852,7 @@ class TEA
 		}
 	//	echo '<pre>'; var_dump($list);die;
 
-		$out[2] .= '* Rules for Main Group are checked in Order of ID
-		<br>* Rules with Same ID as Another act as Multi Requirments
-		<br>* All conditions must be met by the same character if AND rule
-		<br>* Remember if you create a rule for say Director, you need to add the corp or alliance condition too or it will be every director in eve
-		<br><br><b><u>Main Group Rules</b></u><form name="enablerules" method="post" action="">
+		$out[2] .= $this -> txt['tea_rulesinfo'].'<br><br><b><u>Main Group Rules</b></u><form name="enablerules" method="post" action="">
 		<table border="1">'.
 				'<tr><td>ID</td><td>Name</td><td>Rule</td><td>Group</td><td>AND / OR</td><td>Enabled</td></tr>';
 		if(!empty($list))
@@ -2338,10 +2336,10 @@ value_type();
 			}
 			echo '
 						</tr><tr>
-						<td><b>' . $txt['tea_userid_short'] . ': </b></td>
+						<td><b>' . $this -> txt['tea_userid_short'] . ': </b></td>
 						<td>' . $api[0] . '</td>
 						</tr><tr>
-						<td><b>' . $txt['tea_api_short'] . ': </b></td>
+						<td><b>' . $this -> txt['tea_api_short'] . ': </b></td>
 						<td>' . $api[1] . '</td>';
 		}
 	}
@@ -2384,8 +2382,8 @@ value_type();
 		}
 
 		$context['post_url'] = $scripturl . '?action=featuresettings2;save;sa=tea';
-		$context['settings_title'] = $txt['mods_cat_layout'];
-		$context['settings_message'] = $txt['tea_settings_message'];
+		$context['settings_title'] = $this -> txt['mods_cat_layout'];
+		$context['settings_message'] = $this -> txt['tea_settings_message'];
 
 	//	prepareDBSettingContext($config_vars);
 	}
@@ -2509,7 +2507,7 @@ value_type();
 									<dd>
 										<div id="chars"><select name="tea_char">
 											<option value="-">-</option> 
-										</select> <button type="button" onclick="javascript: getchars()">Get Characters</button></div>
+										</select> <button type="button" onclick="javascript: getchars()">'.$this -> txt['tea_getchar'].'</button></div>
 									</dd>
 								</dl>
 <script type="text/javascript">
@@ -2687,7 +2685,7 @@ function ModifyTEASettings()
 
 function template_edittea()
 {
-	global $tea, $teainfo, $sourcedir, $context, $settings, $options, $scripturl, $modSettings, $txt, $db_prefix;
+	global $tea, $teainfo, $sourcedir, $context, $settings, $options, $scripturl, $modSettings, $txt;
 	echo '
 		<form action="', $scripturl, '?action=profile;area=tea;save" method="post" accept-charset="', $context['character_set'], '" name="creator" id="creator">
 			<table border="0" width="100%" cellspacing="1" cellpadding="4" align="center" class="bordercolor">
