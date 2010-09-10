@@ -8,7 +8,6 @@ loadLanguage('TEA');
 
 require_once($sourcedir.'/TEAC.php');
 
-$tea = new TEA($db_prefix, $sourcedir, $modSettings, $user_info, $context, $txt, $smcFunc, $settings);
 Global $forum_copyright;
 $forum_copyright .= '<br><a href="http://code.google.com/p/temars-eve-api/" target="_blank" class="new_win">TEA '.$tea -> version.' © 2009-2010, Temars EVE API</a>';
 
@@ -2668,6 +2667,9 @@ function postFileReady()
 	//	}
 	}
 }
+
+$tea = new TEA($db_prefix, $sourcedir, $modSettings, $user_info, $context, $txt, $smcFunc, $settings);
+
 function edittea($memID)
 {
 	global $tea, $teainfo, $sourcedir, $context, $settings, $options, $scripturl, $modSettings, $txt, $db_prefix;
