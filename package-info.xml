@@ -19,6 +19,7 @@
 		<modification type="file">mod_register_template.xml</modification>
 		<modification type="file">mod_profile_template.xml</modification>
 		<require-file name="TEA.php" destination="$sourcedir" />
+		<require-file name="TEAC.php" destination="$sourcedir" />
 		<require-file name="TEA_Cron.php" destination="$sourcedir" />
 		<require-file name="TEA_xmlhttp.php" destination="$boarddir" />
 		<require-file name="TEA_SkillDump.php" destination="$sourcedir" />
@@ -38,6 +39,7 @@
 		<modification type="file">mod_register_template.xml</modification>
 		<modification type="file">mod_profile_template_rc2.xml</modification>
 		<require-file name="TEA.php" destination="$sourcedir" />
+		<require-file name="TEAC.php" destination="$sourcedir" />
 		<require-file name="TEA_Cron.php" destination="$sourcedir" />
 		<require-file name="TEA_xmlhttp.php" destination="$sourcedir" />
 		<require-file name="TEA_SkillDump.php" destination="$sourcedir" />
@@ -57,6 +59,7 @@
 		<modification type="file">mod_register_template.xml</modification>
 		<modification type="file">mod_profile_template.xml</modification>
 		<require-file name="TEA.php" destination="$sourcedir" />
+		<require-file name="TEAC.php" destination="$sourcedir" />
 		<require-file name="TEA_Cron.php" destination="$sourcedir" />
 		<require-file name="TEA_xmlhttp.php" destination="$boarddir" />
 		<require-file name="TEA_SkillDump.php" destination="$sourcedir" />
@@ -76,6 +79,7 @@
 		<modification type="file" reverse="true">mod_register_template.xml</modification>
 		<modification type="file" reverse="true">mod_profile_template.xml</modification>
 		<remove-file name="$sourcedir/TEA.php" />
+		<remove-file name="$sourcedir/TEAC.php" />
 		<remove-file name="$sourcedir/TEA_Cron.php" />
 		<remove-file name="$sourcedir/TEA_xmlhttp.php" />
 		<remove-file name="$boarddir/TEA_xmlhttp.php" />
@@ -87,6 +91,7 @@
 	<upgrade from="1.1.0">
 		<readme type="file">readme.txt</readme>
 		<require-file name="TEA.php" destination="$sourcedir" />
+		<require-file name="TEAC.php" destination="$sourcedir" />
 		<require-file name="TEA_Cron.php" destination="$sourcedir" />
 		<require-file name="TEA_xmlhttp.php" destination="$boarddir" />
 		<require-file name="TEA_Roles.php" destination="$sourcedir" />
