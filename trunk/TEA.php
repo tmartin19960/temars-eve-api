@@ -6,7 +6,7 @@ if (!defined('SMF'))
 Global $tea, $db_prefix, $sourcedir, $modSettings, $user_info, $context, $txt, $smcFunc, $settings;
 loadLanguage('TEA');
 
-require_once($sourcedir.'TEAC.php');
+require_once($sourcedir.'/TEAC.php');
 
 $tea = new TEA($db_prefix, $sourcedir, $modSettings, $user_info, $context, $txt, $smcFunc, $settings);
 Global $forum_copyright;
