@@ -279,7 +279,7 @@ class TEA extends TEAC
 						$error = $this -> get_error($this -> data);
 						$this -> query("UPDATE {db_prefix}tea_api SET status = 'API Error', errorid = '".$error[0]."', error = '".$error[1]."', status_change = ".time()." WHERE ID_MEMBER = ".$id." AND userid = ".$apiuser);
 						if(($error[0] >= 500 && $error[0] < 600) || ($error[0] >= 900 && $error[0] < 1000)) // Api System is Down
-							Continue;
+							return $cr;
 						else
 							$chars[] = array('name' => NULL, 'charid' => NULL, 'corpname' => NULL, 'corpid' => NULL, 'ticker' => NULL, 'allianceid' => NULL, 'alliance' => NULL);
 						$status = 'error';
