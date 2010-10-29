@@ -60,6 +60,17 @@ class TEA extends TEAC
 				 ('".$p."', ", $groups2) . ", $v)",
 				 $groups);
 		}
+
+		if(empty($this -> settings['tea_api_server']))
+		{
+			$request = $this -> smcFunc['db_query']('', "
+			  INSERT IGNORE INTO {db_prefix}settings
+				 (variable, value)
+			  VALUES
+				  ('tea_api_server', 'http://api.eve-online.com')");
+			$this -> settings['tea_api_server'] = 'http://api.eve-online.com';
+		}
+		$this -> server = $this -> settings['tea_api_server'];
 	}
 
 	function update_api($apiuser=NULL)
@@ -1433,7 +1444,8 @@ class TEA extends TEAC
 			//	array('select', 'tea_groupass_blue', $groups),
 			//	array('select', 'tea_groupass_neut', $groups),
 				array('select', 'tea_groupass_unknown', $groups),
-			//'',
+			'',
+				array('text', 'tea_api_server', 40),
 				// Who's online.
 		//		array('check', 'who_enabled'),
 		);

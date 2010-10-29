@@ -45,6 +45,7 @@ $txt['tea_corpl_contains'] = 'Alliance Corp List Contains';
 $txt['tea_group_settings'] = 'Group Setting for Users with no API';
 $txt['tea_main'] = 'Main group';
 $txt['tea_getchar'] = 'Get Characters';
+$txt['tea_api_server'] = 'Server to get API data from';
 
 $txt['tea_corp'] = 'Corp';
 $txt['tea_alliance'] = 'Alliance';

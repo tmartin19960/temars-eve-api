@@ -5,26 +5,27 @@ class TEAC
 	function __construct()
 	{
 		$this -> version = "1.0";
+		$this -> server = 'http://api.eve-online.com';
 	}
 
 	function get_xml($type, $post = NULL)
 	{
 		if($type == 'standings')
-			$url = "http://api.eve-online.com/corp/Standings.xml.aspx";
+			$url = "/corp/Standings.xml.aspx";
 		elseif($type == 'alliances')
-			$url = "http://api.eve-online.com/eve/AllianceList.xml.aspx";
+			$url = "/eve/AllianceList.xml.aspx";
 		elseif($type == 'corp')
-			$url = "http://api.eve-online.com/corp/CorporationSheet.xml.aspx";
+			$url = "/corp/CorporationSheet.xml.aspx";
 		elseif($type == 'charsheet')
-			$url = "http://api.eve-online.com/char/CharacterSheet.xml.aspx";
+			$url = "/char/CharacterSheet.xml.aspx";
 		elseif($type == 'facwar')
-			$url = "http://api.eve-online.com/char/FacWarStats.xml.aspx";
+			$url = "/char/FacWarStats.xml.aspx";
 		elseif($type == 'find')
-			$url = "http://api.eve-online.com/eve/CharacterID.xml.aspx";
+			$url = "/eve/CharacterID.xml.aspx";
 		elseif($type == 'name')
-			$url = "http://api.eve-online.com/eve/CharacterName.xml.aspx ";
+			$url = "/eve/CharacterName.xml.aspx ";
 		else
-			$url = "http://api.eve-online.com/account/Characters.xml.aspx";
+			$url = "/account/Characters.xml.aspx";
 
 		if(!empty($post))
 		{
@@ -43,7 +44,7 @@ class TEAC
 		if($cache)
 			return $cache;
 
-		$xml = $this -> get_site($url, $post);
+		$xml = $this -> get_site($this -> server.$url, $post);
 
 		if(function_exists($this -> set_cache))
 		{

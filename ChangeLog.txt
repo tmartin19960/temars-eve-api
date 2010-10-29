@@ -10,6 +10,7 @@ New Features
 - Corp Name and Alliance Name can be used in rules and it gets ID for you
 - New Condition (Valid API) true for all valid API's
 - Added the ability to do rules that are iver is or isnt
+- Added Proxy Support (alternative API Server)
 
 Bug Fixes
 - Fixed a Bug with registration when charname has an apostrophe in it
