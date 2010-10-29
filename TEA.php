@@ -1034,73 +1034,24 @@ class TEA extends TEAC
 	//	fclose($fp);
 	}
 
-	function get_xml($type, $post = NULL)
+	function get_cache($url, $post)
 	{
-		if($type == 'standings')
-			$url = "http://api.eve-online.com/corp/Standings.xml.aspx";
-		elseif($type == 'alliances')
-			$url = "http://api.eve-online.com/eve/AllianceList.xml.aspx";
-		elseif($type == 'corp')
-			$url = "http://api.eve-online.com/corp/CorporationSheet.xml.aspx";
-		elseif($type == 'charsheet')
-			$url = "http://api.eve-online.com/char/CharacterSheet.xml.aspx";
-		elseif($type == 'facwar')
-			$url = "http://api.eve-online.com/char/FacWarStats.xml.aspx";
-		elseif($type == 'find')
-			$url = "http://api.eve-online.com/eve/CharacterID.xml.aspx";
-		elseif($type == 'name')
-			$url = "http://api.eve-online.com/eve/CharacterName.xml.aspx ";
-		else
-			$url = "http://api.eve-online.com/account/Characters.xml.aspx";
-
-		if(!empty($post))
-		{
-			foreach($post as $i => $v)
-			{
-				$post[$i] = $i.'='.$v;
-			}
-			$post = implode('&', $post);
-		}
-
 		$time = time() - 3600;
 		$db = $this -> smcFunc['db_query']('', "SELECT xml FROM {db_prefix}tea_cache WHERE address = '".mysql_real_escape_string($url)."' AND post = '".mysql_real_escape_string($post)."' AND time > ".$time);
 		$db = $this -> select($db);
 		if(!empty($db))
-		{
 			return $db[0][0];
-		}
+		else
+			Return FALSE;
+	}
 
-		$xml = $this -> get_site($url, $post);
+	function set_cache($url, $post, $xml)
+	{
 		$this -> query("
 			REPLACE INTO {db_prefix}tea_cache
 				(address, post, time, xml)
 			VALUES
 				('$url', '".mysql_real_escape_string($post)."', ".time().", '".mysql_real_escape_string($xml)."')");
-		return $xml;
-	}
-
-	function get_site($url, $post=FALSE)
-	{
-		$ch = curl_init();
-
-		if(!empty($post))
-		{
-			curl_setopt($ch, CURLOPT_POST      ,1);
-			curl_setopt ($ch, CURLOPT_POSTFIELDS, $post);
-		}
-
-		curl_setopt($ch, CURLOPT_URL, $url);
-		curl_setopt ($ch, CURLOPT_FOLLOWLOCATION, 1);
-
-		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-
-		$data = curl_exec($ch);
-		curl_close($ch);
-
-		//echo "<pre>"; var_dump($data); echo "</pre>";
-		Return $data;
 	}
 
 	function select($result, $result_form=MYSQL_NUM, $error=TRUE)//MYSQL_ASSOC = field names
@@ -1320,23 +1271,6 @@ class TEA extends TEAC
 	{
 		$tmp = explode('<rowset name="alliances" key="allianceID" columns="name,shortName,allianceID,executorCorpID,memberCount,startDate">', $xml, 2);
 		return $tmp[1];
-	}
-
-	function corp_info($corp)
-	{
-		$post = array('corporationID' => $corp);
-		$xml2 = $this -> get_xml('corp', $post);
-		$xml = new SimpleXMLElement($xml2);
-		if(isset($xml -> result -> corporationName))
-		{
-			$info['corpname'] = (string)$xml -> result -> corporationName;
-			$info['ticker'] = (string)$xml -> result -> ticker;
-			$info['allianceid'] = (string)$xml -> result -> allianceID;
-			if(empty($info['allianceid']) || $info['allianceid'] == '')
-				$info['allianceid'] = 0;
-			$info['alliance'] = (string)$xml -> result -> allianceName;
-		}
-		Return ($info);
 	}
 
 	function Settings($scripturl)
