@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<!DOCTYPE modification SYSTEM "http://www.simplemachines.org/xml/modification">
+<modification xmlns="http://www.simplemachines.org/xml/modification" xmlns:smf="http://www.simplemachines.org/">
+	<id>temar:TEA</id>
+	<version>1.00</version>
+
+	<file name="$sourcedir/Profile.php">
+		<operation>
+			<search position="replace"><![CDATA[				'groupmembership' => array(]]></search>
+			<add><![CDATA[				'tea' => array(
+					'label' => $txt['tea_eveapi'],
+					'file' => 'TEA.php',
+					'function' => 'edittea',
+					'enabled' => allowedTo(array('tea_edit_own', 'tea_edit_any')),
+					'sc' => 'post',
+					'permission' => array(
+						'own' => array('tea_edit_any', 'tea_edit_own'),
+						'any' => array('tea_edit_any'),
+					),
+				),
+				'groupmembership' => array(]]></add>
+		</operation>
+
+		<operation>
+			<search position="replace"><![CDATA[	loadLanguage('Profile');]]></search>
+			<add><![CDATA[	loadLanguage('Profile');
+	loadLanguage('TEA');]]></add>
+		</operation>
+	</file>
+
+</modification>

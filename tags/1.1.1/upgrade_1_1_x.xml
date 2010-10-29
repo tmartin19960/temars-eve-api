@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<!DOCTYPE modification SYSTEM "http://www.simplemachines.org/xml/modification">
+<modification xmlns="http://www.simplemachines.org/xml/modification" xmlns:smf="http://www.simplemachines.org/">
+	<id>temar:EveAPI</id>
+	<version>1.00</version>
+
+	<file name="$sourcedir/Register.php">
+
+		<operation>
+			<search position="replace"><![CDATA[	global $tea;
+	if($modSettings['tea_regreq'])
+	{
+		$chars = $tea -> get_characters($_POST['tea_user_id'], $_POST['tea_user_api']);
+		if(empty($chars)) // invalid api
+			$reg_errors[] = $txt['tea_regreq_error'];
+	}
+]]></search>
+			<add><![CDATA[	global $tea;
+	$error = $tea -> reg_checks();
+	if(!empty($error)) //error
+		$reg_errors[] = $error;
+]]></add>
+		</operation>
+	</file>
+
+	<file name="$themedir/Profile.template.php">
+		<operation>
+			<search position="replace"><![CDATA[function template_profile_avatar_select()
+{
+	global $context, $txt, $modSettings;
+]]></search>
+			<add><![CDATA[function template_profile_avatar_select()
+{
+	global $context, $txt, $modSettings;
+	Global $tea;
+	$tea -> avatar_option_lock();
+]]></add>
+		</operation>
+	</file>
+
+</modification>
