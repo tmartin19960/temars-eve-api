@@ -101,6 +101,13 @@
 		<require-file name="TEA_Roles.php" destination="$sourcedir" />
 		<require-file name="TEA.english.php" destination="$languagedir" />
 		<require-file name="tea.gif" destination="$imagesdir/admin" />
-		<modification type="file">upgrade_1_1_x.xml</modification>
+		<modification type="file">upgrade_1_1_0.xml</modification>
+		<code>tables.php</code>
+	</upgrade>
+	<upgrade from="1.1.1">
+		<readme type="file">readme.txt</readme>
+		<require-file name="TEA.php" destination="$sourcedir" />
+		<require-file name="TEAC.php" destination="$sourcedir" />
+		<code>tables.php</code>
 	</upgrade>
 </package-info>
