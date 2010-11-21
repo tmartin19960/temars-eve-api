@@ -2,7 +2,7 @@
 Version 1.1.1 -> 1.1.2
 ----------------------
 New Features
-- 
+- Now Supports Sockets to get data from eveonline if curl not installed
 
 Bug Fixes
 - Run Table Check on Upgrade
