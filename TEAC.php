@@ -56,6 +56,129 @@ class TEAC
 
 	function get_site($url, $post=FALSE)
 	{
+		if(!function_exists('curl_init'))
+		{
+			$return = $this->get_site_sock($url, $post);
+			if ($return['error'])
+			{
+				echo $return['errordesc'] . " Reason (" . $return['content'] . ")";
+			}
+
+			return $return["content"];
+		}
+		else
+		{
+			Return $this->get_site_curl($url, $post);
+		}
+	}
+
+	function get_site_sock($url, $post)
+	{
+		$get_url = parse_url($url);
+
+		$address = gethostbyname($get_url['host']);
+
+		/* Get the port for the WWW service. */
+		$service_port = getservbyname('www', 'tcp');
+
+		/* Create a TCP/IP socket. */
+		$socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+
+		// Check to see if the socket failed to create.
+		if ($socket === false) {
+			$return["error"] = true;
+			$return["errordesc"] = "Failed to create a socket";
+			$return["content"] = socket_strerror(socket_last_error());
+
+			return $return;
+		}
+		
+		// Set some sane read timeouts to prevent the bot from hanging forever.
+		socket_set_option($socket, SOL_SOCKET, SO_RCVTIMEO, array("sec" => 30, "usec" => 0));
+		
+		$connect_result = @socket_connect($socket, $address, $service_port);
+
+		// Make sure we have a connection
+		if ($connect_result === false)
+		{
+			echo "Failed to connect to server: $url\n";
+			$return["error"] = true;
+			$return["errordesc"] = "Coult not connect to server " . $address . ":" . $service_port . " (" . $url . ")";
+			$return["content"] = socket_strerror(socket_last_error());
+			
+			return $return;
+		}
+
+		// Rebuild the full query after parse_url
+		$url = $get_url["path"];
+		// if (!empty($get_url["query"]))
+		// {
+			// $url .= '?' . $get_url["query"];
+		// }
+		if(!empty($post))
+		{
+			$url .= '?'.$post;
+		}
+
+		$in = "GET $url HTTP/1.0\r\n";
+		$in .= "Host: " . $get_url['host'] . "\r\n";
+		$in .= "Connection: Close\r\n";
+		$in .= "User-Agent:TEA 1.1.1\r\n\r\n";
+
+		$write_result = @socket_write($socket, $in, strlen($in));
+
+		// Make sure we wrote to the server okay.
+		if ($write_result === false)
+		{
+			$return["error"] = true;
+			$return["errordesc"] = "Coult not write to server";
+			$return["content"] = socket_strerror(socket_last_error());
+			
+			return $return;
+		}
+
+		$return["content"] = "";
+		$read_result = @socket_read($socket, 2048);
+		while ($read_result != "" && $read_result !== false)
+		{
+			$return["content"] .= $read_result;
+			$read_result = @socket_read($socket, 2048);
+		}
+
+		// Make sure we got a response back from the server.
+		if ($read_result === false)
+		{
+			$return["error"] = true;
+			$return["errordesc"] = "Server returned no data";
+			$return["content"] = socket_strerror(socket_last_error());
+			
+			return $return;
+		}
+
+		$close_result = @socket_close($socket);
+
+		// Make sure we closed our socket properly.  Open sockets are bad!
+		if ($close_result === false)
+		{
+			$return["error"] = true;
+			$return["errordesc"] = "Failed to close socket";
+			$return["content"] = socket_strerror(socket_last_error());
+	
+			return $return;
+		}
+
+		// Did the calling function want http headers stripped?
+	//	if ($strip_headers)
+	//	{
+			$split = split("\r\n\r\n",$return['content']);
+			$return["content"] = $split[1];
+	//	}
+
+		return $return;
+	}
+
+	function get_site_curl($url, $post)
+	{
 		$ch = curl_init();
 
 		if(!empty($post))
