@@ -76,7 +76,6 @@ function run_upgrade()
 {
 	Global $db_prefix;
 
-	$info['old'] = 'eve_api';
 	$info['name'] = 'tea_api';
 	$info['esam'] = 'esam_api';
 

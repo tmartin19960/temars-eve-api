@@ -167,9 +167,12 @@ Global $db_prefix;
 
 require("esam_upgrade.php");
 
-$checkold = esamup_check_table($db_prefix.$info['old']);
-$check = esamup_check_table($db_prefix.$info['name']);
-$esam = esamup_check_table($db_prefix.$info['esam']);
+$esaminfo['old'] = 'eve_api';
+$esaminfo['name'] = 'tea_api';
+$esaminfo['esam'] = 'esam_api';
+$checkold = esamup_check_table($db_prefix.$esaminfo['old']);
+$check = esamup_check_table($db_prefix.$esaminfo['name']);
+$esam = esamup_check_table($db_prefix.$esaminfo['esam']);
 if(!$checkold && !$check && $esam) // tea never installed, esam has
 {
 	$esamupgrade = TRUE;
