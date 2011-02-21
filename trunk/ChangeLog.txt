@@ -6,6 +6,10 @@ New Features
 
 Bug Fixes
 - Run Table Check on Upgrade
+- Removed use of split() function as its deprecated
+- Fixed Avatar to new address
+- Fixed check for esam upgrade
+- Added a check for open_basedir and safe_mode when using CURLOPT_FOLLOWLOCATION
 
 ----------------------
 Version 1.1.0 -> 1.1.1

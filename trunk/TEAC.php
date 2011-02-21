@@ -188,7 +188,9 @@ class TEAC
 		}
 
 		curl_setopt($ch, CURLOPT_URL, $url);
-		curl_setopt ($ch, CURLOPT_FOLLOWLOCATION, 1);
+
+		if (ini_get('open_basedir') == '' && ini_get('safe_mode' == 'Off'))
+			curl_setopt ($ch, CURLOPT_FOLLOWLOCATION, 1);
 
 		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 
