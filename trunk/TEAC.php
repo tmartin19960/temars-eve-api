@@ -170,7 +170,7 @@ class TEAC
 		// Did the calling function want http headers stripped?
 	//	if ($strip_headers)
 	//	{
-			$split = split("\r\n\r\n",$return['content']);
+			$split = explode("\r\n\r\n", $return['content'], 2);
 			$return["content"] = $split[1];
 	//	}
 
