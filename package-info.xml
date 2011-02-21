@@ -9,7 +9,29 @@
 		<readme type="file">readme.txt</readme>
 		<readme type="inline" parsebbc="true">[color=red]Error! This mod does not support your version of SMF.[/color]</readme>
 	</install>
-	<install for="2.0 RC3 - 2.1">
+	<install for="2.0 RC5 - 2.1">
+		<readme type="inline" parsebbc="true">[color=red]Warning! This mod has not been tested on your version of SMF. Do not procced if you get errors![/color]</readme>
+		<readme type="file">readme.txt</readme>
+		<modification type="file">mod_index.xml</modification>
+		<modification type="file">mod_admin.xml</modification>
+		<modification type="file">mod_profile.xml</modification>
+		<modification type="file">mod_profile_modify.xml</modification>
+		<modification type="file">mod_register.xml</modification>
+		<modification type="file">mod_register_template.xml</modification>
+		<modification type="file">mod_profile_template.xml</modification>
+		<require-file name="TEA.php" destination="$sourcedir" />
+		<require-file name="TEAC.php" destination="$sourcedir" />
+		<require-file name="TEA_Cron.php" destination="$sourcedir" />
+		<require-file name="TEA_xmlhttp.php" destination="$boarddir" />
+		<require-file name="TEA_SkillDump.php" destination="$sourcedir" />
+		<require-file name="TEA_Roles.php" destination="$sourcedir" />
+		<require-file name="TEA.english.php" destination="$languagedir" />
+		<require-file name="tea.gif" destination="$imagesdir/admin" />
+		<require-file name="esam_upgrade.php" destination="$boarddir" />
+		<code>tables.php</code>
+		<remove-file name="$boarddir/esam_upgrade.php" />
+	</install>
+	<install for="2.0 RC3 - 2.0 RC4">
 		<readme type="file">readme.txt</readme>
 		<modification type="file">mod_index.xml</modification>
 		<modification type="file">mod_admin.xml</modification>
