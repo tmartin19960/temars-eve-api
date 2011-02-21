@@ -2238,7 +2238,7 @@ value_type();
 					if(isset($this -> chars[$name]['charid']))
 					{
 						require_once("Subs-Graphics.php");
-						downloadAvatar('http://img.eve.is/serv.asp?s=64&c='.$this -> chars[$name]['charid'], $memberID, 64, 64);
+						downloadAvatar('http://image.eveonline.com/Character/'.$this -> chars[$name]['charid'].'_64.jpg', $memberID, 64, 64);
 					}
 				}
 			}
@@ -2530,7 +2530,7 @@ function postFileReady()
 					var maxWidth = ', !empty($this -> modSettings['avatar_max_width_external']) ? $this -> modSettings['avatar_max_width_external'] : 0, ';
 					var tempImage = new Image();
 
-					tempImage.src = \'http://img.eve.is/serv.asp?s=64&c=\'+id;
+					tempImage.src = \'http://image.eveonline.com/Character/\'+id+\'_64.jpg\';
 					if (maxWidth != 0 && tempImage.width > maxWidth)
 					{
 						document.getElementById("eavatar").style.height = parseInt((maxWidth * tempImage.height) / tempImage.width) + "px";
@@ -2541,7 +2541,7 @@ function postFileReady()
 						document.getElementById("eavatar").style.width = parseInt((maxHeight * tempImage.width) / tempImage.height) + "px";
 						document.getElementById("eavatar").style.height = maxHeight + "px";
 					}
-					document.getElementById("eavatar").src = \'http://img.eve.is/serv.asp?s=64&c=\'+id;
+					document.getElementById("eavatar").src = \'http://image.eveonline.com/Character/\'+id+\'_64.jpg\';
 				}
 			</script>
 								<div id="avatar_tea">
@@ -2598,7 +2598,7 @@ function postFileReady()
 	//			elseif ($modSettings['avatar_action_too_large'] == 'option_download_and_resize')
 	//			{
 					require_once($this -> sourcedir . '/Subs-Graphics.php');
-					if (downloadAvatar('http://img.eve.is/serv.asp?s=64&c='.$profile_vars['avatar'], $memID, 64, 64))
+					if (downloadAvatar('http://image.eveonline.com/Character/'.$profile_vars['avatar'].'_64.jpg', $memID, 64, 64))
 					{
 						$profile_vars['avatar'] = '';
 						$cur_profile['id_attach'] = $this -> modSettings['new_avatar_data']['id'];
