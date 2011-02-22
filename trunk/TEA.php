@@ -71,6 +71,25 @@ class TEA extends TEAC
 			$this -> settings['tea_api_server'] = 'http://api.eve-online.com';
 		}
 		$this -> server = $this -> settings['tea_api_server'];
+		$this -> undefined();
+	}
+
+	function undefined()
+	{
+		$ms[] = 'tea_enable';
+		$ms[] = 'tea_userid';
+		$ms[] = 'tea_api';
+		$ms[] = 'tea_charid';
+		$ms[] = 'tea_groupass_unknown';
+		$ms[] = 'tea_avatar_enabled';
+		$ms[] = 'tea_avatar_locked';
+		$ms[] = 'tea_corptag_options';
+		$ms[] = 'tea_regreq';
+		foreach($ms as $s)
+		{
+			if(!isset($this -> modSettings[$s]))
+				$this -> modSettings[$s] = NULL;
+		}
 	}
 
 	function update_api($apiuser=NULL)
@@ -120,6 +139,7 @@ class TEA extends TEAC
 
 		$temp[1] = $this -> xmlparse($data, "corporationStandings");
 		$temp[2] = $this -> xmlparse($data, "allianceStandings");
+		$count = 0;
 		foreach($temp as $i => $data)
 		{
 			if($i == 1)
@@ -1166,7 +1186,8 @@ class TEA extends TEAC
 	function rowset($xml, $tag)
 	{
 		$tmp = explode('<rowset name="'.$tag.'" key="toID" columns="toID,toName,standing">', $xml);
-		$tmp = explode("</rowset>", $tmp[1]);
+		if(!empty($tmp[1]))
+			$tmp = explode("</rowset>", $tmp[1]);
 		return $tmp[0];
 	}
 
@@ -1196,6 +1217,7 @@ class TEA extends TEAC
 
 	function sparse($xml)
 	{
+		$standings = array();
 		$xml = explode("<row ", $xml);
 		unset($xml[0]);
 		if(!empty($xml))
@@ -1263,8 +1285,9 @@ class TEA extends TEAC
 		}
 		if(count($corps) > 5)
 		{
+			$time = time();
 			$file = '<?php'."\n\n";
-			$file .= '$time = '.time().';'."\n\n";
+			$file .= '$time = '.$time.';'."\n\n";
 			foreach($corps as $c => $a)
 			{
 				$file .= '$corps['.$c.'] = '.$a.';'."\n";
@@ -1357,6 +1380,7 @@ class TEA extends TEAC
 		else
 			$time = 'Never';
 		$groups = $this -> MemberGroups();
+		$options = '';
 		if(!empty($charlist))
 		{
 			foreach($charlist as $i => $c)
@@ -1751,7 +1775,7 @@ class TEA extends TEAC
 				$cg[$cgqs[0]] = array($cgqs[1], $cgqs[2]);
 		}
 		$agroups = $this -> MemberGroups(TRUE);
-		$out[0] .= $this -> txt['tea_groupmon'].'<form name="groups" method="post" action="">
+		$out[0] = $this -> txt['tea_groupmon'].'<form name="groups" method="post" action="">
 		<table><tr><td>Name</td><td>Main</td><td>Additional</td></tr>
 		';
 		foreach($agroups as $id => $g)
@@ -1771,7 +1795,7 @@ class TEA extends TEAC
 			<input type="submit" name="mong" value="UPDATE">
 			</form></tr></table></dt>';
 		$out[1] = '';
-		$out[2] .= '<dt>';
+		$out[2] = '<dt>';
 
 		$idl = $this -> smcFunc['db_query']('', "SELECT ruleid, name, main, `group`, andor, enabled FROM {db_prefix}tea_rules ORDER BY ruleid");
 		$idl = $this -> select($idl);
@@ -1805,6 +1829,7 @@ class TEA extends TEAC
 				if($l['main'] == 1)
 					$last = $id;
 			}
+			$javalist = '';
 			foreach($list as $id => $l)
 			{
 				if($l['main'] == 1)
@@ -2104,6 +2129,7 @@ value_type();
 </script>
 ';
 		$config_vars = $out;
+		$this -> context['post_url'] = $scripturl . '?action=admin;area=tea;sa=rules;save';
 		$this -> context['settings_save_dont_show'] = TRUE;
 		prepareDBSettingContext($config_vars);
 	}
@@ -2132,6 +2158,7 @@ value_type();
 		//$context['post_url'] = $scripturl . '?action=admin;area=tea;sa=checks;save';
 //		$context['settings_title'] = $txt['tea_title'];
 //		$context['settings_message'] = $txt['tea_settings_message'];
+		$this -> context['post_url'] = $scripturl . '?action=admin;area=tea;sa=checks;save';
 		$this -> context['settings_save_dont_show'] = TRUE;
 		prepareDBSettingContext($config_vars);
 	}
@@ -2545,7 +2572,7 @@ function postFileReady()
 				}
 			</script>
 								<div id="avatar_tea">
-									<select name="attachment" value="', $this -> context['member']['avatar']['tea'], '"  onfocus="selectRadioByName(document.forms.creator.avatar_choice, \'tea\');" onchange="getPortrait(this.value);" >';
+									<select name="attachment" value="', !empty($this -> context['member']['avatar']['tea']) ? $this -> context['member']['avatar']['tea'] : '', '"  onfocus="selectRadioByName(document.forms.creator.avatar_choice, \'tea\');" onchange="getPortrait(this.value);" >';
 		$chars = $this -> get_all_chars(TRUE);
 	//	echo "\n<pre>"; var_dump($this -> context['member']['avatar']);die;
 		if(!empty($chars))
