@@ -10,6 +10,7 @@ Bug Fixes
 - Fixed Avatar to new address
 - Fixed check for esam upgrade
 - Added a check for open_basedir and safe_mode when using CURLOPT_FOLLOWLOCATION
+- Fixed check for existing cache functions
 
 ----------------------
 Version 1.1.0 -> 1.1.1

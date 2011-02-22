@@ -37,7 +37,7 @@ class TEAC
 		}
 
 		$cache = FALSE;
-		if(function_exists($this -> get_cache))
+		if(method_exists($this, 'get_cache'))
 		{
 			$cache = $this -> get_cache($url, $post);
 		}
@@ -46,7 +46,7 @@ class TEAC
 
 		$xml = $this -> get_site($this -> server.$url, $post);
 
-		if(function_exists($this -> set_cache))
+		if(method_exists($this, 'set_cache'))
 		{
 			$cache = $this -> set_cache($url, $post, $xml);
 		}
