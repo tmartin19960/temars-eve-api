@@ -2,7 +2,7 @@
 <!DOCTYPE modification SYSTEM "http://www.simplemachines.org/xml/modification">
 <modification xmlns="http://www.simplemachines.org/xml/modification" xmlns:smf="http://www.simplemachines.org/">
 	<id>temar:EveAPI</id>
-	<version>1.00</version>
+	<version>1.1.2</version>
 
 	<file name="$sourcedir/Register.php">
 
@@ -35,6 +35,14 @@
 	Global $tea;
 	$tea -> avatar_option_lock();
 ]]></add>
+		</operation>
+	</file>
+
+	<file name="$sourcedir/Profile-Modify.php">
+
+		<operation>
+			<search position="replace"><![CDATA[			'type' => $modSettings['tea_usecharname'] ? 'select' : (!empty($modSettings['allow_editDisplayName']) || allowedTo('moderate_forum') ? 'text' : 'label'),]]></search>
+			<add><![CDATA[			'type' => !empty($modSettings['tea_usecharname']) ? 'select' : (!empty($modSettings['allow_editDisplayName']) || allowedTo('moderate_forum') ? 'text' : 'label'),]]></add>
 		</operation>
 	</file>
 

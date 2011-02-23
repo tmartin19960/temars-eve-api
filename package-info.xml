@@ -4,7 +4,7 @@
 	<id>temar:TEA</id>
 	<name>Temars EVE API</name>
 	<type>modification</type>
-	<version>1.1.1</version>
+	<version>1.1.2</version>
 	<install for="1.1 - 1.1.99">
 		<readme type="file">readme.txt</readme>
 		<readme type="inline" parsebbc="true">[color=red]Error! This mod does not support your version of SMF.[/color]</readme>
@@ -130,6 +130,7 @@
 		<readme type="file">readme.txt</readme>
 		<require-file name="TEA.php" destination="$sourcedir" />
 		<require-file name="TEAC.php" destination="$sourcedir" />
+		<modification type="file">upgrade_1_1_1.xml</modification>
 		<code>tables.php</code>
 	</upgrade>
 </package-info>
