@@ -2,7 +2,7 @@
 <!DOCTYPE modification SYSTEM "http://www.simplemachines.org/xml/modification">
 <modification xmlns="http://www.simplemachines.org/xml/modification" xmlns:smf="http://www.simplemachines.org/">
 	<id>temar:TEA</id>
-	<version>1.00</version>
+	<version>1.1.2</version>
 
 	<file name="$sourcedir/Profile-Modify.php">
 
@@ -10,7 +10,7 @@
 			<search position="replace"><![CDATA[			'type' => !empty($modSettings['allow_editDisplayName']) || allowedTo('moderate_forum') ? 'text' : 'label',
 			'label' => $txt['name'],
 			'subtext' => $txt['display_name_desc'],]]></search>
-			<add><![CDATA[			'type' => $modSettings['tea_usecharname'] ? 'select' : (!empty($modSettings['allow_editDisplayName']) || allowedTo('moderate_forum') ? 'text' : 'label'),
+			<add><![CDATA[			'type' => !empty($modSettings['tea_usecharname']) ? 'select' : (!empty($modSettings['allow_editDisplayName']) || allowedTo('moderate_forum') ? 'text' : 'label'),
 			'label' => $txt['name'],
 			'subtext' => $txt['display_name_desc'],
 			'options' => 'Global $tea; if($modSettings["tea_corptag_options"] == 2) $ticker = TRUE; return $tea -> get_all_chars(FALSE, $ticker);',]]></add>
