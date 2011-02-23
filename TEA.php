@@ -152,7 +152,6 @@ class TEA extends TEAC
 			$corps = $this -> sparse($corps);
 		//	var_dump($corps);die;
 			$alliances = $this -> sparse($alliances);
-			//var_dump($alliances);die;
 			unset($data);
 			if(!empty($corps))
 			{
@@ -176,7 +175,7 @@ class TEA extends TEAC
 					}
 				}
 			}
-		//	var_dump($this -> creds);die;
+
 			if(!empty($alliances))
 			{
 				foreach($alliances as $alliance)
@@ -1180,6 +1179,8 @@ class TEA extends TEAC
 		$tmp = explode("<" . $tag . ">", $xml);
 		if(isset($tmp[1]))
 			$tmp = explode("</" . $tag . ">", $tmp[1]);
+		else
+			return NULL;
 		return $tmp[0];
 	}
 
@@ -1334,7 +1335,6 @@ class TEA extends TEAC
 
 	function settings_settings($scripturl)
 	{
-		//echo "<pre>"; var_dump($this -> modSettings);die;
 		$atime = $this -> alliance_list(FALSE);
 		if($atime)
 			$atime = gmdate("G:i D d M y", $atime).' (GMT)';
@@ -1483,6 +1483,7 @@ class TEA extends TEAC
 		//		$_POST['tea_allianceid'] = $alliance;
 		//		unset($_POST['tea_useapiabove']);
 		//	}
+			$config_vars[] = array('select', 'tea_charid', $charlist);
 			saveDBSettings($config_vars);
 			redirectexit('action=admin;area=tea');
 

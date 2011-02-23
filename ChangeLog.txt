@@ -12,6 +12,7 @@ Bug Fixes
 - Added a check for open_basedir and safe_mode when using CURLOPT_FOLLOWLOCATION
 - Fixed check for existing cache functions
 - Removed a bunch of undefined errors
+- Fixed bug were charid wasnt saved under settings
 
 ----------------------
 Version 1.1.0 -> 1.1.1
