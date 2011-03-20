@@ -11,7 +11,7 @@ class TEAC
 	function get_xml($type, $post = NULL)
 	{
 		if($type == 'standings')
-			$url = "/corp/Standings.xml.aspx";
+			$url = "/corp/ContactList.xml.aspx";
 		elseif($type == 'alliances')
 			$url = "/eve/AllianceList.xml.aspx";
 		elseif($type == 'corp')
@@ -218,6 +218,73 @@ class TEAC
 			$info['alliance'] = (string)$xml -> result -> allianceName;
 		}
 		Return ($info);
+	}
+
+	function standings($userid, $apikey, $charid)
+	{
+		$post = array('userID' => $userid, 'apiKey' => $apikey, 'characterID' => $charid);
+		$xml = $this -> get_xml('standings', $post);
+
+		$xml = new SimpleXMLElement($xml);
+		if(!empty($xml -> result -> rowset[0]))
+		{
+			foreach($xml -> result -> rowset[0] as $s)
+			{
+				$cstandings[(string)$s["contactID"]] = array((string)$s["contactName"], (string)$s["standing"]);
+			}
+		}
+		if(!empty($xml -> result -> rowset[1]))
+		{
+			foreach($xml -> result -> rowset[1] as $s)
+			{
+				$astandings[(string)$s["contactID"]] = array((string)$s["contactName"], (string)$s["standing"]);
+			}
+		}
+
+		if(!empty($cstandings))
+		{
+			foreach($cstandings as $i => $c)
+			{
+				if($c[1] > 0)
+				{
+					$blues[$i][0] = $c[0];
+					$blues[$i][1] = $c[1];
+					$blues[$i][2] = 0;
+					$count++;
+				}
+				elseif($c[1] < 0)
+				{
+					$reds[$i][0] = $c[0];
+					$reds[$i][1] = $c[1];
+					$reds[$i][2] = 0;
+					$count++;
+				}
+			}
+		}
+
+		if(!empty($astandings))
+		{
+			foreach($astandings as $i => $a)
+			{
+				if($a[1] > 0)
+				{
+					$blues[$i][0] = $a[0];
+					$blues[$i][2] = $a[1];
+					$count++;
+					if(!isset($blues[$i][1]))
+						$blues[$i][1] = 0;
+				}
+				elseif($a[1] < 0)
+				{
+					$reds[$i][0] = $a[0];
+					$reds[$i][2] = $a[1];
+					$count++;
+					if(!isset($reds[$i][1]))
+						$reds[$i][1] = 0;
+				}
+			}
+		}
+		Return array($blues, $reds, $count);
 	}
 }
 
