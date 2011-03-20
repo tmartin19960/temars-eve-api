@@ -13,6 +13,7 @@ Bug Fixes
 - Fixed check for existing cache functions
 - Removed a bunch of undefined errors
 - Fixed bug were charid wasnt saved under settings
+- Fixed Standing to New type (contacts)
 
 ----------------------
 Version 1.1.0 -> 1.1.1

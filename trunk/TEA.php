@@ -101,7 +101,7 @@ class TEA extends TEAC
 		//.$this -> get_xml("", "", "")."</pre>";
 		//echo "<pre>"; var_dump($this -> modSettings);die;
 		$this -> alliance_list();
-		$this -> standings();
+		$this -> get_standings();
 		$this -> main($apiuser);
 	}
 
@@ -118,7 +118,7 @@ class TEA extends TEAC
 			$this -> all();
 	}
 
-	function standings()
+	function get_standings()
 	{
 		$sfile = $this -> sourcedir."/../cache/eve_standings.php";
 		if(file_exists($sfile))
@@ -126,106 +126,35 @@ class TEA extends TEAC
 			require($sfile);
 			if($time > (time() - (60 * 60 * 24)))
 			{
-				$this -> cblues = $cblues;
-				$this -> creds = $creds;
-				$this -> ablues = $ablues;
-				$this -> areds = $areds;
+				$this -> blues = $blues;
+				$this -> reds = $reds;
 				Return;
 			}
 			unset($corps);
 		}
-		$post = array('userID' => $this -> modSettings["tea_userid"], 'apiKey' => $this -> modSettings["tea_api"], 'characterID' => $this -> modSettings["tea_charid"]);
-		$data = $this -> get_xml('standings', $post);
-
-		$temp[1] = $this -> xmlparse($data, "corporationStandings");
-		$temp[2] = $this -> xmlparse($data, "allianceStandings");
-		$count = 0;
-		foreach($temp as $i => $data)
-		{
-			if($i == 1)
-				$oi = 2;
-			else
-				$oi = 1;
-			$data = $this -> xmlparse($data, "standingsTo");
-			$corps = $this -> rowset($data, "corporations");
-			$alliances = $this -> rowset($data, "alliances");
-			$corps = $this -> sparse($corps);
-		//	var_dump($corps);die;
-			$alliances = $this -> sparse($alliances);
-			unset($data);
-			if(!empty($corps))
-			{
-				foreach($corps as $corp)
-				{
-					if($corp[2] > 0)
-					{
-						$this -> cblues[$corp[0]][0] = $corp[1];
-						$this -> cblues[$corp[0]][$i] = $corp[2];
-						$count++;
-						if(!isset($this -> cblues[$corp[0]][$oi]))
-							$this -> cblues[$corp[0]][$oi] = 0;
-					}
-					elseif($corp[2] < 0)
-					{
-						$this -> creds[$corp[0]][0] = $corp[1];
-						$this -> creds[$corp[0]][$i] = $corp[2];
-						$count++;
-						if(!isset($this -> creds[$corp[0]][$oi]))
-							$this -> creds[$corp[0]][$oi] = 0;
-					}
-				}
-			}
-
-			if(!empty($alliances))
-			{
-				foreach($alliances as $alliance)
-				{
-					if($alliance[2] > 0)
-					{
-						$this -> ablues[$alliance[0]][0] = $alliance[1];
-						$this -> ablues[$alliance[0]][$i] = $alliance[2];
-						$count++;
-						if(!isset($this -> ablues[$alliance[0]][$oi]))
-							$this -> ablues[$alliance[0]][$oi] = 0;
-					}
-					elseif($alliance[2] < 0)
-					{
-						$this -> areds[$alliance[0]][0] = $alliance[1];
-						$this -> areds[$alliance[0]][$i] = $alliance[2];
-						$count++;
-						if(!isset($this -> areds[$alliance[0]][$oi]))
-							$this -> areds[$alliance[0]][$oi] = 0;
-					}
-				}
-			}
-		}
+		//$post = array('userID' => $this -> modSettings["tea_userid"], 'apiKey' => $this -> modSettings["tea_api"], 'characterID' => $this -> modSettings["tea_charid"]);
+		$data = $this -> standings($this -> modSettings["tea_userid"], $this -> modSettings["tea_api"], $this -> modSettings["tea_charid"]);
+		$this -> blues = $data[0];
+		$this -> reds = $data[1];
+		$count = $data[2];
 
 		if($count > 0)
 		{
 			$file = '<?php'."\n\n";
 			$file .= '$time = '.time().';'."\n\n";
-			foreach($this -> cblues as $c => $a)
+			foreach($this -> blues as $c => $a)
 			{
-				$file .= '$cblues['.$c.'] = array(\''.str_replace("'", "\'", $a[0]).'\', '.$a[1].', '.$a[2].');'."\n";
+				$file .= '$blues['.$c.'] = array(\''.str_replace("'", "\'", $a[0]).'\', '.$a[1].', '.$a[2].');'."\n";
 			}
-			foreach($this -> creds as $c => $a)
+			foreach($this -> reds as $c => $a)
 			{
-				$file .= '$creds['.$c.'] = array(\''.str_replace("'", "\'", $a[0]).'\', '.$a[1].', '.$a[2].');'."\n";
-			}
-			foreach($this -> ablues as $c => $a)
-			{
-				$file .= '$ablues['.$c.'] = array(\''.str_replace("'", "\'", $a[0]).'\', '.$a[1].', '.$a[2].');'."\n";
-			}
-			foreach($this -> areds as $c => $a)
-			{
-				$file .= '$areds['.$c.'] = array(\''.str_replace("'", "\'", $a[0]).'\', '.$a[1].', '.$a[2].');'."\n";
+				$file .= '$reds['.$c.'] = array(\''.str_replace("'", "\'", $a[0]).'\', '.$a[1].', '.$a[2].');'."\n";
 			}
 			$file .= '?>';
 			$fp = fopen($sfile, 'w');
 			fwrite($fp, $file);
 			fclose($fp);
 		}
-	//	var_dump($this -> areds);die;
 	}
 
 	function single($user)
@@ -382,13 +311,13 @@ class TEA extends TEAC
 														Break 2;
 													}
 												case 'blue':
-													if($cond[3] == 'is' && (isset($this -> cblues[$char['corpid']]) || isset($this -> ablues[$char['allianceid']])))
+													if($cond[3] == 'is' && (isset($this -> blues[$char['corpid']]) || isset($this -> blues[$char['allianceid']])))
 													{
 														if($andor == 'OR')
 															Break 2;
 														Break;
 													}
-													elseif($cond[3] == 'isnt' && (!isset($this -> cblues[$char['corpid']]) && !isset($this -> ablues[$char['allianceid']])))
+													elseif($cond[3] == 'isnt' && (!isset($this -> blues[$char['corpid']]) && !isset($this -> blues[$char['allianceid']])))
 													{
 														if($andor == 'OR')
 															Break 2;
@@ -400,13 +329,13 @@ class TEA extends TEAC
 														Break 2;
 													}
 												case 'red':
-													if($cond[3] == 'is' && (isset($this -> creds[$char['corpid']]) || isset($this -> areds[$char['allianceid']])))
+													if($cond[3] == 'is' && (isset($this -> reds[$char['corpid']]) || isset($this -> reds[$char['allianceid']])))
 													{
 														if($andor == 'OR')
 															Break 2;
 														Break;
 													}
-													elseif($cond[3] == 'isnt' && (!isset($this -> creds[$char['corpid']]) && !isset($this -> areds[$char['allianceid']])))
+													elseif($cond[3] == 'isnt' && (!isset($this -> reds[$char['corpid']]) && !isset($this -> reds[$char['allianceid']])))
 													{
 														if($andor == 'OR')
 															Break 2;
@@ -649,13 +578,13 @@ class TEA extends TEAC
 														Break 2;
 													}
 												case 'blue':
-													if($cond[3] == 'is' && (isset($this -> cblues[$char['corpid']]) || isset($this -> ablues[$char['allianceid']])))
+													if($cond[3] == 'is' && (isset($this -> blues[$char['corpid']]) || isset($this -> blues[$char['allianceid']])))
 													{
 														if($andor == 'OR')
 															Break 2;
 														Break;
 													}
-													elseif($cond[3] == 'isnt' && (!isset($this -> cblues[$char['corpid']]) && !isset($this -> ablues[$char['allianceid']])))
+													elseif($cond[3] == 'isnt' && (!isset($this -> blues[$char['corpid']]) && !isset($this -> blues[$char['allianceid']])))
 													{
 														if($andor == 'OR')
 															Break 2;
@@ -667,13 +596,13 @@ class TEA extends TEAC
 														Break 2;
 													}
 												case 'red':
-													if($cond[3] == 'is' && (isset($this -> creds[$char['corpid']]) || isset($this -> areds[$char['allianceid']])))
+													if($cond[3] == 'is' && (isset($this -> reds[$char['corpid']]) || isset($this -> reds[$char['allianceid']])))
 													{
 														if($andor == 'OR')
 															Break 2;
 														Break;
 													}
-													elseif($cond[3] == 'isnt' && (!isset($this -> creds[$char['corpid']]) && !isset($this -> areds[$char['allianceid']])))
+													elseif($cond[3] == 'isnt' && (!isset($this -> reds[$char['corpid']]) && !isset($this -> reds[$char['allianceid']])))
 													{
 														if($andor == 'OR')
 															Break 2;
@@ -1216,28 +1145,6 @@ class TEA extends TEAC
 		return $chars;
 	}
 
-	function sparse($xml)
-	{
-		$standings = array();
-		$xml = explode("<row ", $xml);
-		unset($xml[0]);
-		if(!empty($xml))
-		{
-			foreach($xml as $standing)
-			{
-				$standing = explode('toID="', $standing, 2);
-				$standing = explode('" toName="', $standing[1], 2);
-				$id = $standing[0];
-				$standing = explode('" standing="', $standing[1], 2);
-				$name = $standing[0];
-				$standing = explode('" />', $standing[1], 2);
-				$stand = $standing[0];
-				$standings[] = array($id, $name, $stand);
-			}
-		}
-		return $standings;
-	}
-
 	function get_error($data)
 	{
 		$data = explode('<error code="', $data, 2);
@@ -1367,10 +1274,8 @@ class TEA extends TEAC
 				}
 			}
 		}
-		$cblues = NULL;
-		$ablues = NULL;
-		$creds = NULL;
-		$areds = NULL;
+		$blues = NULL;
+		$reds = NULL;
 		$time = FALSE;
 		$file = $this -> sourcedir."/../cache/eve_standings.php";
 		if(file_exists($file))
@@ -1448,7 +1353,7 @@ class TEA extends TEAC
 			</script>
 			',
 			'<dt>'.$this -> txt['tea_standings_updated'].': '.$time.'</dt>',
-			'<dt>'.$this -> txt['tea_standings_contains'].': '.count($cblues).' '.$this -> txt['tea_standings_bluec'].', '.count($creds).' '.$this -> txt['tea_standings_bluea'].', '.count($ablues).' '.$this -> txt['tea_standings_redc'].', '.count($areds).' '.$this -> txt['tea_standings_reda'].'</dt>',
+			'<dt>'.$this -> txt['tea_standings_contains'].': '.count($blues).' '.$this -> txt['tea_standings_blue'].', '.count($reds).' '.$this -> txt['tea_standings_red'].'</dt>',
 			'<dt>'.$this -> txt['tea_corpl_updated'].': '.$atime.'</dt>',
 			'<dt>'.$this -> txt['tea_corpl_contains'].': '.count($this -> corps).'</dt>',
 			'',
