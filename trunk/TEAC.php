@@ -4,7 +4,7 @@ class TEAC
 {
 	function __construct()
 	{
-		$this -> version = "1.0";
+		$this -> version = "1.2";
 		$this -> server = 'http://api.eve-online.com';
 	}
 
@@ -37,7 +37,7 @@ class TEAC
 		}
 
 		$cache = FALSE;
-		if(method_exists($this, 'get_cache'))
+		if($type != 'standings' && $type != 'alliances' && method_exists($this, 'get_cache'))
 		{
 			$cache = $this -> get_cache($url, $post);
 		}
@@ -46,7 +46,7 @@ class TEAC
 
 		$xml = $this -> get_site($this -> server.$url, $post);
 
-		if(method_exists($this, 'set_cache'))
+		if($type != 'standings' && $type != 'alliances' && method_exists($this, 'set_cache'))
 		{
 			$cache = $this -> set_cache($url, $post, $xml);
 		}
