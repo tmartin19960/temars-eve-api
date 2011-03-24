@@ -23,7 +23,7 @@ class TEA extends TEAC
 		$this -> smcFunc = &$smcFunc;
 		$this -> settings = &$settings;
 
-		$this -> version = "1.1.1.91";
+		$this -> version = "1.1.1.92";
 
 		$permissions["tea_view_own"] = 1;
 		$permissions["tea_view_any"] = 0;
@@ -72,6 +72,8 @@ class TEA extends TEAC
 		}
 		$this -> server = $this -> settings['tea_api_server'];
 		$this -> undefined();
+		$time = time() - 3600;
+		$this -> smcFunc['db_query']('', "DELETE FROM {db_prefix}tea_cache WHERE time < ".$time);
 	}
 
 	function undefined()
