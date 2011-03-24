@@ -14,6 +14,7 @@ Bug Fixes
 - Removed a bunch of undefined errors
 - Fixed bug were charid wasnt saved under settings
 - Fixed Standing to New type (contacts)
+- No Longer caching standing and alliance list in Database as they can be too large, and they are already cached in a file
 
 ----------------------
 Version 1.1.0 -> 1.1.1
