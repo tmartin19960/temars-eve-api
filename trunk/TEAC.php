@@ -4,7 +4,7 @@ class TEAC
 {
 	function __construct()
 	{
-		$this -> version = "1.2";
+		$this -> version = "1.3";
 		$this -> server = 'http://api.eve-online.com';
 	}
 
@@ -216,6 +216,7 @@ class TEAC
 			if(empty($info['allianceid']) || $info['allianceid'] == '')
 				$info['allianceid'] = 0;
 			$info['alliance'] = (string)$xml -> result -> allianceName;
+			$info['aticker'] = $this -> atags[$info['allianceid']];
 		}
 		Return ($info);
 	}

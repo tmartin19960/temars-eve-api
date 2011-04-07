@@ -1,5 +1,5 @@
 <?php
-$txt['tea_title'] = 'Temars Eve Api';
+$txt['tea_tea'] = 'Temars Eve Api';
 $txt['tea_eveapi'] = 'Eve Api';
 $txt['tea_userid'] = 'User ID from API Page <A href="http://myeve.eve-online.com/api/default.asp">here</a>';
 $txt['tea_api'] = 'API key from API Page <A href="http://myeve.eve-online.com/api/default.asp">here</a>';
@@ -11,11 +11,12 @@ $txt['tea_api_short'] = 'API Key';
 $txt['tea_userinfo'] = 'This section allows you to customize the setting for your API.';
 $txt['tea_regreq_error'] = 'A Valid API is Required to Register on this Forum';
 $txt['tea_regchar_error'] = 'Please Select a Character';
-$txt['tea_disabled'] = 'Eve Api Mod is Disabled.';
+$txt['tea_disabled'] = 'Temars Eve Api Mod is Disabled.';
 $txt['tea_version'] = 'Version';
 
 //Settings Page
 $txt['tea_rules'] = "Rules";
+$txt['tea_ts'] = "TeamSpeak";
 $txt['tea_checks'] = "Checks";
 $txt['tea_settings_message'] = "The API info needed here is to get Standings<Br>A Full API Key is Required for Standings";
 $txt['tea_enable'] = 'Enable Temars Eve Api Mod';
@@ -44,6 +45,27 @@ $txt['tea_group_settings'] = 'Group Setting for Users with no API';
 $txt['tea_main'] = 'Main group';
 $txt['tea_getchar'] = 'Get Characters';
 $txt['tea_api_server'] = 'Server to get API data from';
+
+//TS Settings
+$txt['tea_ts_enable'] = 'Enable TeamSpeak for TEA Mod';
+$txt['tea_ts_host'] = 'Address of Host (localhost or 127.0.0.1 if same server)';
+$txt['tea_ts_qport'] = 'Server Query Port';
+$txt['tea_ts_port'] = 'Server Port';
+$txt['tea_ts_username'] = 'Query Username';
+$txt['tea_ts_password'] = 'Query Password';
+$txt['tea_ts_nf'] = 'Name Format (use #at# #ct# for alliance/corp tags and #name# for char name)';
+$txt['tea_ts_addrule_group'] = 'SMF Group';
+$txt['tea_ts_addrule_tsg'] = 'TS Group';
+$txt['tea_ts_addrule_nf'] = 'Name Format (use #at# #ct# for alliance/corp tags and #name# for char name)<br>Leave Blank for Default';
+$txt['tea_ts_db'] = 'Database and table name eg ts.clients';
+$txt['tea_ts_dbid'] = 'Server Database ID';
+$txt['tea_ts_method_online'] = 'Allow Online Method';
+$txt['tea_ts_method_create'] = 'Allow TS UniqueID Method';
+
+
+//TS Profile
+$txt['tea_ts_userinfo'] = 'This section allows you to Gain Access to TeamSpeak';
+$txt['tea_ts_disabled'] = 'Temars Eve Api Mod TS Area is Disabled.';
 
 $txt['tea_corp'] = 'Corp';
 $txt['tea_alliance'] = 'Alliance';

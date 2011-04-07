@@ -128,6 +128,7 @@ $tables[2]["corp"] = "VARCHAR(50) DEFAULT NULL";
 $tables[2]["corp_ticker"] = "VARCHAR(20) DEFAULT NULL";
 $tables[2]["allianceid"] = "INT DEFAULT NULL";
 $tables[2]["alliance"] = "VARCHAR(50) DEFAULT NULL";
+$tables[2]["alliance_ticker"] = "VARCHAR(20) DEFAULT NULL";
 
 $info[3]['old'] = 'eve_rules';
 $info[3]['name'] = 'tea_rules';
