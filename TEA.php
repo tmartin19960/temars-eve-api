@@ -23,7 +23,7 @@ class TEA extends TEAC
 		$this -> smcFunc = &$smcFunc;
 		$this -> settings = &$settings;
 
-		$this -> version = "1.1.1.92";
+		$this -> version = "1.1.1.93";
 
 		$permissions["tea_view_own"] = 1;
 		$permissions["tea_view_any"] = 0;
@@ -837,15 +837,15 @@ class TEA extends TEAC
 			foreach($chars as $char)
 			{
 				//	$chars[] = array('name' => $name, 'charid' => $charid, 'corpname' => $corpname, 'corpid' => $corpid);
-				$corpinfo = $this -> corp_info($char['corpid']); // corpname, ticker, allianceid, alliance
+				$corpinfo = $this -> corp_info($char['corpid']); // corpname, ticker, allianceid, alliance, aticker
 				$char = array_merge($char, $corpinfo);
 				$charlist[] = $char;
 				$this -> chars[$char['name']] = $char;
 				$this -> query("
 					REPLACE INTO {db_prefix}tea_characters
-						(userid, charid, name, corpid, corp, corp_ticker, allianceid, alliance)
+						(userid, charid, name, corpid, corp, corp_ticker, allianceid, alliance, alliance_ticker)
 					VALUES 
-					('" . mysql_real_escape_string($userid) . "', '" . mysql_real_escape_string($char['charid']) . "', '" . mysql_real_escape_string($char['name']) . "', '" . mysql_real_escape_string($char['corpid']) . "', '" . mysql_real_escape_string($char['corpname']) . "', '" . mysql_real_escape_string($char['ticker']) . "', '".$char['allianceid']."', '" . mysql_real_escape_string($char['alliance']) . "')");
+					('" . mysql_real_escape_string($userid) . "', '" . mysql_real_escape_string($char['charid']) . "', '" . mysql_real_escape_string($char['name']) . "', '" . mysql_real_escape_string($char['corpid']) . "', '" . mysql_real_escape_string($char['corpname']) . "', '" . mysql_real_escape_string($char['ticker']) . "', '".$char['allianceid']."', '" . mysql_real_escape_string($char['alliance']) . "', '" . mysql_real_escape_string($char['aticker']) . "')");
 			}
 		}
 		Return $charlist;
@@ -897,13 +897,13 @@ class TEA extends TEAC
 	function get_acc_chars($userid)
 	{
 		$charlist = NULL;
-		$chars = $this -> smcFunc['db_query']('', "SELECT charid, name, corp_ticker, corp, alliance FROM {db_prefix}tea_characters WHERE userid = {int:id}", array('id' => $userid));
+		$chars = $this -> smcFunc['db_query']('', "SELECT charid, name, corp_ticker, corp, alliance, alliance_ticker FROM {db_prefix}tea_characters WHERE userid = {int:id}", array('id' => $userid));
 		$chars = $this -> select($chars);
 		if(!empty($chars))
 		{
 			foreach($chars as $char)
 			{
-				$charlist[$char[0]] = array($char[1], $char[2], $char[3], $char[4]);
+				$charlist[$char[0]] = array($char[1], $char[2], $char[3], $char[4], $char[5]);
 			}
 		}
 		Return $charlist;
@@ -1192,6 +1192,7 @@ class TEA extends TEAC
 				$corp = explode('" startDate="', $corp, 2);
 				$corps[$corp[0]] = $id;
 			}
+			$this -> atags[$id] = $tag;
 		}
 		if(count($corps) > 5)
 		{
@@ -1201,6 +1202,10 @@ class TEA extends TEAC
 			foreach($corps as $c => $a)
 			{
 				$file .= '$corps['.$c.'] = '.$a.';'."\n";
+			}
+			foreach($this -> atags as $id => $tag)
+			{
+				$file .= '$this -> atags['.$id.'] = "'.$tag.'";'."\n";
 			}
 			$file .= '?>';
 			$fp = fopen($sfile, 'w');
@@ -1220,7 +1225,7 @@ class TEA extends TEAC
 	function Settings($scripturl)
 	{
 		$this -> context[$this -> context['admin_menu_name']]['tab_data'] = array(
-			'title' => $this -> txt['tea_title'],
+			'title' => $this -> txt['tea_tea'],
 		//	'help' => 'featuresettings',
 			'description' => $this -> txt['tea_settings_message'],
 			'tabs' => array(
@@ -1399,7 +1404,7 @@ class TEA extends TEAC
 		}
 
 		$this -> context['post_url'] = $scripturl . '?action=admin;area=tea;save';
-	//	$context['settings_title'] = $txt['tea_title'];
+	//	$context['settings_title'] = $txt['tea_tea'];
 	//	$context['settings_message'] = $txt['tea_settings_message'];
 
 		prepareDBSettingContext($config_vars);
@@ -2064,7 +2069,7 @@ value_type();
 		}
 
 		//$context['post_url'] = $scripturl . '?action=admin;area=tea;sa=checks;save';
-//		$context['settings_title'] = $txt['tea_title'];
+//		$context['settings_title'] = $txt['tea_tea'];
 //		$context['settings_message'] = $txt['tea_settings_message'];
 		$this -> context['post_url'] = $scripturl . '?action=admin;area=tea;sa=checks;save';
 		$this -> context['settings_save_dont_show'] = TRUE;
@@ -2549,7 +2554,7 @@ function postFileReady()
 $tea = new TEA($db_prefix, $sourcedir, $modSettings, $user_info, $context, $txt, $smcFunc, $settings);
 
 Global $forum_copyright;
-$forum_copyright .= '<br><a href="http://code.google.com/p/temars-eve-api/" target="_blank" class="new_win">TEA '.$tea -> version.' © 2009-2010, Temars EVE API</a>';
+$forum_copyright .= '<br><a href="http://code.google.com/p/temars-eve-api/" target="_blank" class="new_win">TEA '.$tea -> version.' © 2009-2011, Temars EVE API</a>';
 
 function edittea($memID)
 {
@@ -2575,7 +2580,7 @@ function template_edittea()
 				<tr class="titlebg">
 					<td height="26">
 						&nbsp;<img src="', $settings['images_url'], '/icons/profile_sm.gif" alt="" border="0" align="top" />&nbsp;
-						', $txt['tea_title'], '
+						', $txt['tea_tea'], '
 					</td>
 				</tr><tr class="windowbg">
 					<td class="smalltext" height="25" style="padding: 2ex;">
