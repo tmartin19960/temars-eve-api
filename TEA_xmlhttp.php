@@ -1,4 +1,6 @@
 <?php
+
+$ssi_guest_access = TRUE;
 if (file_exists('SSI.php') && !defined('SMF'))
 	require_once('SSI.php');
 
