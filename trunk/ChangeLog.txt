@@ -1,4 +1,14 @@
 ----------------------
+Version 1.1.2 -> 1.2.0
+----------------------
+New Features
+- TeamSpeak 3 Support, This includes Registering via User uniqueKey or being on the server and having it find you
+  Also Maintains users Access, will smf and Ts group linking, and can enforce nicknames
+
+Bug Fixes
+- Fixed bug that showed full forum page instead of character list when registering
+
+----------------------
 Version 1.1.1 -> 1.1.2
 ----------------------
 New Features
