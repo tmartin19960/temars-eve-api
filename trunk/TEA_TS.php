@@ -421,12 +421,7 @@ function move(id, value)
 				$char = html_entity_decode($char, ENT_QUOTES);
 				if($_POST['method'] == 'online' && $this -> modSettings["tea_ts_method_online"])
 				{
-				//	$chars = $this -> tea -> get_all_chars($memberID);
 					$name = $this -> format_name($memberID, $char);
-				//	$name = $this -> modSettings["tea_ts_nf"];
-				//	$name = str_replace('#at#', $chars[$char][4], $name);
-				//	$name = str_replace('#ct#', $chars[$char][1], $name);
-				//	$name = str_replace('#name#', $char, $name);
 
 					try
 					{
@@ -456,6 +451,11 @@ function move(id, value)
 					$tsdb = $this -> modSettings["tea_ts_db_pre"];
 					$dbid = $this -> modSettings["tea_ts_dbid"];
 					$cid = $_POST['tsid'];
+					if(strlen($cid) != 28 || $cid[27] != '=')
+					{
+						$_SESSION['tea_ts_error'][] = 'Invalid TeamSpeak UnqiueID';
+						return;
+					}
 					$this -> ts_connect();
 					$check = $this -> ts_select("SELECT client_id FROM $tsdb WHERE client_unique_id = '".mysql_real_escape_string($cid)."'");
 					$scheck = $this -> smcFunc['db_query']('', "SELECT tsid, dbid, name FROM {db_prefix}tea_ts_users WHERE id = ".$memberID);
