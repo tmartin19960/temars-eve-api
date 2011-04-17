@@ -13,12 +13,18 @@
 			<add><![CDATA[			'type' => !empty($modSettings['tea_usecharname']) ? 'select' : (!empty($modSettings['allow_editDisplayName']) || allowedTo('moderate_forum') ? 'text' : 'label'),
 			'label' => $txt['name'],
 			'subtext' => $txt['display_name_desc'],
-			'options' => 'Global $tea; if($modSettings["tea_corptag_options"] == 2) $ticker = TRUE; return $tea -> get_all_chars(FALSE, $ticker);',]]></add>
+			'options' => 'Global $tea; if($modSettings["tea_corptag_options"] == 2) $ticker = TRUE; return $tea -> get_char_list(FALSE, $ticker);',]]></add>
 		</operation>
 		<operation>
 			<search position="replace"><![CDATA[	// Here's where we sort out all the 'other' values...]]></search>
-			<add><![CDATA[	global $tea;
-	$tea -> TEAAdd($memID);
+			<add><![CDATA[	global $tea, $teats;
+	if($_GET['sa'] == 'ts')
+	{
+		$teats -> tea_set_ts($memID);
+		redirectexit('action=profile;area=tea;sa=ts;updated;u='.$memID);
+	}
+	else
+		$tea -> TEAAdd($memID);
 
 	// Here's where we sort out all the 'other' values...]]></add>
 		</operation>

@@ -57,10 +57,16 @@ $txt['tea_ts_nf'] = 'Name Format (use #at# #ct# for alliance/corp tags and #name
 $txt['tea_ts_addrule_group'] = 'SMF Group';
 $txt['tea_ts_addrule_tsg'] = 'TS Group';
 $txt['tea_ts_addrule_nf'] = 'Name Format (use #at# #ct# for alliance/corp tags and #name# for char name)<br>Leave Blank for Default';
-$txt['tea_ts_db'] = 'Database and table name eg ts.clients';
+$txt['tea_ts_db_need'] = 'TS Database Details, Only Required for UniqueID Method';
+$txt['tea_ts_db_host'] = 'TS Database host eg localhost';
+$txt['tea_ts_db_user'] = 'TS Database username';
+$txt['tea_ts_db_pw'] = 'TS Database password';
+$txt['tea_ts_db_pre'] = 'TS Database and table name eg ts.clients';
 $txt['tea_ts_dbid'] = 'Server Database ID';
 $txt['tea_ts_method_online'] = 'Allow Online Method';
-$txt['tea_ts_method_create'] = 'Allow TS UniqueID Method';
+$txt['tea_ts_method_create'] = 'Allow TS UniqueID Method (Requires TS to run as MySQL)';
+$txt['tea_ts_warnm'] = 'Incorrect Name Warning Every x Mins (0 = Disabled)';
+$txt['tea_ts_kickm'] = 'Incorrect Name Kick after x Mins (0 = Disabled)';
 
 
 //TS Profile

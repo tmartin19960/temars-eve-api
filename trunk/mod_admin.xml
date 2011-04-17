@@ -12,13 +12,14 @@
 		'layout' => array(
 			'title' => $txt['layout_controls'],]]></search>
 			<add><![CDATA[				'tea' => array(
-					'label' => $txt['tea_eveapi'],
+					'label' => $txt['tea_tea'],
 					'file' => 'TEA.php',
 					'function' => 'ModifyTEASettings',
 					'icon' => 'tea.gif',
 					'subsections' => array(
 						'settings' => array($txt['settings']),
 						'rules' => array($txt['tea_rules']),
+						'ts' => array($txt['tea_ts']),
 						'checks' => array($txt['tea_checks']),
 					),
 				),
