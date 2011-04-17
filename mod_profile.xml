@@ -8,11 +8,15 @@
 		<operation>
 			<search position="replace"><![CDATA[				'groupmembership' => array(]]></search>
 			<add><![CDATA[				'tea' => array(
-					'label' => $txt['tea_eveapi'],
+					'label' => $txt['tea_tea'],
 					'file' => 'TEA.php',
 					'function' => 'edittea',
 					'enabled' => allowedTo(array('tea_edit_own', 'tea_edit_any')),
 					'sc' => 'post',
+					'subsections' => array(
+						'api' => array($txt['tea_eveapi']),
+						'ts' => array($txt['tea_ts']),
+					),
 					'permission' => array(
 						'own' => array('tea_edit_any', 'tea_edit_own'),
 						'any' => array('tea_edit_any'),

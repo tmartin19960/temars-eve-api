@@ -164,6 +164,33 @@ $tables[6]["post"] = "VARCHAR(233) DEFAULT NULL";
 $tables[6]["time"] = "INT DEFAULT 0";
 $tables[6]["xml"] = "MEDIUMTEXT";
 
+$info[7]['name'] = 'tea_ts_rules';
+$info[7]['primary'] = 'id';
+$tables[7]["id"] = "INT DEFAULT NULL AUTO_INCREMENT";
+$tables[7]["smf"] = "INT DEFAULT 0";
+$tables[7]["ts"] = "INT DEFAULT 0";
+$tables[7]["tst"] = "VARCHAR(1) DEFAULT NULL";
+$tables[7]["nf"] = "VARCHAR(255) DEFAULT NULL";
+
+$info[8]['name'] = 'tea_ts_users';
+$info[8]['primary'] = 'id';
+$tables[8]["id"] = "INT";
+$tables[8]["tsid"] = "VARCHAR(255)";
+$tables[8]["dbid"] = "INT";
+$tables[8]["name"] = "VARCHAR(255)";
+$tables[8]["warnstart"] = "INT";
+$tables[8]["lastwarn"] = "INT";
+
+$info[9]['name'] = 'tea_ts_groups';
+$info[9]['primary'] = 'id';
+$tables[9]["id"] = "VARCHAR(11) DEFAULT NULL";
+$tables[9]["value"] = "INT(1) DEFAULT 1";
+
+$info[10]['name'] = 'tea_user_prefs';
+$info[10]['primary'] = 'id';
+$tables[10]["id"] = "VARCHAR(11) DEFAULT NULL";
+$tables[10]["main"] = "INT(11) DEFAULT 0";
+
 Global $db_prefix;
 
 require("esam_upgrade.php");

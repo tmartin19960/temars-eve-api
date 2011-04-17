@@ -23,7 +23,7 @@ class TEA extends TEAC
 		$this -> smcFunc = &$smcFunc;
 		$this -> settings = &$settings;
 
-		$this -> version = "1.1.1.93";
+		$this -> version = "1.2.0";
 
 		$permissions["tea_view_own"] = 1;
 		$permissions["tea_view_any"] = 0;
@@ -851,7 +851,7 @@ class TEA extends TEAC
 		Return $charlist;
 	}
 
-	function get_all_chars($id=FALSE, $getticker=FALSE)
+	function get_char_list($id=FALSE, $getticker=FALSE)
 	{
 		$ID_MEMBER = $this -> user_info['id'];
 		// Did we get the user by name...
@@ -892,6 +892,36 @@ class TEA extends TEAC
 			}
 		}
 		Return $charlist;
+	}
+
+	function get_all_chars($memID=FALSE)
+	{
+		if(!$memID)
+		{
+			$ID_MEMBER = $this -> user_info['id'];
+			// Did we get the user by name...
+			if (isset($_REQUEST['user']))
+				$memberResult = loadMemberData($_REQUEST['user'], true, 'profile');
+			// ... or by ID_MEMBER?
+			elseif (!empty($_REQUEST['u']))
+				$memberResult = loadMemberData((int) $_REQUEST['u'], false, 'profile');
+			// If it was just ?action=profile, edit your own profile.
+			else
+				$memberResult = loadMemberData($ID_MEMBER, false, 'profile');
+			$memID = $memberResult[0];
+		}
+		$user = $this -> smcFunc['db_query']('', "SELECT userid FROM {db_prefix}tea_api WHERE ID_MEMBER = {int:id}", array('id' => $memID));
+		$user = $this -> select($user);
+		if(!empty($user))
+		{
+			$all = array();
+			foreach($user as $acc)
+			{
+				$chars = $this -> get_acc_chars($acc[0]);
+				$all = array_merge($all, $chars);
+			}
+		}
+		return $all;
 	}
 
 	function get_acc_chars($userid)
@@ -1234,6 +1264,8 @@ class TEA extends TEAC
 				'rules' => array(
 	//				'description' => $this -> txt['signature_settings_desc'],
 				),
+				'ts' => array(
+				),
 				'checks' => array(
 				),
 			),
@@ -1241,6 +1273,8 @@ class TEA extends TEAC
 
 		if(isset($_GET['sa']) && strtolower($_GET['sa']) == "rules")
 			$this -> settings_rules($scripturl);
+		elseif(isset($_GET['sa']) && strtolower($_GET['sa']) == "ts")
+			$this -> ts -> settings($scripturl);
 		elseif(isset($_GET['sa']) && strtolower($_GET['sa']) == "checks")
 			$this -> settings_checks($scripturl);
 		else
@@ -2156,7 +2190,7 @@ value_type();
 		{
 			//if($modSettings['tea_usecharname'])
 			if($_POST['tea_char'] != "-")
-			{	
+			{
 				//$char = $this -> matchedchar;
 				$name = $_POST['tea_char'];
 				//if(!empty($char))
@@ -2334,6 +2368,7 @@ value_type();
 				else
 					$aname = 'none';
 				$teainfo[] = array(
+				"memid" => $memID,
 				"userid" => $u[0],
 				"api" => $u[1],
 			//	"msg" => $msg,
@@ -2486,7 +2521,7 @@ function postFileReady()
 			</script>
 								<div id="avatar_tea">
 									<select name="attachment" value="', !empty($this -> context['member']['avatar']['tea']) ? $this -> context['member']['avatar']['tea'] : '', '"  onfocus="selectRadioByName(document.forms.creator.avatar_choice, \'tea\');" onchange="getPortrait(this.value);" >';
-		$chars = $this -> get_all_chars(TRUE);
+		$chars = $this -> get_char_list(TRUE);
 	//	echo "\n<pre>"; var_dump($this -> context['member']['avatar']);die;
 		if(!empty($chars))
 		{
@@ -2553,6 +2588,10 @@ function postFileReady()
 
 $tea = new TEA($db_prefix, $sourcedir, $modSettings, $user_info, $context, $txt, $smcFunc, $settings);
 
+require_once($sourcedir.'/TEA_TS.php');
+$tea -> ts = $teats;
+$teats -> tea = $tea;
+
 Global $forum_copyright;
 $forum_copyright .= '<br><a href="http://code.google.com/p/temars-eve-api/" target="_blank" class="new_win">TEA '.$tea -> version.' © 2009-2011, Temars EVE API</a>';
 
@@ -2574,6 +2613,10 @@ function ModifyTEASettings()
 function template_edittea()
 {
 	global $tea, $teainfo, $sourcedir, $context, $settings, $options, $scripturl, $modSettings, $txt;
+
+	if(isset($_GET['sa']) && strtolower($_GET['sa']) == "ts")
+		return template_edit_tea_ts();
+
 	echo '
 		<form action="', $scripturl, '?action=profile;area=tea;save" method="post" accept-charset="', $context['character_set'], '" name="creator" id="creator">
 			<table border="0" width="100%" cellspacing="1" cellpadding="4" align="center" class="bordercolor">
