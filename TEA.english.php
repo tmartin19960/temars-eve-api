@@ -35,6 +35,7 @@ $txt['tea_groupass_neut'] = 'Group for Neutrals';
 $txt['tea_groupass_unknown'] = 'Group for Unknown Status';
 $txt['tea_corptag_options'] = 'Corp Tag';
 $txt['tea_fullcheck'] = 'Run Full Member Check Now';
+$txt['tea_fullnamecheck'] = 'Reset All Names, Avatars to those Set with Main Character';
 $txt['tea_standings_updated'] = 'Standings Last Updated';
 $txt['tea_standings_contains'] = 'Standings List Contains';
 $txt['tea_standings_blue'] = 'Blue Contacts';
