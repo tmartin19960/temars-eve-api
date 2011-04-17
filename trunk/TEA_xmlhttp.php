@@ -11,19 +11,19 @@ if(!empty($chars))
 {
 	if($_GET['page'] == 'settings')
 		echo '<select name="tea_charid" id="tea_charid" >';
-	else
-		echo '<select name="tea_char">';
+	//else
+	//	echo '<select name="tea_char">';
 	foreach($chars as $char)
 	{
-		if($_GET['page'] == 'settings')
+	//	if($_GET['page'] == 'settings')
 			echo '<option value="'.$char['charid'].'">'.$char['name'].'</option>';
-		else
-		{
-			if($modSettings["tea_corptag_options"] == 2)
-				$name = '['.$char['ticker'].'] '.$char['name'];
-			else
-				$name = $char['name'];
-			echo '<option value="'.$name.'">'.$name.'</option>';
+	//	else
+	//	{
+	//		if($modSettings["tea_corptag_options"] == 2)
+	//			$name = '['.$char['ticker'].'] '.$char['name'];
+	//		else
+	//			$name = $char['name'];
+	//		echo '<option value="'.$name.'">'.$name.'</option>';
 		}
 	}
 }

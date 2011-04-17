@@ -918,7 +918,8 @@ class TEA extends TEAC
 			foreach($user as $acc)
 			{
 				$chars = $this -> get_acc_chars($acc[0]);
-				$all = array_merge($all, $chars);
+				foreach($chars as $i => $c)
+					$all[$i] = $c;
 			}
 		}
 		return $all;
@@ -2093,19 +2094,27 @@ value_type();
 			'<dt>'.$file.'</dt>'
 			);
 		}
+		elseif (isset($_GET['reset']))
+		{
+			if(!$this -> modSettings["tea_enable"])
+				$file = "API Mod is Disabled";
+			$log = $this -> pref_reset();
+			$config_vars = array(
+			'<dt>'.$log.'</dt>'
+			);
+		}
 		else
 		{
-
 			$config_vars = array(
 				'<dt><a href="'.$scripturl.'?action=admin;area=tea;sa=checks;update">'.$this -> txt['tea_fullcheck'].'</a></dt>',
+				'<dt><a href="'.$scripturl.'?action=admin;area=tea;sa=checks;reset">'.$this -> txt['tea_fullnamecheck'].'</a></dt>',
 			);
-
 		}
 
 		//$context['post_url'] = $scripturl . '?action=admin;area=tea;sa=checks;save';
 //		$context['settings_title'] = $txt['tea_tea'];
 //		$context['settings_message'] = $txt['tea_settings_message'];
-		$this -> context['post_url'] = $scripturl . '?action=admin;area=tea;sa=checks;save';
+//		$this -> context['post_url'] = $scripturl . '?action=admin;area=tea;sa=checks;save';
 		$this -> context['settings_save_dont_show'] = TRUE;
 		prepareDBSettingContext($config_vars);
 	}
@@ -2186,37 +2195,145 @@ value_type();
 		unset($_POST['tea_user_id']);
 		unset($_POST['tea_user_api']);
 		$this -> update_api($memberID);
-		if($reg)
+		$user = $this -> smcFunc['db_query']('', "SELECT main FROM {db_prefix}tea_user_prefs WHERE id = ".$memberID);
+		$user = $this -> select($user);
+		if($reg || empty($user) || $user[0][0] != $_POST['tea_charid'])
 		{
 			//if($modSettings['tea_usecharname'])
-			if($_POST['tea_char'] != "-")
+			if($_POST['tea_charid'] != "-")
 			{
 				//$char = $this -> matchedchar;
-				$name = $_POST['tea_char'];
-				//if(!empty($char))
-				//{
-					//$name = $char['name'];
-					//if($this -> modSettings["tea_corptag_options"] == 1)
-					//	$this -> query("UPDATE {db_prefix}members SET usertitle = '".$char['ticker']."' WHERE ID_MEMBER = ".$memberID);
-					//elseif($this -> modSettings["tea_corptag_options"] == 2)
-					//	$name = '['.$char['ticker'].'] '.$name;
-					$this -> query("UPDATE {db_prefix}members SET real_name = '".mysql_real_escape_string($name)."' WHERE ID_MEMBER = ".$memberID);
-				//}
-				if($this -> modSettings['tea_avatar_enabled'])
+				$charid = $_POST['tea_charid'];
+				if(!is_numeric($charid))
+					die('charid must be number if selected');
+				$this -> query("REPLACE INTO {db_prefix}tea_user_prefs (id, main) VALUES (".$memberID.", ".$charid.")");
+				$char = $this -> smcFunc['db_query']('', "SELECT name, corpid, corp, corp_ticker, allianceid, alliance, alliance_ticker FROM {db_prefix}tea_characters WHERE charid = ".$charid);
+				$char = $this -> select($char);
+				if(!empty($char))
 				{
-					if($this -> modSettings["tea_corptag_options"] == 2)
+					$char = $char[0];
+					$name = $char[0];
+					if($this -> modSettings["tea_corptag_options"] == 1)
+						$this -> query("UPDATE {db_prefix}members SET usertitle = '".$char[3]."' WHERE ID_MEMBER = ".$memberID);
+					elseif($this -> modSettings["tea_corptag_options"] == 2)
+						$name = '['.$char[3].'] '.$name;
+					$this -> query("UPDATE {db_prefix}members SET real_name = '".mysql_real_escape_string($name)."' WHERE ID_MEMBER = ".$memberID);
+
+					if($this -> modSettings['tea_avatar_enabled'])
 					{
-						$name = explode("] ", $name, 2);
-						$name = $name[1];
-					}
-					if(isset($this -> chars[$name]['charid']))
-					{
-						require_once("Subs-Graphics.php");
-						downloadAvatar('http://image.eveonline.com/Character/'.$this -> chars[$name]['charid'].'_64.jpg', $memberID, 64, 64);
+						if($this -> modSettings["tea_corptag_options"] == 2)
+						{
+					//		$name = explode("] ", $name, 2);
+					//		$name = $name[1];
+					//	}
+					//	if(isset($this -> chars[$name]['charid']))
+					//	{
+							require_once("Subs-Graphics.php");
+							downloadAvatar('http://image.eveonline.com/Character/'.$charid.'_64.jpg', $memberID, 64, 64);
+						}
 					}
 				}
 			}
 		}
+	}
+
+	function pref_reset()
+	{
+		$user = $this -> smcFunc['db_query']('', "SELECT id, main FROM {db_prefix}tea_user_prefs");
+		$user = $this -> select($user);
+		if(!empty($user))
+		{
+			foreach($user as $u)
+			{
+				$memberID = $u[0];
+				$charid = $u[1];
+				$char = $this -> smcFunc['db_query']('', "SELECT name, corpid, corp, corp_ticker, allianceid, alliance, alliance_ticker FROM {db_prefix}tea_characters WHERE charid = ".$charid);
+				$char = $this -> select($char);
+				if(!empty($char))
+				{
+					$char = $char[0];
+					$name = $char[0];
+					if($this -> modSettings["tea_corptag_options"] == 1)
+						$this -> query("UPDATE {db_prefix}members SET usertitle = '".$char[3]."' WHERE ID_MEMBER = ".$memberID);
+					elseif($this -> modSettings["tea_corptag_options"] == 2)
+						$name = '['.$char[3].'] '.$name;
+					$this -> query("UPDATE {db_prefix}members SET real_name = '".mysql_real_escape_string($name)."' WHERE ID_MEMBER = ".$memberID);
+
+					if($this -> modSettings['tea_avatar_enabled'])
+					{
+						if($this -> modSettings["tea_corptag_options"] == 2)
+						{
+					//		$name = explode("] ", $name, 2);
+					//		$name = $name[1];
+					//	}
+					//	if(isset($this -> chars[$name]['charid']))
+					//	{
+							require_once("Subs-Graphics.php");
+							downloadAvatar('http://image.eveonline.com/Character/'.$charid.'_64.jpg', $memberID, 64, 64);
+						}
+					}
+				}
+				$count++;
+			}
+		}
+		return $count." User Prefs reset";
+	}
+
+	function setmains()
+	{
+		$user = $this -> smcFunc['db_query']('', "SELECT id_member, real_name FROM {db_prefix}members");
+		$user = $this -> select($user);
+		if(!empty($user))
+		{
+			foreach($user as $u)
+			{
+				$match = FALSE;
+				$chars = $this -> get_all_chars($u[0]);
+				if(!empty($chars))
+				{
+					foreach($chars as $char)
+					{
+						$comp[] = $char[0];
+					}
+					$best = $this -> best_match($u[1], $comp);
+					$best = $best[1];
+					foreach($chars as $i => $char)
+					{
+						if($char[0] == $best)
+							$match = $i;
+					}
+					if($match)
+					{
+						$this -> query("REPLACE INTO {db_prefix}tea_user_prefs (id, main) VALUES (".$u[0].", ".$match.")");
+						echo "User ID: ".$u[0]." (".$u[1].") Matched to Character $best ($match) <Br>";
+					}
+				}
+				if(!$match)
+				{
+					echo "User ID: ".$u[0]." (".$u[1].") Failed<Br>";
+				}
+			}
+		}
+	}
+
+	function best_match($find, $in, $perc=0)
+	{
+		$use = array(0);
+		$percentage = 0;
+
+		if(!empty($in))
+		{
+			foreach($in as $compare)
+			{
+				similar_text($find, $compare, $percentage);
+				if ($percentage >= $perc
+				&& $percentage > $use[0])
+				{
+					$use = array($percentage, $compare);
+				}
+			}
+		}
+		return $use;
 	}
 
 	function DisplayAPIinfo(&$context, &$modSettings, $db_prefix, &$txt)
@@ -2351,6 +2468,10 @@ value_type();
 				if(!empty($matched[1]))
 					$adits = explode(',', $matched[1]);
 				$anames = array();
+				$prefs = $this -> smcFunc['db_query']('', "SELECT main FROM {db_prefix}tea_user_prefs WHERE id = {int:id}", array('id' => $memID));
+				$prefs = $this -> select($prefs);
+				if(!empty($prefs))
+					$main = $prefs[0][0];
 				if(!empty($adits) && $adits[0] != '')
 				{
 					foreach($adits as $a)
@@ -2373,6 +2494,7 @@ value_type();
 				"api" => $u[1],
 			//	"msg" => $msg,
 				'charnames' => $characters,
+				'main' => $main,
 				'status' => $u[2],
 				'mainrule' => $mname,
 				'aditrules' => $aname,
@@ -2638,9 +2760,21 @@ function template_edittea()
 	}
 	else
 	{
-			//if($user[3] == "unverified")
-				//echo "<tr><td>Please use this command to Verify the Character<br>".$teainfo['msg']."<br></td></tr>";
-$teainfo[] = array(
+		foreach($teainfo as $info)
+		{
+			foreach($info['charnames'] as $i => $char)
+				$charlist[$i] = $char[0];
+		}
+		echo '<tr><td>'.$txt['tea_charid'].'</td><td><select name="tea_charid" id="tea_charid" >';
+		if(!empty($charlist))
+		{
+			foreach($charlist as $i => $c)
+			{
+				echo '<option value="'.$i.'"',$i == $teainfo[0]['main'] ? 'SELECTED' : '','>'.$c.'</option>';
+			}
+		}
+		echo '</select></td></tr>';
+		$teainfo[] = array(
 				"userid" => '',
 				"api" => '',
 			//	"msg" => $msg,
@@ -2650,51 +2784,51 @@ $teainfo[] = array(
 				'aditrules' => '',
 				'error' => ''
 				);
-				foreach($teainfo as $i => $info)
-				{
-					echo '<tr><td colspan="3"><hr class="hrcolor" width="100%" size="1"/></td></tr>';
-		echo '<tr><td>
-					<b>', $txt['tea_status'], ':</b></td><td>'.$info['status'];
-		if($info['status'] == 'API Error')
-			echo ' ('.$info['error'].')';
-		echo '</td>
-			</tr><tr><td><b>', $txt['tea_mainrule'], ':</b></td><td>'.$info['mainrule'].'</td>
-			</tr><tr><td><b>', $txt['tea_aditrules'], ':</b></td><td>'.$info['aditrules'].'</td>
-			</tr><tr><td>
-										<b>', $txt['tea_characters'], ':</b></td><td>';
-		if(!empty($info['charnames']))
+		foreach($teainfo as $i => $info)
 		{
-			echo '<style type="text/css">
-green {color:green}
-blue {color:blue}
-red {color:red}
-</style>';
-			$echo = array();
-			foreach($info['charnames'] as $char)
+			echo '<tr><td colspan="3"><hr class="hrcolor" width="100%" size="1"/></td></tr>';
+			echo '<tr><td>
+			<b>', $txt['tea_status'], ':</b></td><td>'.$info['status'];
+			if($info['status'] == 'API Error')
+				echo ' ('.$info['error'].')';
+			echo '</td>
+				</tr><tr><td><b>', $txt['tea_mainrule'], ':</b></td><td>'.$info['mainrule'].'</td>
+				</tr><tr><td><b>', $txt['tea_aditrules'], ':</b></td><td>'.$info['aditrules'].'</td>
+				</tr><tr><td>
+				<b>', $txt['tea_characters'], ':</b></td><td>';
+			if(!empty($info['charnames']))
 			{
-				$char[3] = $char[3] != '' ? ' / <blue>'.$char[3].'</blue>' : '';
-				$echo[] = '['.$char[1].'] '.$char[0].' (<green>'.$char[2].'</green>'.$char[3].')';
-			}
-			echo implode('<br>', $echo);
-		}
-		echo '</td></tr>
-		<tr><td>
-										<b>', $txt['tea_userid'], ':</b></td>
-										<td>';
-					if($info['userid'] == "")
-						echo '<input type="text" name="tea_user_id[]" value="'.$info['userid'].'" size="20" />';
-					else
-					{
-						echo '<input type="hidden" name="tea_user_id[]" value="'.$info['userid'].'" size="20" />';
-						echo $info['userid'].'</td><td> <input type="checkbox" name="del_api[]" value="'.$info['userid'].'" /> Delete</td>';
-					}
-						echo '			</td>
-								</tr><tr>
-									<td width="40%">										<b>', $txt['tea_api'], ':</b></td>
-										<td><input type="text" name="tea_user_api[]" value="'.$info['api'].'" size="64" />
-									</td>
-								</tr>';
+				echo '<style type="text/css">
+					green {color:green}
+					blue {color:blue}
+					red {color:red}
+					</style>';
+				$echo = array();
+				foreach($info['charnames'] as $char)
+				{
+					$char[3] = $char[3] != '' ? ' / <blue>'.$char[3].'</blue>' : '';
+					$echo[] = '['.$char[1].'] '.$char[0].' (<green>'.$char[2].'</green>'.$char[3].')';
 				}
+				echo implode('<br>', $echo);
+			}
+			echo '</td></tr>
+				<tr><td>
+				<b>', $txt['tea_userid'], ':</b></td>
+				<td>';
+			if($info['userid'] == "")
+				echo '<input type="text" name="tea_user_id[]" value="'.$info['userid'].'" size="20" />';
+			else
+			{
+				echo '<input type="hidden" name="tea_user_id[]" value="'.$info['userid'].'" size="20" />';
+				echo $info['userid'].'</td><td> <input type="checkbox" name="del_api[]" value="'.$info['userid'].'" /> Delete</td>';
+			}
+			echo '</td>
+				</tr><tr>
+					<td width="40%">										<b>', $txt['tea_api'], ':</b></td>
+						<td><input type="text" name="tea_user_api[]" value="'.$info['api'].'" size="64" />
+					</td>
+				</tr>';
+		}
 		template_profile_save();
 	}
 	echo '
