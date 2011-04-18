@@ -1,6 +1,7 @@
 <?php
 
 $ssi_guest_access = TRUE;
+$txt['tea_tea'] = 'Temars Eve API';
 if (file_exists('SSI.php') && !defined('SMF'))
 	require_once('SSI.php');
 
@@ -9,7 +10,7 @@ $chars = $tea -> get_characters($_GET['userid'], $_GET['api']);
 
 if(!empty($chars))
 {
-	if($_GET['page'] == 'settings')
+	//if($_GET['page'] == 'settings')
 		echo '<select name="tea_charid" id="tea_charid" >';
 	//else
 	//	echo '<select name="tea_char">';
