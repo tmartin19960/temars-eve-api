@@ -24,7 +24,7 @@ if(!empty($chars))
 	//		else
 	//			$name = $char['name'];
 	//		echo '<option value="'.$name.'">'.$name.'</option>';
-		}
+	//	}
 	}
 }
 else
