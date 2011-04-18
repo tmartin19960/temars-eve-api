@@ -2603,7 +2603,7 @@ function postFileReady()
 				Return $ret;
 			}
 		}
-		if(!empty($_POST['tea_user_id']) && (empty($_POST['tea_char']) || strlen($_POST['tea_char']) < 3))
+		if(!empty($_POST['tea_user_id']) && (empty($_POST['tea_charid']) || strlen($_POST['tea_charid']) < 3))
 		{
 			echo '
 				<script type="text/javascript">
