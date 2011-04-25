@@ -826,19 +826,12 @@ class TEA extends TEAC
 	function get_characters($userid, $api)
 	{
 		$charlist = NULL;
-		$post = array('userID' => $userid, 'apiKey' => $api);
-		$chars = $this -> get_xml('charlist', $post);
-		$this -> data = $chars;
-		$chars = $this -> xmlparse($chars, "result");
-		$chars = $this -> parse($chars);
+		$chars = $this -> get_api_characters($userid, $api);
 		if(!empty($chars))
 		{
 			$charlist = array();
 			foreach($chars as $char)
 			{
-				//	$chars[] = array('name' => $name, 'charid' => $charid, 'corpname' => $corpname, 'corpid' => $corpid);
-				$corpinfo = $this -> corp_info($char['corpid']); // corpname, ticker, allianceid, alliance, aticker
-				$char = array_merge($char, $corpinfo);
 				$charlist[] = $char;
 				$this -> chars[$char['name']] = $char;
 				$this -> query("
@@ -1176,16 +1169,6 @@ class TEA extends TEAC
 			}
 		}
 		return $chars;
-	}
-
-	function get_error($data)
-	{
-		$data = explode('<error code="', $data, 2);
-		$data = explode('">', $data[1], 2);
-		$id = $data[0];
-		$data = explode('</error>', $data[1], 2);
-		$msg = $data[0];
-		Return(array($id, $msg));
 	}
 
 	function alliance_list($update=TRUE)
