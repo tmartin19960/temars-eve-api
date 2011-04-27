@@ -6,6 +6,7 @@ New Features
 
 Bug Fixes
 - Fixed Bug with Character Selection on Profile Were if you had no API then you couldnt add 1 (Fix by monorailpilot)
+- Added a command during install of package to chmod the xmlhttp file
 
 ----------------------
 Version 1.1.2 -> 1.2.0
