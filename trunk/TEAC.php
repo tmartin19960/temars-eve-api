@@ -325,6 +325,40 @@ class TEAC
 		$msg = $data[0];
 		Return(array($id, $msg));
 	}
+
+	function xmlparse($xml, $tag) // replace functions with xml functions
+	{
+		$tmp = explode("<" . $tag . ">", $xml);
+		if(isset($tmp[1]))
+			$tmp = explode("</" . $tag . ">", $tmp[1]);
+		else
+			return NULL;
+		return $tmp[0];
+	}
+
+	function parse($xml) // replace functions with xml functions
+	{
+		$chars = NULL;
+		$xml = explode("<row ", $xml);
+		unset($xml[0]);
+		if(!empty($xml))
+		{
+			foreach($xml as $char)
+			{
+				$char = explode('name="', $char, 2);
+				$char = explode('" characterID="', $char[1], 2);
+				$name = $char[0];
+				$char = explode('" corporationName="', $char[1], 2);
+				$charid = $char[0];
+				$char = explode('" corporationID="', $char[1], 2);
+				$corpname = $char[0];
+				$char = explode('" />', $char[1], 2);
+				$corpid = $char[0];
+				$chars[] = array('name' => $name, 'charid' => $charid, 'corpname' => $corpname, 'corpid' => $corpid);
+			}
+		}
+		return $chars;
+	}
 }
 
 ?>
