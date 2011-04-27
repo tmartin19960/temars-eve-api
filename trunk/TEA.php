@@ -2756,6 +2756,10 @@ function template_edittea()
 				echo '<option value="'.$i.'"',$i == $teainfo[0]['main'] ? 'SELECTED' : '','>'.$c.'</option>';
 			}
 		}
+		else
+		{
+			echo '<option value="-", SELECTED>-</option>';
+		}
 		echo '</select></td></tr>';
 		$teainfo[] = array(
 				"userid" => '',

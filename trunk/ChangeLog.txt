@@ -1,4 +1,13 @@
 ----------------------
+Version 1.2.0 -> 1.2.1
+----------------------
+New Features
+- 
+
+Bug Fixes
+- Fixed Bug with Character Selection on Profile Were if you had no API then you couldnt add 1 (Fix by monorailpilot)
+
+----------------------
 Version 1.1.2 -> 1.2.0
 ----------------------
 New Features
