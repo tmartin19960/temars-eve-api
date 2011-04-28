@@ -88,6 +88,7 @@ class TEA extends TEAC
 		$ms[] = 'tea_corptag_options';
 		$ms[] = 'tea_regreq';
 		$ms[] = 'tea_ts_enabled';
+		$ms[] = 'tea_avatar_size';
 		foreach($ms as $s)
 		{
 			if(!isset($this -> modSettings[$s]))
@@ -1387,6 +1388,7 @@ class TEA extends TEAC
 				array('check', 'tea_usecharname'),
 				array('check', 'tea_avatar_enabled'),
 				array('check', 'tea_avatar_locked'),
+				array('select', 'tea_avatar_size', array(32 => '32', 64 => '64', 128 => '128', 256 => '256')),
 			//	array('int', 'tea_corpid', 10),
 			//	array('int', 'tea_allianceid', 10),
 			//	array('check', 'tea_useapiabove'),
@@ -2213,7 +2215,8 @@ value_type();
 					//	if(isset($this -> chars[$name]['charid']))
 					//	{
 							require_once("Subs-Graphics.php");
-							downloadAvatar('http://image.eveonline.com/Character/'.$charid.'_64.jpg', $memberID, 64, 64);
+							$tea_avatar_size = !empty($this -> modSettings['tea_avatar_size']) ? $this -> modSettings['tea_avatar_size'] : 64;
+							downloadAvatar('http://image.eveonline.com/Character/'.$charid.'_'.$tea_avatar_size.'.jpg', $memberID, $tea_avatar_size, $tea_avatar_size);
 						}
 					}
 				}
@@ -2253,7 +2256,8 @@ value_type();
 					//	if(isset($this -> chars[$name]['charid']))
 					//	{
 							require_once("Subs-Graphics.php");
-							downloadAvatar('http://image.eveonline.com/Character/'.$charid.'_64.jpg', $memberID, 64, 64);
+							$tea_avatar_size = !empty($this -> modSettings['tea_avatar_size']) ? $this -> modSettings['tea_avatar_size'] : 64;
+							downloadAvatar('http://image.eveonline.com/Character/'.$charid.'_'.$tea_avatar_size.'.jpg', $memberID, $tea_avatar_size, $tea_avatar_size);
 						}
 					}
 				}
@@ -2611,7 +2615,7 @@ function postFileReady()
 					var maxWidth = ', !empty($this -> modSettings['avatar_max_width_external']) ? $this -> modSettings['avatar_max_width_external'] : 0, ';
 					var tempImage = new Image();
 
-					tempImage.src = \'http://image.eveonline.com/Character/\'+id+\'_64.jpg\';
+					tempImage.src = \'http://image.eveonline.com/Character/\'+id+\'_', !empty($this -> modSettings['tea_avatar_size']) ? $this -> modSettings['tea_avatar_size'] : 64, '.jpg\';
 					if (maxWidth != 0 && tempImage.width > maxWidth)
 					{
 						document.getElementById("eavatar").style.height = parseInt((maxWidth * tempImage.height) / tempImage.width) + "px";
@@ -2622,7 +2626,8 @@ function postFileReady()
 						document.getElementById("eavatar").style.width = parseInt((maxHeight * tempImage.width) / tempImage.height) + "px";
 						document.getElementById("eavatar").style.height = maxHeight + "px";
 					}
-					document.getElementById("eavatar").src = \'http://image.eveonline.com/Character/\'+id+\'_64.jpg\';
+					document.getElementById("eavatar").src = \'http://image.eveonline.com/Character/\'+id+\'_', !empty($this -> modSettings['tea_avatar_size']) ? $this -> modSettings['tea_avatar_size'] : 64, '.jpg\';
+
 				}
 			</script>
 								<div id="avatar_tea">
@@ -2679,7 +2684,8 @@ function postFileReady()
 	//			elseif ($modSettings['avatar_action_too_large'] == 'option_download_and_resize')
 	//			{
 					require_once($this -> sourcedir . '/Subs-Graphics.php');
-					if (downloadAvatar('http://image.eveonline.com/Character/'.$profile_vars['avatar'].'_64.jpg', $memID, 64, 64))
+					$tea_avatar_size = !empty($this -> modSettings['tea_avatar_size']) ? $this -> modSettings['tea_avatar_size'] : 64;
+					if (downloadAvatar('http://image.eveonline.com/Character/'.$profile_vars['avatar'].'_'.$tea_avatar_size.'.jpg', $memID, $tea_avatar_size, $tea_avatar_size))
 					{
 						$profile_vars['avatar'] = '';
 						$cur_profile['id_attach'] = $this -> modSettings['new_avatar_data']['id'];

@@ -46,6 +46,7 @@ $txt['tea_group_settings'] = 'Group Setting for Users with no API';
 $txt['tea_main'] = 'Main group';
 $txt['tea_getchar'] = 'Get Characters';
 $txt['tea_api_server'] = 'Server to get API data from';
+$txt['tea_avatar_size'] = 'Set EVE Avatar Size';
 
 //TS Settings
 $txt['tea_ts_enable'] = 'Enable TeamSpeak for TEA Mod';
