@@ -87,7 +87,6 @@ class TEA extends TEAC
 		$ms[] = 'tea_avatar_locked';
 		$ms[] = 'tea_corptag_options';
 		$ms[] = 'tea_regreq';
-		$ms[] = 'tea_ts_enabled';
 		foreach($ms as $s)
 		{
 			if(!isset($this -> modSettings[$s]))
@@ -827,12 +826,19 @@ class TEA extends TEAC
 	function get_characters($userid, $api)
 	{
 		$charlist = NULL;
-		$chars = $this -> get_api_characters($userid, $api);
+		$post = array('userID' => $userid, 'apiKey' => $api);
+		$chars = $this -> get_xml('charlist', $post);
+		$this -> data = $chars;
+		$chars = $this -> xmlparse($chars, "result");
+		$chars = $this -> parse($chars);
 		if(!empty($chars))
 		{
 			$charlist = array();
 			foreach($chars as $char)
 			{
+				//	$chars[] = array('name' => $name, 'charid' => $charid, 'corpname' => $corpname, 'corpid' => $corpid);
+				$corpinfo = $this -> corp_info($char['corpid']); // corpname, ticker, allianceid, alliance, aticker
+				$char = array_merge($char, $corpinfo);
 				$charlist[] = $char;
 				$this -> chars[$char['name']] = $char;
 				$this -> query("
@@ -1170,6 +1176,16 @@ class TEA extends TEAC
 			}
 		}
 		return $chars;
+	}
+
+	function get_error($data)
+	{
+		$data = explode('<error code="', $data, 2);
+		$data = explode('">', $data[1], 2);
+		$id = $data[0];
+		$data = explode('</error>', $data[1], 2);
+		$msg = $data[0];
+		Return(array($id, $msg));
 	}
 
 	function alliance_list($update=TRUE)
@@ -2756,10 +2772,6 @@ function template_edittea()
 			{
 				echo '<option value="'.$i.'"',$i == $teainfo[0]['main'] ? 'SELECTED' : '','>'.$c.'</option>';
 			}
-		}
-		else
-		{
-			echo '<option value="-", SELECTED>-</option>';
 		}
 		echo '</select></td></tr>';
 		$teainfo[] = array(

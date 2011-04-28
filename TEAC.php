@@ -6,9 +6,6 @@ class TEAC
 	{
 		$this -> version = "1.3";
 		$this -> server = 'http://api.eve-online.com';
-
-
-		$this -> atags = array();
 	}
 
 	function get_xml($type, $post = NULL)
@@ -219,10 +216,7 @@ class TEAC
 			if(empty($info['allianceid']) || $info['allianceid'] == '')
 				$info['allianceid'] = 0;
 			$info['alliance'] = (string)$xml -> result -> allianceName;
-			if(isset($this -> atags[$info['allianceid']]))
-				$info['aticker'] = $this -> atags[$info['allianceid']];
-			else
-				$info['aticker'] = '';
+			$info['aticker'] = $this -> atags[$info['allianceid']];
 		}
 		Return ($info);
 	}
@@ -292,72 +286,6 @@ class TEAC
 			}
 		}
 		Return array($blues, $reds, $count);
-	}
-
-	function get_api_characters($userid, $api)
-	{
-		$charlist = NULL;
-		$post = array('userID' => $userid, 'apiKey' => $api);
-		$chars = $this -> get_xml('charlist', $post);
-		$this -> data = $chars;
-		$chars = $this -> xmlparse($chars, "result");
-		$chars = $this -> parse($chars);
-		if(!empty($chars))
-		{
-			$charlist = array();
-			foreach($chars as $char)
-			{
-				//	$chars[] = array('name' => $name, 'charid' => $charid, 'corpname' => $corpname, 'corpid' => $corpid);
-				$corpinfo = $this -> corp_info($char['corpid']); // corpname, ticker, allianceid, alliance, aticker
-				$char = array_merge($char, $corpinfo);
-				$charlist[] = $char;
-			}
-		}
-		Return $charlist;
-	}
-
-	function get_error($data)
-	{
-		$data = explode('<error code="', $data, 2);
-		$data = explode('">', $data[1], 2);
-		$id = $data[0];
-		$data = explode('</error>', $data[1], 2);
-		$msg = $data[0];
-		Return(array($id, $msg));
-	}
-
-	function xmlparse($xml, $tag) // replace functions with xml functions
-	{
-		$tmp = explode("<" . $tag . ">", $xml);
-		if(isset($tmp[1]))
-			$tmp = explode("</" . $tag . ">", $tmp[1]);
-		else
-			return NULL;
-		return $tmp[0];
-	}
-
-	function parse($xml) // replace functions with xml functions
-	{
-		$chars = NULL;
-		$xml = explode("<row ", $xml);
-		unset($xml[0]);
-		if(!empty($xml))
-		{
-			foreach($xml as $char)
-			{
-				$char = explode('name="', $char, 2);
-				$char = explode('" characterID="', $char[1], 2);
-				$name = $char[0];
-				$char = explode('" corporationName="', $char[1], 2);
-				$charid = $char[0];
-				$char = explode('" corporationID="', $char[1], 2);
-				$corpname = $char[0];
-				$char = explode('" />', $char[1], 2);
-				$corpid = $char[0];
-				$chars[] = array('name' => $name, 'charid' => $charid, 'corpname' => $corpname, 'corpid' => $corpid);
-			}
-		}
-		return $chars;
 	}
 }
 

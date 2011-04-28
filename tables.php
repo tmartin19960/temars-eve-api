@@ -251,6 +251,4 @@ if($esamupgrade)
 	run_upgrade();
 }
 
-// try to chmod the xmlhttp file as this is an issue for some
-chmod($boarddir."/TEA_xmlhttp.php", 0644);
 ?>
