@@ -1,0 +1,51 @@
+----------------------
+Version 1.1.2 -> 1.2.0
+----------------------
+New Features
+- TeamSpeak 3 Support, This includes Registering via User uniqueKey or being on the server and having it find you
+  Also Maintains users Access, will smf and Ts group linking, and can enforce nicknames
+- Added Setting of a Main Character and Improved the Realname and Avatar Setting Options
+- Added TEA to profile dropdown menu
+
+Bug Fixes
+- Fixed bug that showed full forum page instead of character list when registering
+
+----------------------
+Version 1.1.1 -> 1.1.2
+----------------------
+New Features
+- Now Supports Sockets to get data from eveonline if curl not installed
+
+Bug Fixes
+- Run Table Check on Upgrade
+- Removed use of split() function as its deprecated
+- Fixed Avatar to new address
+- Fixed check for esam upgrade
+- Added a check for open_basedir and safe_mode when using CURLOPT_FOLLOWLOCATION
+- Fixed check for existing cache functions
+- Removed a bunch of undefined errors
+- Fixed bug were charid wasnt saved under settings
+- Fixed Standing to New type (contacts)
+- No Longer caching standing and alliance list in Database as they can be too large, and they are already cached in a file
+
+----------------------
+Version 1.1.0 -> 1.1.1
+----------------------
+New Features
+- Added Check that Character is Selected if Api is Entered during registration
+- Added xml Cache
+- Added Option to Lock Avatars to Eve Characters Only
+- Added Ability to reorder Rules
+- You can now pull Characters under Settings Page with out the need to save
+- Corp Name and Alliance Name can be used in rules and it gets ID for you
+- New Condition (Valid API) true for all valid API's
+- Added the ability to do rules that are iver is or isnt
+- Added Proxy Support (alternative API Server)
+
+Bug Fixes
+- Fixed a Bug with registration when charname has an apostrophe in it
+- Changed Cron file to use Relitive path from File to get SSI.php
+- Corp / Alliance ID under Setting is no Longer used and has been Replaced by Rules
+- Additional groups no longer removed by api error caused by CCP server being down
+- Fixed issue with username that are numeric
+- Fixed Skill Check when % isnt used
