@@ -2145,8 +2145,8 @@ value_type();
 			}
 			else
 			{
-				$userids = "";
-				$apis = "";
+				$userids = array();
+				$apis = array();
 			}
 		}
 		else
