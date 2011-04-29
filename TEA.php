@@ -2460,6 +2460,8 @@ value_type();
 				$prefs = $this -> select($prefs);
 				if(!empty($prefs))
 					$main = $prefs[0][0];
+				else
+					$main = "";
 				if(!empty($adits) && $adits[0] != '')
 				{
 					foreach($adits as $a)
