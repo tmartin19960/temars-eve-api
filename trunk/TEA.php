@@ -2137,8 +2137,17 @@ value_type();
 		//var_dump($_POST);die;
 		if($reg)
 		{
-			$userids = array($_POST['tea_user_id']);
-			$apis = array($_POST['tea_user_api']);
+			//SMF passes through this page twice, the second time generates an error because the TEA variables don't come through the post
+			if (!empty($_POST['tea_user_id']))
+			{
+				$userids = array($_POST['tea_user_id']);
+				$apis = array($_POST['tea_user_api']);
+			}
+			else
+			{
+				$userids = "";
+				$apis = "";
+			}
 		}
 		else
 		{
