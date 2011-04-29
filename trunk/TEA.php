@@ -87,7 +87,7 @@ class TEA extends TEAC
 		$ms[] = 'tea_avatar_locked';
 		$ms[] = 'tea_corptag_options';
 		$ms[] = 'tea_regreq';
-		$ms[] = 'tea_ts_enabled';
+		$ms[] = 'tea_ts_enable';
 		$ms[] = 'tea_avatar_size';
 		foreach($ms as $s)
 		{
