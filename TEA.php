@@ -1808,7 +1808,7 @@ class TEA extends TEAC
 						$tr = '</tr><tr bgcolor="'.$color.'">';
 					}
 					$out[2] .= '</tr>';
-					$javalist .= "rules[".$id."] = Array('".mysql_real_escape_string($l['name'])."', 'true', '".$l['andor']."', '".mysql_real_escape_string($l['group'])."');\n";
+					$javalist .= "rules[".$id."] = Array('".str_replace("'", "\'", $l['name'])."', 'true', '".$l['andor']."', '".str_replace("'", "\'", $l['group'])."');\n";
 					$first = FALSE;
 				}
 			}
