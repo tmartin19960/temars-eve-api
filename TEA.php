@@ -1808,7 +1808,7 @@ class TEA extends TEAC
 						$tr = '</tr><tr bgcolor="'.$color.'">';
 					}
 					$out[2] .= '</tr>';
-					$javalist .= "rules[".$id."] = Array('".str_replace("'", "\\'", $l['name'])."', 'true', '".$l['andor']."', '".str_replace("'", "\\'", $l['group'])."');\n";
+					$javalist .= "rules[".$id."] = Array('".str_replace("'", "\'", $l['name'])."', 'true', '".$l['andor']."', '".str_replace("'", "\'", $l['group'])."');\n";
 					$first = FALSE;
 				}
 			}
@@ -1858,7 +1858,7 @@ class TEA extends TEAC
 						$tr = '</tr><tr bgcolor="'.$color.'">';
 					}
 					$out[2] .= '</tr>';
-					$javalist .= "rules[".$id."] = Array('".$l['name']."', '', '".$l['andor']."', '".$l['group']."');\n";
+					$javalist .= "rules[".$id."] = Array('".str_replace("'", "\'", $l['name'])."', '', '".$l['andor']."', '".str_replace("'", "\'", $l['group'])."');\n";
 				}
 			}
 		}
