@@ -8,6 +8,7 @@ Bug Fixes
 - Fixed Bug with Character Selection on Profile Were if you had no API then you couldnt add 1 (Fix by monorailpilot)
 - Added a command during install of package to chmod the xmlhttp file
 - Fixed undefined errors due to missing skills in TEA_SkillDump.php
+- Added excape for Javascript variable for when people use ' in rule names
 
 ----------------------
 Version 1.1.2 -> 1.2.0
