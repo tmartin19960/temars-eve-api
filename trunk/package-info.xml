@@ -9,7 +9,7 @@
 		<readme type="file">readme.txt</readme>
 		<readme type="inline" parsebbc="true">[color=red]Error! This mod does not support your version of SMF.[/color]</readme>
 	</install>
-	<install for="2.0 RC3 - 2.0 RC5">
+	<install for="2.0 - 2.0">
 		<readme type="file">readme.txt</readme>
 		<modification type="file">mod_index.xml</modification>
 		<modification type="file">mod_admin.xml</modification>
