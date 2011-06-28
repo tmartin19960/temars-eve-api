@@ -9,6 +9,7 @@ Bug Fixes
 - Added a command during install of package to chmod the xmlhttp file
 - Fixed undefined errors due to missing skills in TEA_SkillDump.php
 - Added excape for Javascript variable for when people use ' in rule names
+- Fixed Error where actual user groups was used and not selected user for TS reg
 
 ----------------------
 Version 1.1.2 -> 1.2.0
