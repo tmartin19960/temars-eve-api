@@ -760,7 +760,7 @@ function move(id, value)
 					}
 					else
 					{
-						$c -> message('Error Unable to Find SMF Account');
+						$c -> message('Error: SMF Account not Found, Please Register on Forum and use Temars EVE API mod to link Teamspeak to forum');
 					}
 				}
 			}
