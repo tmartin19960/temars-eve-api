@@ -390,17 +390,28 @@ function move(id, value)
 		$rules = $this -> smcFunc['db_query']('', "SELECT id, smf, ts, tst, nf FROM {db_prefix}tea_ts_rules");
 		$rules = $this -> tea -> select($rules);
 			
-		$usergroups = $this -> user_info['groups'];
-		foreach($usergroups as $g)
+		$usergroupssql = $this -> smcFunc['db_query']('', "SELECT id_group, additional_groups FROM {db_prefix}members WHERE id_member = ".$memberID);
+		$usergroupssql = $this -> tea -> select($usergroupssql);
+
+		if(!empty($usergroupssql))
 		{
-			if(!empty($rules))
+			$usergroups[$usergroupssql[0][0]] = true;
+			if(!empty($usergroupssql[0][1]))
 			{
-				foreach($rules as $r)
+				$usergroupssql[0][1] = explode(",", $usergroupssql[0][1]);
+				foreach($usergroupssql[0][1] as $g)
 				{
-					if($r[1] == $g)
-					{
-						$tsgs[$r[3]][$r[2]] = TRUE;
-					}
+					$usergroups[$g] = true;
+				}
+			}
+		}
+		if(!empty($rules))
+		{
+			foreach($rules as $r)
+			{
+				if(isset($usergroups[$r[1]]))
+				{
+					$tsgs[$r[3]][$r[2]] = TRUE;
 				}
 			}
 		}
@@ -435,6 +446,22 @@ function move(id, value)
 					$dbid = $client -> client_database_id;
 					$cid = $client -> client_unique_identifier;
 
+					$cgq = $this -> smcFunc['db_query']('', "SELECT id, value FROM {db_prefix}tea_ts_groups ORDER BY id");
+					$cgq = $this -> tea -> select($cgq);
+					if(!empty($cgq))
+					{
+						foreach($cgq as $cgqs)
+							$cg[$cgqs[0]] = $cgqs[1];
+					}
+					$sinfo = $ts3 -> clientGetServerGroupsByDbid((int)$dbid);
+					if(!empty($sinfo))
+					{
+						foreach($sinfo as $s => $v)
+						{
+							if(!isset($tsgs['s'][$s]) && (string)$v['name'] != 'Guest' && $cg['s'.$s] == 1)
+								$ts3 -> serverGroupClientDel($s, $dbid);
+						}
+					}
 					foreach($tsgs as $t => $v)
 					{
 						foreach($v as $tsg => $vv)
@@ -622,7 +649,7 @@ function move(id, value)
 								}
 							}
 						}
-						$sinfo = $ts3 -> clientGetServerGroupsByDbid((int)$c['cldbid']);
+						$sinfo = $ts3 -> clientGetServerGroupsByDbid($cldbid);
 						if(!empty($sinfo))
 						{
 							foreach($sinfo as $s => $v)
