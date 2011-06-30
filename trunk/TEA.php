@@ -70,6 +70,15 @@ class TEA extends TEAC
 				  ('tea_api_server', 'http://api.eve-online.com')");
 			$this -> settings['tea_api_server'] = 'http://api.eve-online.com';
 		}
+		if(empty($this -> settings['tea_lastpull']))
+		{
+			$this -> smcFunc['db_query']('', "
+			  REPLACE INTO {db_prefix}settings
+				 (variable, value)
+			  VALUES
+				  ('tea_lastpull', 0)");
+			$this -> settings['tea_lastpull'] = 0;
+		}
 		$this -> server = $this -> settings['tea_api_server'];
 		$this -> undefined();
 		$time = time() - 3600;
@@ -96,7 +105,7 @@ class TEA extends TEAC
 		}
 	}
 
-	function update_api($apiuser=NULL)
+	function update_api($apiuser=NULL, $force=FALSE)
 	{
 		if(!$this -> modSettings["tea_enable"])
 			Return;
@@ -106,10 +115,10 @@ class TEA extends TEAC
 		//echo "<pre>"; var_dump($this -> modSettings);die;
 		$this -> alliance_list();
 		$this -> get_standings();
-		$this -> main($apiuser);
+		$this -> main($apiuser, $force);
 	}
 
-	function main($user)
+	function main($user, $force=FALSE)
 	{
 		if(!function_exists('curl_init'))
 		{
@@ -119,7 +128,7 @@ class TEA extends TEAC
 		if(!empty($user))
 			$this -> single($user);
 		else
-			$this -> all();
+			$this -> all($force);
 	}
 
 	function get_standings()
@@ -997,12 +1006,44 @@ class TEA extends TEAC
 		return $faction;
 	}
 
-	function all()
+	function all($force=FALSE)
 	{
 		//if($apiecho)
 		//	echo "checking all...\n<br>";
-		$users = $this -> smcFunc['db_query']('', "SELECT id_member, member_name, ID_GROUP FROM {db_prefix}members");
+		$next = $this -> settings['tea_nextpull'];
+		if($next > time() && $force === FALSE)
+			Return;
+		if($force !== FALSE && $force !== NULL)
+			$lastid = $force;
+		else
+			$lastid = $this -> settings['tea_lastpull'];
+		$users = $this -> smcFunc['db_query']('', "SELECT id_member, member_name, ID_GROUP FROM {db_prefix}members WHERE id_member > $lastid Order by id_member ASC Limit 50");
 		$users = $this -> select($users);
+		if(count($users) == 50) // maxed user pull record last id ready for next
+		{
+			$lastid = $users[49][0];
+			$next = time() + 60;
+			$this -> lastid = $lastid;
+		}
+		else
+		{
+			if(!empty($users))
+				$this -> lastid = $users[count($users)-1][0];
+			else
+				$this -> lastid = $lastid;
+			$lastid = 0;
+			$next = time() + 3600;
+		}
+		$this -> smcFunc['db_query']('', "
+		  REPLACE INTO {db_prefix}settings
+			 (variable, value)
+		  VALUES
+			  ('tea_lastpull', $lastid)");
+		$this -> smcFunc['db_query']('', "
+		  REPLACE INTO {db_prefix}settings
+			 (variable, value)
+		  VALUES
+			  ('tea_nextpull', $lastid)");
 		if(!empty($users))
 		{
 			$this -> log .= '<table>';
@@ -2074,9 +2115,31 @@ value_type();
 		{
 			if(!$this -> modSettings["tea_enable"])
 				$file = "API Mod is Disabled";
-			$this -> update_api();
+			if(!$_GET['lastid'] || !is_numeric($_GET['lastid']))
+				$lastid = "0";
+			else
+				$lastid = $_GET['lastid'];
+			$this -> update_api(NULL, $lastid);
+			$users1 = $this -> smcFunc['db_query']('', "SELECT id_member, member_name, ID_GROUP FROM {db_prefix}members WHERE id_member <= ".$this -> lastid);
+			$users1 = $this -> select($users1);
+			if(empty($users1))
+				$users1 = 0;
+			else
+				$users1 = count($users1);
+			$users2 = $this -> smcFunc['db_query']('', "SELECT id_member, member_name, ID_GROUP FROM {db_prefix}members WHERE id_member > ".$this -> lastid);
+			$users2 = $this -> select($users2);
+			if(empty($users2))
+				$users2 = 0;
+			else
+				$users2 = count($users2);
+			$echo = "<dt>Checked: $users1 / ".($users1+$users2)."<br></dt>";
+			if($users2 > 0)
+				$echo .= '<dt><a href="'.$scripturl.'?action=admin;area=tea;sa=checks;update;lastid='.$this -> lastid.'">Continue</a></dt>';
+			
+			
 			$file = str_replace("\n", "<br>", $this -> log);
 			$config_vars = array(
+			$echo,
 			'<dt>'.$file.'</dt>'
 			);
 		}
