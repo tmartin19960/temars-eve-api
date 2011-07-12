@@ -839,10 +839,6 @@ function template_edit_tea_ts()
 				</tr><tr>
 					<td class="windowbg2" style="padding-bottom: 2ex;">
 						<table border="0" width="100%" cellpadding="3">';
-	if(!$modSettings["tea_enable"])
-	{
-		echo '<tr><td>'.$txt['tea_disabled'].'</td></tr>';
-	}
 	if(!$modSettings["tea_ts_enable"])
 	{
 		echo '<tr><td>'.$txt['tea_ts_disabled'].'</td></tr>';
@@ -857,7 +853,7 @@ function template_edit_tea_ts()
 				echo "<tr><td>[ERROR] ".$e."</td></tr>";
 			unset($_SESSION['tea_ts_error']);
 		}
-		if(!empty($teainfo))
+		if(!empty($teainfo) || !$modSettings["tea_enable"])
 		{
 			$memberID = $teainfo[0]['memid'];
 			$tsinfo = $smcFunc['db_query']('', "SELECT tsid, dbid, name FROM {db_prefix}tea_ts_users WHERE id = ".$memberID);
@@ -889,9 +885,11 @@ function template_edit_tea_ts()
 					echo '<tr><td><input type="radio" name="method" value="online"> Online Name Check</td></tr>';
 			}
 			echo '<tr><td>Main Char</td></tr>';
-			echo '<tr><td><select name="tea_ts_char">';
-			if(!empty($teainfo))
+			echo '<tr><td>';
+			echo '<tr><td>Name: <input type="text" name="tea_ts_char" value="">';
+			if($modSettings["tea_enable"] && !empty($teainfo))
 			{
+				echo '<select name="tea_ts_char">';
 				foreach($teainfo as $i => $info)
 				{
 					foreach($info['charnames'] as $i => $info)
@@ -903,8 +901,9 @@ function template_edit_tea_ts()
 						echo '<option value="'.$info[0].'"', $info[0] == $sname ? ' SELECTED ' : '','>'.$name.'</option>';
 					}
 				}
+				echo '</select>';
 			}
-			echo '</select></td></tr>';
+			echo '</td></tr>';
 			if($modSettings["tea_ts_method_create"])
 			{
 				if(count($count) != 1)

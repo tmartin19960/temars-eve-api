@@ -4,6 +4,7 @@ Version 1.2.0 -> 1.2.1
 New Features
 - EVE Avatar size is now selectable under administrator settings
 - Full member Check now limits to 50 per run and cycles, Cron has built in time manager
+- TS Section now works with API area disabled (good for none eve use)
 
 Bug Fixes
 - Fixed Bug with Character Selection on Profile Were if you had no API then you couldnt add 1 (Fix by monorailpilot)

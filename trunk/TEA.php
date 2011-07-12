@@ -2483,8 +2483,8 @@ value_type();
 
 	function UserModifyTEA($memID, &$teainfo)
 	{ // is this a valid function? clearly code for my other mod, but is it safe to delete, or is it partly in use and other code is junk
-		if(!$this -> modSettings["tea_enable"])
-			Return;
+	//	if(!$this -> modSettings["tea_enable"])
+	//		Return;
 
 	//	loadLanguage('AOCharLink');
 		//	isAllowedTo('tea_edit_any');
@@ -2563,6 +2563,11 @@ value_type();
 				'error' => $u[4]
 				);
 			}
+		}
+		else
+		{
+			$teainfo[] = array(
+			"memid" => $memID);
 		}
 	}
 
