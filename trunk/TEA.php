@@ -2784,7 +2784,7 @@ $tea -> ts = $teats;
 $teats -> tea = $tea;
 
 Global $forum_copyright;
-$forum_copyright .= '<br><a href="http://code.google.com/p/temars-eve-api/" target="_blank" class="new_win">TEA '.$tea -> version.' © 2009-2011, Temars EVE API</a>';
+$forum_copyright .= '</span></li><li class="copyright"><span><a href="http://code.google.com/p/temars-eve-api/" target="_blank" class="new_win">TEA '.$tea -> version.' © 2009-2011, Temars EVE API</a>';
 
 function edittea($memID)
 {
