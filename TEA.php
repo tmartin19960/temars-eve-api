@@ -23,7 +23,7 @@ class TEA extends TEAC
 		$this -> smcFunc = &$smcFunc;
 		$this -> settings = &$settings;
 
-		$this -> version = "1.2.0.129";
+		$this -> version = "1.2.0.130";
 
 		$permissions["tea_view_own"] = 1;
 		$permissions["tea_view_any"] = 0;
@@ -1781,9 +1781,9 @@ class TEA extends TEAC
 		{
 			$mcheck = '';
 			$acheck = '';
-			if($cg[$id][0] == 1)
+			if(isset($cg[$id]) && $cg[$id][0] == 1)
 				$mcheck = 'checked';
-			if($cg[$id][1] == 1)
+			if(isset($cg[$id]) && $cg[$id][1] == 1)
 				$acheck = 'checked';
 			$out[0] .= '<tr><td>'.$g.'</td><td><input type="checkbox" name="main_'.$id.'" value="main" '.$mcheck.' /></td><td>';
 			if($id != 0)

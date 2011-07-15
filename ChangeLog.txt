@@ -15,6 +15,7 @@ Bug Fixes
 - Fixed Error where actual user groups was used and not selected user for TS reg
 - Fixed issue with overlapping copyright
 - Fixed but were main character selection under TS always used default format
+- Fixed a bunch of undefined errors including the one in crons
 
 ----------------------
 Version 1.1.2 -> 1.2.0
