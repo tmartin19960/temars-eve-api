@@ -446,6 +446,35 @@ function move(id, value)
 					$dbid = $client -> client_database_id;
 					$cid = $client -> client_unique_identifier;
 
+					$scheck = $this -> smcFunc['db_query']('', "SELECT tsid, dbid, name FROM {db_prefix}tea_ts_users WHERE id = ".$memberID);
+					$scheck = $this -> tea -> select($scheck);
+					if(!empty($scheck))
+					{
+						if($scheck[0][0] != $cid)
+						{
+							try
+							{
+								$oldid = $ts3 -> clientGetNameByUid($scheck[0][0]);
+								$oldid = (string)$oldid['cldbid'];
+								$delc = $ts3 -> clientDeleteDb($oldid);
+							}
+							catch(Exception $e)
+							{
+								//maybe online?
+								try
+								{
+									$delc = $ts3 -> clientGetByUid($scheck[0][0]);
+									$delc -> kick(TeamSpeak3::KICK_SERVER, 'UniqueID Changed in SMF, Old Account Removed');
+									$delc -> deleteDb();
+								}
+								catch(Exception $e)
+								{
+									$_SESSION['tea_ts_error'][] = $e->getMessage();
+								}
+							}
+						}
+					}
+
 					$cgq = $this -> smcFunc['db_query']('', "SELECT id, value FROM {db_prefix}tea_ts_groups ORDER BY id");
 					$cgq = $this -> tea -> select($cgq);
 					if(!empty($cgq))
