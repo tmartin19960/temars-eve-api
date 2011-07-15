@@ -820,7 +820,7 @@ function move(id, value)
 						{
 							if($r[1] == $g)
 							{
-								if(!$nf)
+								if(!isset($nf))
 									$nf = $r[4];
 							}
 						}
@@ -874,7 +874,8 @@ function template_edit_tea_ts()
 	}
 	else
 	{
-		echo '<tr><td>'.str_replace("\n", "<br>", $modSettings['tea_ts_info']).'</td></tr>';
+		if(isset($modSettings['tea_ts_info']))
+			echo '<tr><td>'.str_replace("\n", "<br>", $modSettings['tea_ts_info']).'</td></tr>';
 		echo '<tr><td colspan="2"><hr></td></tr>';
 		if(!empty($_SESSION['tea_ts_error']))
 		{
@@ -900,15 +901,15 @@ function template_edit_tea_ts()
 				echo '<tr><td>Not Registered on TS</td></tr>';
 			}
 			echo '<tr><td colspan="2"><hr></td></tr>';
-			if($modSettings["tea_ts_method_online"])
+			if(isset($modSettings["tea_ts_method_online"]) && $modSettings["tea_ts_method_online"])
 				$count[] = 'online';
-			if($modSettings["tea_ts_method_create"])
+			if(isset($modSettings["tea_ts_method_create"]) && $modSettings["tea_ts_method_create"])
 				$count[] = 'create';
-			if($modSettings["tea_ts_method_priv"])
+			if(isset($modSettings["tea_ts_method_priv"]) && $modSettings["tea_ts_method_priv"])
 				$count[] = 'priv';
 			if(count($count) == 1)
 				echo '<tr><td><input type="hidden" name="method" value="'.$count[0].'">';
-			if($modSettings["tea_ts_method_online"])
+			if(isset($modSettings["tea_ts_method_online"]) && $modSettings["tea_ts_method_online"])
 			{
 				if(count($count) != 1)
 					echo '<tr><td><input type="radio" name="method" value="online"> Online Name Check</td></tr>';
@@ -931,7 +932,7 @@ function template_edit_tea_ts()
 				echo '</select>';
 			}
 			echo '</td></tr>';
-			if($modSettings["tea_ts_method_create"])
+			if(isset($modSettings["tea_ts_method_create"]) && $modSettings["tea_ts_method_create"])
 			{
 				if(count($count) != 1)
 					echo '<tr><td><input type="radio" name="method" value="create"> Use TS Unique ID</td></tr>';

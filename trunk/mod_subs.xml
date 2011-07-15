@@ -7,6 +7,18 @@
 	<file name="$sourcedir/Subs.php">
 
 		<operation>
+			<search position="replace"><![CDATA[function setupMenuContext()
+{
+	global $context, $modSettings, $user_info, $txt, $scripturl;
+]]></search>
+			<add><![CDATA[function setupMenuContext()
+{
+	global $context, $modSettings, $user_info, $txt, $scripturl;
+
+	loadLanguage('TEA');
+]]></add>
+		</operation>
+		<operation>
 			<search position="replace"><![CDATA[				),
 			),
 			'pm' => array(
