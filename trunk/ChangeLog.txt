@@ -13,6 +13,7 @@ Bug Fixes
 - Added excape for Javascript variable for when people use ' in rule names
 - Fixed Error where actual user groups was used and not selected user for TS reg
 - Fixed issue with overlapping copyright
+- Fixed but were main character selection under TS always used default format
 
 ----------------------
 Version 1.1.2 -> 1.2.0

@@ -886,18 +886,16 @@ function template_edit_tea_ts()
 			}
 			echo '<tr><td>Main Char</td></tr>';
 			echo '<tr><td>';
-			echo '<tr><td>Name: <input type="text" name="tea_ts_char" value="">';
-			if($modSettings["tea_enable"] && !empty($teainfo))
+			if(!$modSettings["tea_enable"])
+				echo '<tr><td>Name: <input type="text" name="tea_ts_char" value="">';
+			elseif(!empty($teainfo))
 			{
 				echo '<select name="tea_ts_char">';
 				foreach($teainfo as $i => $info)
 				{
 					foreach($info['charnames'] as $i => $info)
 					{
-						$name = $modSettings["tea_ts_nf"];
-						$name = str_replace('#at#', $info[4], $name);
-						$name = str_replace('#ct#', $info[1], $name);
-						$name = str_replace('#name#', $info[0], $name);
+						$name = $teats -> format_name($memberID, $info[0]);
 						echo '<option value="'.$info[0].'"', $info[0] == $sname ? ' SELECTED ' : '','>'.$name.'</option>';
 					}
 				}
