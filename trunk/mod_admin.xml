@@ -17,6 +17,7 @@
 					'function' => 'ModifyTEASettings',
 					'icon' => 'tea.gif',
 					'subsections' => array(
+						'info' => array($txt['tea_info']),
 						'settings' => array($txt['settings']),
 						'rules' => array($txt['tea_rules']),
 						'ts' => array($txt['tea_ts']),

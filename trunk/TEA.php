@@ -23,7 +23,7 @@ class TEA extends TEAC
 		$this -> smcFunc = &$smcFunc;
 		$this -> settings = &$settings;
 
-		$this -> version = "1.2.0.127";
+		$this -> version = "1.2.0.128";
 
 		$permissions["tea_view_own"] = 1;
 		$permissions["tea_view_any"] = 0;
@@ -1286,6 +1286,8 @@ class TEA extends TEAC
 		//	'help' => 'featuresettings',
 			'description' => $this -> txt['tea_settings_message'],
 			'tabs' => array(
+				'info' => array(
+				),
 				'settings' => array(
 				),
 				'rules' => array(
@@ -1304,8 +1306,30 @@ class TEA extends TEAC
 			$this -> ts -> settings($scripturl);
 		elseif(isset($_GET['sa']) && strtolower($_GET['sa']) == "checks")
 			$this -> settings_checks($scripturl);
-		else
+		elseif(isset($_GET['sa']) && strtolower($_GET['sa']) == "settings")
 			$this -> settings_settings($scripturl);
+		else
+			$this -> settings_info($scripturl);
+	}
+
+	function settings_info($scripturl)
+	{
+		$info = array('smfv' => $this -> modSettings['smfVersion'],
+					'teav' => $this -> version,
+					'url' => $_SERVER['HTTP_HOST']);
+		$latestv = $this -> get_site('http://tea.temar.me/version.php', $info);
+		$latestv = explode("#", $latestv, 2);
+		$config_vars = array(
+			'<dt>Your '.$this -> txt['tea_version'].': '.$this -> version.'</dt>',
+			'<dt>Latest Released '.$this -> txt['tea_version'].': '.$latestv[0].'</dt>',
+			'<dt>Latest Dev '.$this -> txt['tea_version'].': '.$latestv[1].'</dt>',
+			'',
+		);
+
+
+		$this -> context['post_url'] = $scripturl . '?action=admin;area=tea;save';
+
+		prepareDBSettingContext($config_vars);
 	}
 
 	function settings_settings($scripturl)
