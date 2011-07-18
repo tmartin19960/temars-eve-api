@@ -16,6 +16,7 @@ Bug Fixes
 - Fixed issue with overlapping copyright
 - Fixed but were main character selection under TS always used default format
 - Fixed a bunch of undefined errors including the one in crons
+- Name to Reg and Check in TS is now Shortened to 30 if longer
 
 ----------------------
 Version 1.1.2 -> 1.2.0
