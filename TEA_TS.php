@@ -843,6 +843,11 @@ function move(id, value)
 				$name = str_replace('#name#', $char, $name);
 			}
 		}
+		if(strlen($name) > 30)
+		{
+			$cut = strlen($name) - 30;
+			$name = substr($name, 0, $cut);
+		}
 		return $name;
 	}
 }
