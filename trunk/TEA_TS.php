@@ -845,8 +845,7 @@ function move(id, value)
 		}
 		if(strlen($name) > 30)
 		{
-			$cut = strlen($name) - 30;
-			$name = substr($name, 0, $cut);
+			$name = substr($name, 0, 30);
 		}
 		return $name;
 	}
