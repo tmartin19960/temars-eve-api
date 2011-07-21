@@ -19,6 +19,7 @@
 		<modification type="file">mod_register.xml</modification>
 		<modification type="file">mod_register_template.xml</modification>
 		<modification type="file">mod_profile_template.xml</modification>
+		<modification type="file">mod_managepermissions.xml</modification>
 		<require-file name="TEA.php" destination="$sourcedir" />
 		<require-file name="TEAC.php" destination="$sourcedir" />
 		<require-file name="TEA_TS.php" destination="$sourcedir" />
@@ -45,6 +46,7 @@
 		<modification type="file">mod_register.xml</modification>
 		<modification type="file">mod_register_template.xml</modification>
 		<modification type="file">mod_profile_template.xml</modification>
+		<modification type="file">mod_managepermissions.xml</modification>
 		<require-file name="TEA.php" destination="$sourcedir" />
 		<require-file name="TEAC.php" destination="$sourcedir" />
 		<require-file name="TEA_TS.php" destination="$sourcedir" />
@@ -71,6 +73,7 @@
 		<modification type="file" reverse="true">mod_register.xml</modification>
 		<modification type="file" reverse="true">mod_register_template.xml</modification>
 		<modification type="file" reverse="true">mod_profile_template.xml</modification>
+		<modification type="file" reverse="true">mod_managepermissions.xml</modification>
 		<remove-file name="$sourcedir/TEA.php" />
 		<remove-file name="$sourcedir/TEA_TS.php" />
 		<remove-file name="$sourcedir/TEAC.php" />

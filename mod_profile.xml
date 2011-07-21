@@ -11,15 +11,15 @@
 					'label' => $txt['tea_tea'],
 					'file' => 'TEA.php',
 					'function' => 'edittea',
-					'enabled' => allowedTo(array('tea_edit_own', 'tea_edit_any')),
+					'enabled' => allowedTo(array('tea_edit_own', 'tea_edit_any', 'tea_view_own', 'tea_view_any')),
 					'sc' => 'post',
 					'subsections' => array(
 						'api' => array($txt['tea_eveapi']),
 						'ts' => array($txt['tea_ts']),
 					),
 					'permission' => array(
-						'own' => array('tea_edit_any', 'tea_edit_own'),
-						'any' => array('tea_edit_any'),
+						'own' => array('tea_edit_any', 'tea_edit_own', 'tea_view_any', 'tea_view_own'),
+						'any' => array('tea_edit_any', 'tea_view_any'),
 					),
 				),
 				'groupmembership' => array(]]></add>
