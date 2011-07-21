@@ -23,7 +23,7 @@ class TEA extends TEAC
 		$this -> smcFunc = &$smcFunc;
 		$this -> settings = &$settings;
 
-		$this -> version = "1.2.0.132";
+		$this -> version = "1.2.0.133";
 
 		$permissions["tea_view_own"] = 1;
 		$permissions["tea_view_any"] = 0;
@@ -1391,7 +1391,7 @@ class TEA extends TEAC
 		}
 		$config_vars = array(
 			'</form>
-			<form action="'.$scripturl.'?action=admin;area=tea;save" method="post" accept-charset="ISO-8859-1" name="tea_settings">',
+			<form action="'.$scripturl.'?action=admin;area=tea;sa=settings;save" method="post" accept-charset="ISO-8859-1" name="tea_settings">',
 			'<dt>'.$this -> txt['tea_version'].': '.$this -> version.'</dt>',
 			'',
 				// enable?
@@ -1483,7 +1483,7 @@ class TEA extends TEAC
 		//	}
 			$config_vars[] = array('select', 'tea_charid', $charlist);
 			saveDBSettings($config_vars);
-			redirectexit('action=admin;area=tea');
+			redirectexit('action=admin;area=tea;sa=settings');
 
 			loadUserSettings();
 			writeLog();
