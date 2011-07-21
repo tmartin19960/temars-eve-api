@@ -23,7 +23,7 @@ class TEA extends TEAC
 		$this -> smcFunc = &$smcFunc;
 		$this -> settings = &$settings;
 
-		$this -> version = "1.2.0.135";
+		$this -> version = "1.2.0.136";
 
 		$permissions["tea_view_own"] = 1;
 		$permissions["tea_view_any"] = 0;
@@ -1017,13 +1017,41 @@ class TEA extends TEAC
 			$lastid = $force;
 		else
 			$lastid = $this -> settings['tea_lastpull'];
-		$users = $this -> smcFunc['db_query']('', "SELECT id_member, member_name, ID_GROUP FROM {db_prefix}members WHERE id_member > $lastid Order by id_member ASC Limit 50");
+		$limit = time() + 25;
+		$users = $this -> smcFunc['db_query']('', "SELECT id_member, member_name, ID_GROUP FROM {db_prefix}members WHERE id_member > $lastid Order by id_member");
 		$users = $this -> select($users);
-		if(count($users) == 50) // maxed user pull record last id ready for next
+		if(!empty($users))
 		{
-			$lastid = $users[49][0];
-			$next = time() + 60;
-			$this -> lastid = $lastid;
+			$this -> log .= '<table border=1><tr><td><b>Name</b></td><td><b>Main Group</b></td><td><b>Additional Groups</b></td></tr>';
+			foreach($users as $user)
+			{
+				$this -> log .= '<tr><td>'.$user[1].'</td>';
+				$cr = $this -> single($user[0]);
+				if(is_array($cr['additional']))
+				{
+					foreach($cr['additional'] as &$c)
+					{
+						if(is_numeric($c))
+							$c = $this -> get_rule_name($c);
+					}
+					$cr['additional'] = implode(', ', $cr['additional']);
+				}
+				if(is_numeric($cr['main']))
+					$cr['main'] = $this -> get_rule_name($cr['main']);
+				$this -> log .= '<td>'.$cr['main'].'</td><td>'.$cr['additional'].'</td></tr>';
+				if(time() > $limit)
+				{
+					$blastid = $user[0];
+					Break;
+				}
+			}
+			$this -> log .= '</table>';
+		}
+		
+		if(!empty($blastid)) // maxed user pull record last id ready for next
+		{
+			$next = time() + 45;
+			$this -> lastid = $blastid;
 		}
 		else
 		{
@@ -1044,22 +1072,18 @@ class TEA extends TEAC
 			 (variable, value)
 		  VALUES
 			  ('tea_nextpull', $lastid)");
-		if(!empty($users))
-		{
-			$this -> log .= '<table>';
-			foreach($users as $user)
-			{
-				$this -> log .= '<tr><td>'.$user[1].'</td>';
-				$cr = $this -> single($user[0]);
-				if(is_array($cr['additional']))
-					$cr['additional'] = implode(', ', $cr['additional']);
-				$this -> log .= '<td>'.$cr['main'].'</td><td>'.$cr['additional'].'</td></tr>';
-			}
-			$this -> log .= '</table>';
-		}
 	//	$fp = fopen("api.log", 'a');
 	//	fwrite($fp, $this -> file);
 	//	fclose($fp);
+	}
+
+	function get_rule_name($id)
+	{
+		//$id = (int)$id;
+		$name = $this -> smcFunc['db_query']('', "SELECT name FROM {db_prefix}tea_rules WHERE ruleid = {int:id}", array('id' => $id));
+		$name = $this -> select($name);
+		if(!empty($name))
+			Return $name[0][0];
 	}
 
 	function get_cache($url, $post)
@@ -2158,9 +2182,23 @@ value_type();
 				$users2 = count($users2);
 			$echo = "<dt>Checked: $users1 / ".($users1+$users2)."<br></dt>";
 			if($users2 > 0)
-				$echo .= '<dt><a href="'.$scripturl.'?action=admin;area=tea;sa=checks;update;lastid='.$this -> lastid.'">Continue</a></dt>';
-			
-			
+			{
+				$echo .= '<dt><table><tr><td><a href="'.$scripturl.'?action=admin;area=tea;sa=checks;update;lastid='.$this -> lastid.'">Continue</a></td><td><div id="cdown"></div></td></tr></table></dt>';
+				$echo .= '
+				<script type="text/javascript">
+					var num = 3;
+					setInterval("count();" , 1000);
+					function count()
+					{
+						document.getElementById(\'cdown\').innerHTML="("+num+")";
+						if(num == 0)
+						{
+							window.location = "'.$scripturl.'?action=admin;area=tea;sa=checks;update;lastid='.$this -> lastid.'";
+						}
+						num = num - 1;
+					}
+				</script>';
+			}
 			$file = str_replace("\n", "<br>", $this -> log);
 			$config_vars = array(
 			$echo,
