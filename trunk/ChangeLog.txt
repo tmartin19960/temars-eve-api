@@ -7,6 +7,7 @@ New Features
 - TS Section now works with API area disabled (good for none eve use)
 - Online reg Method for TS now removes old Accounts
 - You can now Alter permissions for viewing and editing API Page
+- Full Check now runs with a limit of 25 Seconds, and auto Refreshes if Manual
 
 Bug Fixes
 - Fixed Bug with Character Selection on Profile Were if you had no API then you couldnt add 1 (Fix by monorailpilot)
