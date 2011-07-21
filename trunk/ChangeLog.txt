@@ -6,6 +6,7 @@ New Features
 - Full member Check now limits to 50 per run and cycles, Cron has built in time manager
 - TS Section now works with API area disabled (good for none eve use)
 - Online reg Method for TS now removes old Accounts
+- You can now Alter permissions for viewing and editing API Page
 
 Bug Fixes
 - Fixed Bug with Character Selection on Profile Were if you had no API then you couldnt add 1 (Fix by monorailpilot)

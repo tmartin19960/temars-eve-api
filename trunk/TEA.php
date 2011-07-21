@@ -23,7 +23,7 @@ class TEA extends TEAC
 		$this -> smcFunc = &$smcFunc;
 		$this -> settings = &$settings;
 
-		$this -> version = "1.2.0.133";
+		$this -> version = "1.2.0.135";
 
 		$permissions["tea_view_own"] = 1;
 		$permissions["tea_view_any"] = 0;
@@ -2828,7 +2828,17 @@ function ModifyTEASettings()
 function template_edittea()
 {
 	global $tea, $teainfo, $sourcedir, $context, $settings, $options, $scripturl, $modSettings, $txt;
-
+	if($teainfo['memid'] == $context['user']['id'])
+	{
+		if(allowedTo(array('tea_edit_own', 'tea_edit_any')))
+			$edit = TRUE;
+	}
+	else
+	{
+		if(allowedTo(array('tea_edit_any')))
+			$edit = TRUE;
+	}
+		
 	if(isset($_GET['sa']) && strtolower($_GET['sa']) == "ts")
 		return template_edit_tea_ts();
 
@@ -2858,20 +2868,32 @@ function template_edittea()
 			foreach($info['charnames'] as $i => $char)
 				$charlist[$i] = $char[0];
 		}
-		echo '<tr><td>'.$txt['tea_charid'].'</td><td><select name="tea_charid" id="tea_charid" >';
+		echo '<tr><td>'.$txt['tea_charid'].'</td><td>';
+		if($edit)
+			echo '<select name="tea_charid" id="tea_charid" >';
 		if(!empty($charlist))
 		{
 			foreach($charlist as $i => $c)
 			{
-				echo '<option value="'.$i.'"',$i == $teainfo[0]['main'] ? 'SELECTED' : '','>'.$c.'</option>';
+				if($edit)
+					echo '<option value="'.$i.'"',$i == $teainfo[0]['main'] ? 'SELECTED' : '','>'.$c.'</option>';
 			}
+			if(!$edit)
+				echo $charlist[$teainfo[0]['main']];
 		}
 		else
 		{
-			echo '<option value="-", SELECTED>-</option>';
+			if($edit)
+				echo '<option value="-", SELECTED>-</option>';
+			else
+				echo '-';
 		}
-		echo '</select></td></tr>';
-		$teainfo[] = array(
+		if($edit)
+			echo '</select>';
+		echo '</td></tr>';
+		if($edit)
+		{
+			$teainfo[] = array(
 				"userid" => '',
 				"api" => '',
 			//	"msg" => $msg,
@@ -2881,6 +2903,7 @@ function template_edittea()
 				'aditrules' => '',
 				'error' => ''
 				);
+		}
 		foreach($teainfo as $i => $info)
 		{
 			echo '<tr><td colspan="3"><hr class="hrcolor" width="100%" size="1"/></td></tr>';
@@ -2912,19 +2935,32 @@ function template_edittea()
 				<tr><td>
 				<b>', $txt['tea_userid'], ':</b></td>
 				<td>';
-			if($info['userid'] == "")
-				echo '<input type="text" name="tea_user_id[]" value="'.$info['userid'].'" size="20" />';
+			if($edit)
+			{
+				if($info['userid'] == "")
+					echo '<input type="text" name="tea_user_id[]" value="'.$info['userid'].'" size="20" />';
+				else
+				{
+					echo '<input type="hidden" name="tea_user_id[]" value="'.$info['userid'].'" size="20" />';
+					echo $info['userid'].'</td><td> <input type="checkbox" name="del_api[]" value="'.$info['userid'].'" /> Delete</td>';
+				}
+				echo '</td>
+					</tr><tr>
+						<td width="40%">										<b>', $txt['tea_api'], ':</b></td>
+							<td><input type="text" name="tea_user_api[]" value="'.$info['api'].'" size="64" />
+						</td>
+					</tr>';
+			}
 			else
 			{
-				echo '<input type="hidden" name="tea_user_id[]" value="'.$info['userid'].'" size="20" />';
-				echo $info['userid'].'</td><td> <input type="checkbox" name="del_api[]" value="'.$info['userid'].'" /> Delete</td>';
+				echo $info['userid'];
+				echo '</td>
+					</tr><tr>
+						<td width="40%">										<b>', $txt['tea_api'], ':</b></td>
+							<td>'.$info['api'].'
+						</td>
+					</tr>';
 			}
-			echo '</td>
-				</tr><tr>
-					<td width="40%">										<b>', $txt['tea_api'], ':</b></td>
-						<td><input type="text" name="tea_user_api[]" value="'.$info['api'].'" size="64" />
-					</td>
-				</tr>';
 		}
 		template_profile_save();
 	}
