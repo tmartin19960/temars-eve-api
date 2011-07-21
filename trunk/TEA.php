@@ -81,8 +81,6 @@ class TEA extends TEAC
 		}
 		$this -> server = $this -> settings['tea_api_server'];
 		$this -> undefined();
-		$time = time() - 3600;
-		$this -> smcFunc['db_query']('', "DELETE FROM {db_prefix}tea_cache WHERE time < ".$time);
 	}
 
 	function undefined()
@@ -1013,6 +1011,8 @@ class TEA extends TEAC
 		$next = $this -> settings['tea_nextpull'];
 		if($next > time() && $force === FALSE)
 			Return;
+		$time = time() - 3600;
+		$this -> smcFunc['db_query']('', "DELETE FROM {db_prefix}tea_cache WHERE time < ".$time);
 		if($force !== FALSE && $force !== NULL)
 			$lastid = $force;
 		else
