@@ -210,9 +210,9 @@ class TEAC
 	{
 		$post = array('corporationID' => $corp);
 		$xml2 = $this -> get_xml('corp', $post);
-		//$xml2 = explode("<description>", $xml2, 2);
-		//$xml2[1] = explode("</description>", $xml2[1], 2);
-		//$xml2 = $xml2[0].'<description>replaced</description>'.$xml2[1][1];
+		$xml2 = explode("<description>", $xml2, 2);
+		$xml2[1] = explode("</description>", $xml2[1], 2);
+		$xml2 = $xml2[0].'<description>removed</description>'.$xml2[1][1];
 		$xml = new SimpleXMLElement($xml2);
 		if(isset($xml -> result -> corporationName))
 		{
