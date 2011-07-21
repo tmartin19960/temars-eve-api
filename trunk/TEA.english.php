@@ -15,6 +15,7 @@ $txt['tea_disabled'] = 'Temars Eve Api Mod is Disabled.';
 $txt['tea_version'] = 'Version';
 
 //Settings Page
+$txt['tea_info'] = "Info";
 $txt['tea_rules'] = "Rules";
 $txt['tea_ts'] = "TeamSpeak";
 $txt['tea_checks'] = "Checks";
