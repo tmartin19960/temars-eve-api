@@ -23,7 +23,7 @@ class TEA extends TEAC
 		$this -> smcFunc = &$smcFunc;
 		$this -> settings = &$settings;
 
-		$this -> version = "1.2.1.139";
+		$this -> version = "1.2.1.142";
 
 		$permissions["tea_view_own"] = 1;
 		$permissions["tea_view_any"] = 0;
@@ -1343,15 +1343,34 @@ class TEA extends TEAC
 					'url' => $_SERVER['HTTP_HOST']);
 		$latestv = $this -> get_site('http://tea.temar.me/version.php', $info);
 		$latestv = explode("#", $latestv, 2);
+		if(version_compare($latestv[0], $this -> version) > 0)
+		{
+			$vdown = explode('.', $latestv[0], 3);
+			$vdown = implode('_', $vdown);
+			$vdown = 'http://temars-eve-api.googlecode.com/files/TEA_'.$vdown.'.zip';
+			$vdown = '<form action="'.$scripturl.'?action=admin;area=packages;get;sa=download;byurl" method="post" accept-charset="ISO-8859-1" name="Release Download">
+			<input type="hidden" name="package" value="'.$vdown.'" />
+			<input type="hidden" name="filename" value="" />
+			<input type="submit" value="Download" /></form>';
+		}
+		if(version_compare($latestv[1], $this -> version) > 0)
+		{
+			$dvdown = explode('.', $latestv[1], 4);
+			$fname = 'TEA-trunk.r'.$dvdown[3].'.tar.gz';
+			$dvdown = 'http://tea.temar.me/svn/dl.php?repname=TEA&path=%2Ftrunk%2F&isdir=1&rev='.$dvdown[3].'&peg='.$dvdown[3];
+			$dvdown = '<form action="'.$scripturl.'?action=admin;area=packages;get;sa=download;byurl;'.$this -> context['session_var'].'='.$this -> context['session_id'].'" method="post" accept-charset="ISO-8859-1" name="Dev Download">
+			<input type="hidden" name="package" value="'.$dvdown.'" />
+			<input type="hidden" name="filename" value="'.$fname.'" />
+			<input type="submit" value="Download" /></form>';
+		}
 		$config_vars = array(
-			'<dt>Your '.$this -> txt['tea_version'].': '.$this -> version.'</dt>',
-			'<dt>Latest Released '.$this -> txt['tea_version'].': '.$latestv[0].'</dt>',
-			'<dt>Latest Dev '.$this -> txt['tea_version'].': '.$latestv[1].'</dt>',
-			'',
+			'</form><dt>Your '.$this -> txt['tea_version'].': '.$this -> version.'</dt>',
+			'<dt>Latest Released '.$this -> txt['tea_version'].': '.$latestv[0].$vdown.'</dt>',
+			'<dt>Latest Dev '.$this -> txt['tea_version'].': '.$latestv[1].$dvdown.'</dt>',
+			'<dt></dt>',
 		);
 
-
-		$this -> context['post_url'] = $scripturl . '?action=admin;area=tea;save';
+		$this -> context['settings_save_dont_show'] = TRUE;
 
 		prepareDBSettingContext($config_vars);
 	}
@@ -2187,12 +2206,13 @@ value_type();
 				$echo .= '
 				<script type="text/javascript">
 					var num = 3;
-					setInterval("count();" , 1000);
+					var interval = setInterval("count();" , 1000);
 					function count()
 					{
 						document.getElementById(\'cdown\').innerHTML="("+num+")";
 						if(num == 0)
 						{
+							clearInterval(interval);
 							window.location = "'.$scripturl.'?action=admin;area=tea;sa=checks;update;lastid='.$this -> lastid.'";
 						}
 						num = num - 1;
