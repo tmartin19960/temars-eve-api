@@ -4,7 +4,7 @@
 	<id>temar:TEA</id>
 	<name>Temars EVE API</name>
 	<type>modification</type>
-	<version>1.2.0</version>
+	<version>1.2.1.139</version>
 	<install for="1.1 - 1.1.99">
 		<readme type="file">readme.txt</readme>
 		<readme type="inline" parsebbc="true">[color=red]Error! This mod does not support your version of SMF.[/color]</readme>
@@ -89,6 +89,25 @@
 		<remove-file name="$boarddir/esam_upgrade.php" />
 		<remove-die name="$sourcedir/TS3_Class" />
 	</uninstall>
+	<upgrade from="1.2.1">
+		<readme type="file">readme.txt</readme>
+		<require-file name="TEA.php" destination="$sourcedir" />
+		<require-file name="TEAC.php" destination="$sourcedir" />
+		<require-file name="TEA_TS.php" destination="$sourcedir" />
+		<require-file name="TEA_Cron.php" destination="$sourcedir" />
+		<require-file name="TEA_TS_Cron_Access.php" destination="$sourcedir" />
+		<require-file name="TEA_TS_Cron_Names.php" destination="$sourcedir" />
+		<require-file name="TEA_xmlhttp.php" destination="$boarddir" />
+		<require-file name="TEA_SkillDump.php" destination="$sourcedir" />
+		<require-file name="TEA_Roles.php" destination="$sourcedir" />
+		<require-file name="TEA.english.php" destination="$languagedir" />
+		<require-dir name="TS3_Class" destination="$sourcedir" />
+		<code>tables.php</code>
+	</upgrade>
+	<upgrade from "1.2.0">
+		<readme type="file">readme.txt</readme>
+		<readme type="inline" parsebbc="true">[color=red]No Upgrade Available from your version Please Uninstall and reinstall[/color]</readme>
+	</upgrade>
 	<upgrade from="1.1">
 		<readme type="file">readme.txt</readme>
 		<readme type="inline" parsebbc="true">[color=red]No Upgrade Available from 1.1.x Please Uninstall and reinstall[/color]</readme>
