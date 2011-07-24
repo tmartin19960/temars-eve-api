@@ -89,7 +89,7 @@
 		<remove-file name="$boarddir/esam_upgrade.php" />
 		<remove-die name="$sourcedir/TS3_Class" />
 	</uninstall>
-	<upgrade from="1.2.1">
+	<upgrade from="1.2.1.0">
 		<readme type="file">readme.txt</readme>
 		<require-file name="TEA.php" destination="$sourcedir" />
 		<require-file name="TEAC.php" destination="$sourcedir" />
@@ -104,7 +104,7 @@
 		<require-dir name="TS3_Class" destination="$sourcedir" />
 		<code>tables.php</code>
 	</upgrade>
-	<upgrade from "1.2.0">
+	<upgrade from="1.2.0">
 		<readme type="file">readme.txt</readme>
 		<readme type="inline" parsebbc="true">[color=red]No Upgrade Available from your version Please Uninstall and reinstall[/color]</readme>
 	</upgrade>
