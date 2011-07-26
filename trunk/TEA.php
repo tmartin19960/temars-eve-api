@@ -23,7 +23,7 @@ class TEA extends TEAC
 		$this -> smcFunc = &$smcFunc;
 		$this -> settings = &$settings;
 
-		$this -> version = "1.2.1.142";
+		$this -> version = "1.2.1.143";
 
 		$permissions["tea_view_own"] = 1;
 		$permissions["tea_view_any"] = 0;
@@ -31,7 +31,6 @@ class TEA extends TEAC
 		$permissions["tea_edit_any"] = 0;
 
 		$groups = array();
-		$groups2 = array();
 
 		// Get all the non-postcount based groups.
 		$request = $this -> smcFunc['db_query']('', "
@@ -41,24 +40,46 @@ class TEA extends TEAC
 		  array('minposts' => -1));
 		$request = $this -> select($request);
 
-		// Add -1 to this array if you want to give guests the same permission
-		$request[] = array(0);
-		foreach($request as $k => $row)
+		// Get all the non-postcount based groups.
+		$tgroupsq = $this -> smcFunc['db_query']('', "
+		  SELECT id
+		  FROM {db_prefix}tea_groups");
+		$tgroupsq = $this -> select($tgroupsq);
+		if(!empty($tgroupsq))
 		{
-			$groups['idg'.$k] = $row[0];
-			$groups2[] = '{int:idg'.$k.'}';
+			foreach($tgroupsq as $g)
+			{
+				$tgroups[$g[0]] = TRUE;
+			}
 		}
 
+		// Add -1 to this array if you want to give guests the same permission
+		$request[] = array(0);
+		foreach($request as $g)
+		{
+			if(!isset($tgroups[$g[0]]))
+			{
+				$groups[] = $g[0];
+			}
+		}
 		foreach($permissions as $p => $v)
 		{
+			if($v == 1)
+				$psql[] = $p;
+		}
+
+		foreach($groups as $g)
+		{
 		   // Give them all their new permission.
-			$request = $this -> query("
-			  INSERT IGNORE INTO {db_prefix}permissions
-				 (permission, ID_GROUP, add_deny)
-			  VALUES
-				 ('".$p."', " . implode(", $v),
-				 ('".$p."', ", $groups2) . ", $v)",
-				 $groups);
+			$request = $this -> smcFunc['db_query']('', "
+				INSERT IGNORE INTO {db_prefix}permissions
+					(permission, ID_GROUP, add_deny)
+				VALUES
+					('" . implode("', $g, 1),
+					('", $psql) . "', $g, 1)");
+			$request = $this -> smcFunc['db_query']('', "
+				INSERT INTO {db_prefix}tea_groups
+					(id) VALUES ($g)");
 		}
 
 		if(empty($this -> settings['tea_api_server']))
@@ -1566,17 +1587,18 @@ class TEA extends TEAC
 					elseif($g[0] == "adit")
 						$gs[$g[1]][1] = 1;
 				}
-				$this -> query("DELETE FROM {db_prefix}tea_groups");
+				$this -> query("UPDATE {db_prefix}tea_groups SET main = 0, additional = 0");
 				foreach($gs as $g => $v)
 				{
 					if($v[0] != 1) $v[0] = 0;
 					if($v[1] != 1) $v[1] = 0;
-					$this -> query("
-						INSERT INTO {db_prefix}tea_groups
-							(id, main, additional)
-						VALUES 
-							({int:id}, {int:main}, {int:adit})",
-							array('id' => $g, 'main' => $v[0], 'adit' => $v[1]));
+					$this -> query("UPDATE {db_prefix}tea_groups SET main = {int:main}, additional = {int:adit} WHERE id = {int:id}", array('id' => $g, 'main' => $v[0], 'adit' => $v[1]));
+		//			$this -> query("
+		//				INSERT INTO {db_prefix}tea_groups
+		//					(id, main, additional)
+		//				VALUES 
+		//					({int:id}, {int:main}, {int:adit})",
+		//					array('id' => $g, 'main' => $v[0], 'adit' => $v[1]));
 				}
 			}
 			elseif(isset($_POST['enr']))
