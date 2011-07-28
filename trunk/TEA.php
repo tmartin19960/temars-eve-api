@@ -23,7 +23,7 @@ class TEA extends TEAC
 		$this -> smcFunc = &$smcFunc;
 		$this -> settings = &$settings;
 
-		$this -> version = "1.2.1.143";
+		$this -> version = "1.2.1.144";
 
 		$permissions["tea_view_own"] = 1;
 		$permissions["tea_view_any"] = 0;
@@ -82,23 +82,22 @@ class TEA extends TEAC
 					(id) VALUES ($g)");
 		}
 
-		if(empty($this -> settings['tea_api_server']))
+		$dsets['tea_api_server'] = 'http://api.eve-online.com';
+		$dsets['tea_lastpull'] = 0;
+		$dsets['tea_nf'] = '[#ct#] #name#';
+		$dsets['tea_tf'] = '#ct#';
+
+		foreach($dsets as $s => $v)
 		{
-			$request = $this -> smcFunc['db_query']('', "
-			  INSERT IGNORE INTO {db_prefix}settings
-				 (variable, value)
-			  VALUES
-				  ('tea_api_server', 'http://api.eve-online.com')");
-			$this -> settings['tea_api_server'] = 'http://api.eve-online.com';
-		}
-		if(empty($this -> settings['tea_lastpull']))
-		{
-			$this -> smcFunc['db_query']('', "
-			  REPLACE INTO {db_prefix}settings
-				 (variable, value)
-			  VALUES
-				  ('tea_lastpull', 0)");
-			$this -> settings['tea_lastpull'] = 0;
+			if(empty($this -> settings[$s]))
+			{
+				$request = $this -> smcFunc['db_query']('', "
+				  INSERT IGNORE INTO {db_prefix}settings
+					 (variable, value)
+				  VALUES
+					  ('".$s."', '".$v."')");
+				$this -> settings[$s] = $v;
+			}
 		}
 		$this -> server = $this -> settings['tea_api_server'];
 		$this -> undefined();
@@ -113,7 +112,6 @@ class TEA extends TEAC
 		$ms[] = 'tea_groupass_unknown';
 		$ms[] = 'tea_avatar_enabled';
 		$ms[] = 'tea_avatar_locked';
-		$ms[] = 'tea_corptag_options';
 		$ms[] = 'tea_regreq';
 		$ms[] = 'tea_ts_enable';
 		$ms[] = 'tea_avatar_size';
@@ -874,7 +872,7 @@ class TEA extends TEAC
 		Return $charlist;
 	}
 
-	function get_char_list($id=FALSE, $getticker=FALSE)
+	function get_char_list($id=FALSE, $format=FALSE)
 	{
 		$ID_MEMBER = $this -> user_info['id'];
 		// Did we get the user by name...
@@ -899,11 +897,11 @@ class TEA extends TEAC
 				{
 					foreach($chars as $cid => $char)
 					{
-						if($getticker)
+						if($format)
 						{
 						//	$ticker = $this -> corp_info($corp);
 							if(!empty($char[1]))
-								$char[0] = "[".$char[1]."] ".$char[0];
+								$char[0] = $this -> format_name($memID, $char[0]);
 						}
 
 						if($id)
@@ -1521,7 +1519,10 @@ class TEA extends TEAC
 			//	array('int', 'tea_corpid', 10),
 			//	array('int', 'tea_allianceid', 10),
 			//	array('check', 'tea_useapiabove'),
-				array('select', 'tea_corptag_options', array(0 => 'Nothing', 1 => 'Custom Title', 2 => 'Part of Name')),
+				array('check', 'tea_custom_name'),
+				array('text', 'tea_nf', 15),
+				array('check', 'tea_custom_title'),
+				array('text', 'tea_tf', 15),
 			'',
 			'<dt>'.$this -> txt['tea_group_settings'].'</dt>',
 			//	array('select', 'tea_groupass_red', $groups),
@@ -2375,16 +2376,21 @@ value_type();
 				{
 					$char = $char[0];
 					$name = $char[0];
-					if($this -> modSettings["tea_corptag_options"] == 1)
-						$this -> query("UPDATE {db_prefix}members SET usertitle = '".$char[3]."' WHERE ID_MEMBER = ".$memberID);
-					elseif($this -> modSettings["tea_corptag_options"] == 2)
-						$name = '['.$char[3].'] '.$name;
-					$this -> query("UPDATE {db_prefix}members SET real_name = '".mysql_real_escape_string($name)."' WHERE ID_MEMBER = ".$memberID);
+					if($this -> modSettings["tea_custom_title"])
+					{
+						$title = $this -> format_name($memberID, $name, 'title');
+						$this -> query("UPDATE {db_prefix}members SET usertitle = '".$title."' WHERE ID_MEMBER = ".$memberID);
+					}
+					if($this -> modSettings["tea_custom_name"])
+					{
+						$name = $this -> format_name($memberID, $name);
+						$this -> query("UPDATE {db_prefix}members SET real_name = '".mysql_real_escape_string($name)."' WHERE ID_MEMBER = ".$memberID);
+					}
 
 					if($this -> modSettings['tea_avatar_enabled'])
 					{
-						if($this -> modSettings["tea_corptag_options"] == 2)
-						{
+					//	if($this -> modSettings["tea_corptag_options"] == 2) ? why is this here
+					//	{
 					//		$name = explode("] ", $name, 2);
 					//		$name = $name[1];
 					//	}
@@ -2393,11 +2399,81 @@ value_type();
 							require_once("Subs-Graphics.php");
 							$tea_avatar_size = !empty($this -> modSettings['tea_avatar_size']) ? $this -> modSettings['tea_avatar_size'] : 64;
 							downloadAvatar('http://image.eveonline.com/Character/'.$charid.'_'.$tea_avatar_size.'.jpg', $memberID, $tea_avatar_size, $tea_avatar_size);
-						}
+					//	}
 					}
 				}
 			}
 		}
+	}
+
+	function format_name($memID, $char, $type='name')
+	{
+		$chars = $this -> get_all_chars($memID);
+
+		$smfgroups = $this -> smf_groups($memID);
+		if(!empty($chars))
+		{
+			// $rules = $this -> smcFunc['db_query']('', "SELECT id, smf, ts, tst, nf FROM {db_prefix}tea_ts_rules");
+			// $rules = $this -> tea -> select($rules);
+			// if(!empty($rules))
+			// {
+				// foreach($rules as $r)
+				// {
+					// if(!empty($smfgroups))
+					// {
+						// foreach($smfgroups as $g)
+						// {
+							// if($r[1] == $g)
+							// {
+								// if(!isset($nf))
+									// $nf = $r[4];
+							// }
+						// }
+					// }
+				// }
+			// }
+			foreach($chars as $i => $ch)
+			{
+				if($ch[0] == $char)
+					$charinfo = $ch;
+			}
+			if(!empty($charinfo))
+			{
+				// if($nf)
+					// $name = $nf;
+				// else
+				if($type == 'title')
+					$name = $this -> modSettings["tea_tf"];
+				else
+					$name = $this -> modSettings["tea_nf"];
+				$name = str_replace('#at#', $charinfo[4], $name);
+				$name = str_replace('#ct#', $charinfo[1], $name);
+				$name = str_replace('#name#', $char, $name);
+			}
+		}
+	//	if(strlen($name) > 30)
+	//	{
+	//		$name = substr($name, 0, 30);
+	//	}
+		return $name;
+	}
+
+	function smf_groups($memID)
+	{
+		$groups = array();
+		$dbgs = $this -> smcFunc['db_query']('', "SELECT ID_MEMBER, ID_GROUP, additional_groups FROM {db_prefix}members WHERE ID_MEMBER = {int:id}", array('id' => $memID));
+		$dbgs = $this -> select($dbgs);
+		if(!empty($dbgs))
+		{
+			$groups[$dbgs[0][1]] = $dbgs[0][1];
+			if(!empty($dbgs[0][2]))
+			{
+				$dbgs[0][2] = explode(',', $dbgs[0][2]);
+				foreach($dbgs[0][2] as $g)
+					$groups[$g] = $g;
+			}
+		}
+		return $groups;
 	}
 
 	function pref_reset()
@@ -2416,16 +2492,21 @@ value_type();
 				{
 					$char = $char[0];
 					$name = $char[0];
-					if($this -> modSettings["tea_corptag_options"] == 1)
-						$this -> query("UPDATE {db_prefix}members SET usertitle = '".$char[3]."' WHERE ID_MEMBER = ".$memberID);
-					elseif($this -> modSettings["tea_corptag_options"] == 2)
-						$name = '['.$char[3].'] '.$name;
-					$this -> query("UPDATE {db_prefix}members SET real_name = '".mysql_real_escape_string($name)."' WHERE ID_MEMBER = ".$memberID);
+					if($this -> modSettings["tea_custom_title"])
+					{
+						$title = $this -> format_name($memberID, $name, 'title');
+						$this -> query("UPDATE {db_prefix}members SET usertitle = '".$title."' WHERE ID_MEMBER = ".$memberID);
+					}
+					if($this -> modSettings["tea_custom_name"])
+					{
+						$name = $this -> format_name($memberID, $name);
+						$this -> query("UPDATE {db_prefix}members SET real_name = '".mysql_real_escape_string($name)."' WHERE ID_MEMBER = ".$memberID);
+					}
 
 					if($this -> modSettings['tea_avatar_enabled'])
 					{
-						if($this -> modSettings["tea_corptag_options"] == 2)
-						{
+					//	if($this -> modSettings["tea_corptag_options"] == 2)
+					//	{
 					//		$name = explode("] ", $name, 2);
 					//		$name = $name[1];
 					//	}
@@ -2434,7 +2515,7 @@ value_type();
 							require_once("Subs-Graphics.php");
 							$tea_avatar_size = !empty($this -> modSettings['tea_avatar_size']) ? $this -> modSettings['tea_avatar_size'] : 64;
 							downloadAvatar('http://image.eveonline.com/Character/'.$charid.'_'.$tea_avatar_size.'.jpg', $memberID, $tea_avatar_size, $tea_avatar_size);
-						}
+					//	}
 					}
 				}
 				$count++;
