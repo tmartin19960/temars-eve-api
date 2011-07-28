@@ -1,5 +1,5 @@
 ----------------------
-Version 1.2.0 -> 1.2.1
+Version 1.2.0 -> 1.2.1 (dev)
 ----------------------
 New Features
 - EVE Avatar size is now selectable under administrator settings
@@ -9,6 +9,7 @@ New Features
 - You can now Alter permissions for viewing and editing API Page
 - Full Check now runs with a limit of 25 Seconds, and auto Refreshes if Manual
 - You can now Get an Update by Clicking Download under TEA Admin info page
+- Added Custom Format for adding tags to Name or title
 
 Bug Fixes
 - Fixed Bug with Character Selection on Profile Were if you had no API then you couldnt add 1 (Fix by monorailpilot)

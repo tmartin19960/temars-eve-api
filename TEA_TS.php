@@ -432,7 +432,7 @@ function move(id, value)
 				$char = html_entity_decode($char, ENT_QUOTES);
 				if($_POST['method'] == 'online' && $this -> modSettings["tea_ts_method_online"])
 				{
-					$name = $this -> format_name($memberID, $char);
+					$name = $this -> format_ts_name($memberID, $char);
 
 					try
 					{
@@ -595,24 +595,6 @@ function move(id, value)
 		}
 	}
 
-	function smf_groups($memID)
-	{
-		$groups = array();
-		$dbgs = $this -> smcFunc['db_query']('', "SELECT ID_MEMBER, ID_GROUP, additional_groups FROM {db_prefix}members WHERE ID_MEMBER = {int:id}", array('id' => $memID));
-		$dbgs = $this -> tea -> select($dbgs);
-		if(!empty($dbgs))
-		{
-			$groups[$dbgs[0][1]] = $dbgs[0][1];
-			if(!empty($dbgs[0][2]))
-			{
-				$dbgs[0][2] = explode(',', $dbgs[0][2]);
-				foreach($dbgs[0][2] as $g)
-					$groups[$g] = $g;
-			}
-		}
-		return $groups;
-	}
-
 	function check_access()
 	{
 		$this -> all_users();
@@ -664,7 +646,7 @@ function move(id, value)
 					$smf = $this -> tea -> select($smf);
 					if(!empty($smf))
 					{
-						$smfgroups = $this -> smf_groups($smf[0][0]);
+						$smfgroups = $this -> tea -> smf_groups($smf[0][0]);
 						foreach($smfgroups as $g)
 						{
 							if(!empty($rules))
@@ -746,7 +728,7 @@ function move(id, value)
 						{
 							$char = $smf[0][3];
 						//	$chars = $this -> tea -> get_all_chars($smf[0][0]);
-							$name = $this -> format_name($smf[0][0], $char);
+							$name = $this -> format_ts_name($smf[0][0], $char);
 						//	$aid = NULL;
 							if(!empty($name))
 							{
@@ -801,11 +783,11 @@ function move(id, value)
 		}
 	}
 
-	function format_name($memID, $char)
+	function format_ts_name($memID, $char)
 	{
 		$chars = $this -> tea -> get_all_chars($memID);
 
-		$smfgroups = $this -> smf_groups($memID);
+		$smfgroups = $this -> tea -> smf_groups($memID);
 		if(!empty($chars))
 		{
 			$rules = $this -> smcFunc['db_query']('', "SELECT id, smf, ts, tst, nf FROM {db_prefix}tea_ts_rules");
@@ -896,7 +878,7 @@ function template_edit_tea_ts()
 			{
 				$sname = $tsinfo[0][2];
 				$uniqueid = $tsinfo[0][0];
-				$tsname = $teats -> format_name($memberID, $sname);
+				$tsname = $teats -> format_ts_name($memberID, $sname);
 				echo '<tr><td>Name</td><td>'.$tsname.'</td></tr>';
 				echo '<tr><td>UniqueID</td><td>'.$uniqueid.'</td></tr>';
 			}
@@ -929,7 +911,7 @@ function template_edit_tea_ts()
 				{
 					foreach($info['charnames'] as $i => $info)
 					{
-						$name = $teats -> format_name($memberID, $info[0]);
+						$name = $teats -> format_ts_name($memberID, $info[0]);
 						echo '<option value="'.$info[0].'"', $info[0] == $sname ? ' SELECTED ' : '','>'.$name.'</option>';
 					}
 				}

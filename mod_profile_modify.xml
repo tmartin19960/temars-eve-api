@@ -13,7 +13,7 @@
 			<add><![CDATA[			'type' => !empty($modSettings['tea_usecharname']) ? 'select' : (!empty($modSettings['allow_editDisplayName']) || allowedTo('moderate_forum') ? 'text' : 'label'),
 			'label' => $txt['name'],
 			'subtext' => $txt['display_name_desc'],
-			'options' => 'Global $tea; if($modSettings["tea_corptag_options"] == 2) $ticker = TRUE; return $tea -> get_char_list(FALSE, $ticker);',]]></add>
+			'options' => 'Global $tea; if($modSettings["tea_custom_name"]) $format = TRUE; return $tea -> get_char_list(FALSE, $format);',]]></add>
 		</operation>
 		<operation>
 			<search position="replace"><![CDATA[	// Here's where we sort out all the 'other' values...]]></search>

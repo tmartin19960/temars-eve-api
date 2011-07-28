@@ -81,7 +81,7 @@ function run_upgrade()
 
 	$cs['GLOBAL_REQUIRED_API'] = array('tea_regreq', 1);
 	$cs['DISPLAY_EVE_NAME'] = array('tea_usecharname', 1);
-	$cs['ADD_CORP_TICKER'] = array('tea_corptag_options', 2);
+	$cs['ADD_CORP_TICKER'] = array('tea_custom_name', 1);
 	$cs['DISPLAY_EVE_PORTRAIT'] = array('tea_avatar_enabled', 1);
 	//$cs['DISPLAY_CORP_TITLES'] = array('tea_regreq', 1);
 
