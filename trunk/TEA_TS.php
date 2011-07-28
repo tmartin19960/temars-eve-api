@@ -446,6 +446,17 @@ function move(id, value)
 					$dbid = $client -> client_database_id;
 					$cid = $client -> client_unique_identifier;
 
+					$dupcheck = $this -> smcFunc['db_query']('', "SELECT id, name FROM {db_prefix}tea_ts_users WHERE tsid = '".mysql_real_escape_string($cid)."'");
+					$dupcheck = $this -> tea -> select($dupcheck);
+					if(!empty($dupcheck))
+					{
+						if($dupcheck[0][0] != $memberID)
+						{
+							$_SESSION['tea_ts_error'][] = 'UniqueID already attached to another forum Member';
+							return;
+						}
+					}
+
 					$scheck = $this -> smcFunc['db_query']('', "SELECT tsid, dbid, name FROM {db_prefix}tea_ts_users WHERE id = ".$memberID);
 					$scheck = $this -> tea -> select($scheck);
 					if(!empty($scheck))
@@ -511,6 +522,16 @@ function move(id, value)
 					{
 						$_SESSION['tea_ts_error'][] = 'Invalid TeamSpeak UnqiueID';
 						return;
+					}
+					$dupcheck = $this -> smcFunc['db_query']('', "SELECT id, name FROM {db_prefix}tea_ts_users WHERE tsid = '".mysql_real_escape_string($cid)."'");
+					$dupcheck = $this -> tea -> select($dupcheck);
+					if(!empty($dupcheck))
+					{
+						if($dupcheck[0][0] != $memberID)
+						{
+							$_SESSION['tea_ts_error'][] = 'UniqueID already attached to another forum Member';
+							return;
+						}
 					}
 					$this -> ts_connect();
 					$check = $this -> ts_select("SELECT client_id FROM $tsdb WHERE client_unique_id = '".mysql_real_escape_string($cid)."'");
