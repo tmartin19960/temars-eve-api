@@ -23,7 +23,7 @@ class TEA extends TEAC
 		$this -> smcFunc = &$smcFunc;
 		$this -> settings = &$settings;
 
-		$this -> version = "1.2.1.146";
+		$this -> version = "1.2.1.147";
 
 		$permissions["tea_view_own"] = 1;
 		$permissions["tea_view_any"] = 0;
@@ -61,6 +61,10 @@ class TEA extends TEAC
 			{
 				$groups[] = $g[0];
 			}
+			else
+			{
+				unset($tgroups[$g[0]]);
+			}
 		}
 		foreach($permissions as $p => $v)
 		{
@@ -68,18 +72,32 @@ class TEA extends TEAC
 				$psql[] = $p;
 		}
 
-		foreach($groups as $g)
+		if(!empty($groups))
 		{
-		   // Give them all their new permission.
-			$request = $this -> smcFunc['db_query']('', "
-				INSERT IGNORE INTO {db_prefix}permissions
-					(permission, ID_GROUP, add_deny)
-				VALUES
-					('" . implode("', $g, 1),
-					('", $psql) . "', $g, 1)");
-			$request = $this -> smcFunc['db_query']('', "
-				INSERT INTO {db_prefix}tea_groups
-					(id) VALUES ($g)");
+			foreach($groups as $g)
+			{
+				if($g == 1)
+					$v = 0;
+				else
+					$v = 1;
+			   // Give them all their new permission.
+				$request = $this -> smcFunc['db_query']('', "
+					INSERT IGNORE INTO {db_prefix}permissions
+						(permission, ID_GROUP, add_deny)
+					VALUES
+						('" . implode("', $g, 1),
+						('", $psql) . "', $g, 1)");
+				$request = $this -> smcFunc['db_query']('', "
+					INSERT INTO {db_prefix}tea_groups
+						(id, main, additional) VALUES ($g, $v, $v)");
+			}
+		}
+		if(!empty($tgroups))
+		{
+			foreach($tgroups as $g => $v)
+			{
+				$request = $this -> smcFunc['db_query']('', "DELETE FROM {db_prefix}tea_groups WHERE id = $g");
+			}
 		}
 
 		$dsets['tea_api_server'] = 'http://api.eve-online.com';
