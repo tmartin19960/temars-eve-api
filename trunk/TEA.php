@@ -23,7 +23,7 @@ class TEA extends TEAC
 		$this -> smcFunc = &$smcFunc;
 		$this -> settings = &$settings;
 
-		$this -> version = "1.2.1.147";
+		$this -> version = "1.2.1.148";
 
 		$permissions["tea_view_own"] = 1;
 		$permissions["tea_view_any"] = 0;
@@ -3007,7 +3007,7 @@ function ModifyTEASettings()
 function template_edittea()
 {
 	global $tea, $teainfo, $sourcedir, $context, $settings, $options, $scripturl, $modSettings, $txt;
-	if($teainfo['memid'] == $context['user']['id'])
+	if($teainfo[0]['memid'] == $context['user']['id'])
 	{
 		if(allowedTo(array('tea_edit_own', 'tea_edit_any')))
 			$edit = TRUE;
