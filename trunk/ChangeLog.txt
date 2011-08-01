@@ -22,6 +22,7 @@ Bug Fixes
 - Fixed a bunch of undefined errors including the one in crons
 - Name to Reg and Check in TS is now Shortened to 30 if longer
 - Removed Corp Description as some can Break XML
+- Fixed a bug causing error when no titles found
 
 ----------------------
 Version 1.1.2 -> 1.2.0
