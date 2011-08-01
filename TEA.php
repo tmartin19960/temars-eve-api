@@ -23,7 +23,7 @@ class TEA extends TEAC
 		$this -> smcFunc = &$smcFunc;
 		$this -> settings = &$settings;
 
-		$this -> version = "1.2.1.149";
+		$this -> version = "1.2.1.150";
 
 		$permissions["tea_view_own"] = 1;
 		$permissions["tea_view_any"] = 0;
@@ -2990,7 +2990,7 @@ $tea -> ts = $teats;
 $teats -> tea = $tea;
 
 Global $forum_copyright;
-$forum_copyright .= '</span></li><li class="copyright"><span><a href="http://code.google.com/p/temars-eve-api/" target="_blank" class="new_win">TEA '.$tea -> version.' © 2009-2011, Temars EVE API</a>';
+$forum_copyright .= '</span></li><li class="copyright"><span><a href="http://code.google.com/p/temars-eve-api/" target="_blank" class="new_win">TEA '.$tea -> version.' &copy; 2009-2011, Temars EVE API</a>';
 
 function edittea($memID)
 {
