@@ -23,7 +23,7 @@ class TEA extends TEAC
 		$this -> smcFunc = &$smcFunc;
 		$this -> settings = &$settings;
 
-		$this -> version = "1.2.1.148";
+		$this -> version = "1.2.1.149";
 
 		$permissions["tea_view_own"] = 1;
 		$permissions["tea_view_any"] = 0;
@@ -1025,9 +1025,12 @@ class TEA extends TEAC
 		$xml = $this -> get_xml('charsheet', $post);
 	//	$xml = file_get_contents('me.xml');
 		$xml = new SimpleXMLElement($xml);
-		foreach($xml -> result -> rowset[6] as $title)
+		if(!empty($xml -> result -> rowset[6]))
 		{
-			$titles[strtolower((string)$title["titleName"])] = TRUE;
+			foreach($xml -> result -> rowset[6] as $title)
+			{
+				$titles[strtolower((string)$title["titleName"])] = TRUE;
+			}
 		}
 		return $titles;
 	}
