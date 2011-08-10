@@ -23,7 +23,7 @@ class TEA extends TEAC
 		$this -> smcFunc = &$smcFunc;
 		$this -> settings = &$settings;
 
-		$this -> version = "1.2.1.151";
+		$this -> version = "1.2.1.153";
 
 		$permissions["tea_view_own"] = 1;
 		$permissions["tea_view_any"] = 0;
@@ -2384,6 +2384,35 @@ value_type();
 		if($reg || empty($user) || $user[0][0] != $_POST['tea_charid'])
 		{
 			//if($modSettings['tea_usecharname'])
+			if($_POST['tea_charid'] == "-")
+			{
+				$user = $this -> smcFunc['db_query']('', "SELECT real_name FROM {db_prefix}members WHERE id_member = ".$memberID);
+				$user = $this -> select($user);
+				if(!empty($user))
+				{
+					$realname = $user[0][0];
+					$match = FALSE;
+					$chars = $this -> get_all_chars($memberID);
+					if(!empty($chars))
+					{
+						foreach($chars as $char)
+						{
+							$comp[] = $char[0];
+						}
+						$best = $this -> best_match($realname, $comp);
+						$best = $best[1];
+						foreach($chars as $i => $char)
+						{
+							if($char[0] == $best)
+								$match = $i;
+						}
+						if($match)
+						{
+							$_POST['tea_charid'] = $match;
+						}
+					}
+				}
+			}
 			if($_POST['tea_charid'] != "-")
 			{
 				//$char = $this -> matchedchar;
@@ -2688,14 +2717,14 @@ value_type();
 	}
 
 	function UserModifyTEA($memID, &$teainfo)
-	{ // is this a valid function? clearly code for my other mod, but is it safe to delete, or is it partly in use and other code is junk
+	{
 	//	if(!$this -> modSettings["tea_enable"])
 	//		Return;
 
-	//	loadLanguage('AOCharLink');
 		//	isAllowedTo('tea_edit_any');
 		if(!is_numeric($memID))
 			die("Invalid User id");
+		$this -> memid = $memID;
 		$user = $this -> smcFunc['db_query']('', "SELECT userid, api, status, matched, error FROM {db_prefix}tea_api WHERE ID_MEMBER = ".$memID);
 		$user = $this -> select($user);
 		if(!empty($user))
@@ -2757,7 +2786,6 @@ value_type();
 				else
 					$aname = 'none';
 				$teainfo[] = array(
-				"memid" => $memID,
 				"userid" => $u[0],
 				"api" => $u[1],
 			//	"msg" => $msg,
@@ -2769,11 +2797,6 @@ value_type();
 				'error' => $u[4]
 				);
 			}
-		}
-		else
-		{
-			$teainfo[] = array(
-			"memid" => $memID);
 		}
 	}
 
@@ -2999,7 +3022,7 @@ function edittea($memID)
 }
 function ModifyTEASettings()
 {
-	global $tea, $sourcedir, $txt, $scripturl, $context, $settings, $sc;
+	global $tea, $sourcedir, $scripturl, $context;
 	// Will need the utility functions from here.
 	require_once($sourcedir . '/ManageServer.php');
 
@@ -3010,7 +3033,7 @@ function ModifyTEASettings()
 function template_edittea()
 {
 	global $tea, $teainfo, $sourcedir, $context, $settings, $options, $scripturl, $modSettings, $txt;
-	if($teainfo[0]['memid'] == $context['user']['id'])
+	if($tea -> memid == $context['user']['id'])
 	{
 		if(allowedTo(array('tea_edit_own', 'tea_edit_any')))
 			$edit = TRUE;
@@ -3023,6 +3046,8 @@ function template_edittea()
 		
 	if(isset($_GET['sa']) && strtolower($_GET['sa']) == "ts")
 		return template_edit_tea_ts();
+	elseif(isset($_GET['sa']) && strtolower($_GET['sa']) == "jabber")
+		return template_edit_tea_jabber();
 
 	echo '
 		<form action="', $scripturl, '?action=profile;area=tea;save" method="post" accept-charset="', $context['character_set'], '" name="creator" id="creator">
@@ -3055,6 +3080,8 @@ function template_edittea()
 			echo '<select name="tea_charid" id="tea_charid" >';
 		if(!empty($charlist))
 		{
+			if(!isset($charlist[$teainfo[0]['main']]))
+				echo '<option value="-", SELECTED>-</option>';
 			foreach($charlist as $i => $c)
 			{
 				if($edit)
