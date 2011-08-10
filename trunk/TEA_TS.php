@@ -892,7 +892,7 @@ function template_edit_tea_ts()
 		}
 		if(!empty($teainfo) || !$modSettings["tea_enable"])
 		{
-			$memberID = $teainfo[0]['memid'];
+			$memberID = $tea -> memid;
 			$tsinfo = $smcFunc['db_query']('', "SELECT tsid, dbid, name FROM {db_prefix}tea_ts_users WHERE id = ".$memberID);
 			$tsinfo = $tea -> select($tsinfo);
 			if(!empty($tsinfo))
