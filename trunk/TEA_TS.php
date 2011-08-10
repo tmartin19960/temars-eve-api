@@ -109,7 +109,7 @@ class TEA_TS extends TEAC
 			}
 		}
 		$groups = $this -> tea -> MemberGroups(TRUE);
-		$groups[0] = '-';
+		$groups[-1] = '-';
 		$options = '';
 		if(!empty($charlist))
 		{
@@ -330,7 +330,7 @@ function move(id, value)
 		// Saving?
 		if (isset($_GET['save']))
 		{
-			if($_POST['tea_ts_addrule_group'] > 0 && !empty($_POST['tea_ts_addrule_tsg']))
+			if($_POST['tea_ts_addrule_group'] > -1 && !empty($_POST['tea_ts_addrule_tsg']))
 			{
 				if(!is_numeric($_POST['tea_ts_addrule_group']))
 					die('Group must be Number');
@@ -368,7 +368,7 @@ function move(id, value)
 
 	function tea_set_ts($memberID, $reg=FALSE)
 	{
-		if(!$this -> modSettings["tea_enable"] || !$this -> modSettings["tea_ts_enable"])
+		if(!$this -> modSettings["tea_ts_enable"])
 			Return;
 
 	//	echo $memberID." kk ".$db_prefix;
