@@ -4,7 +4,7 @@
 	<id>temar:TEA</id>
 	<name>Temars EVE API</name>
 	<type>modification</type>
-	<version>1.2.1.151</version>
+	<version>1.2.1.154</version>
 	<install for="1.1 - 1.1.99">
 		<readme type="file">readme.txt</readme>
 		<readme type="inline" parsebbc="true">[color=red]Error! This mod does not support your version of SMF.[/color]</readme>
@@ -102,6 +102,7 @@
 		<require-file name="TEA_Roles.php" destination="$sourcedir" />
 		<require-file name="TEA.english.php" destination="$languagedir" />
 		<require-dir name="TS3_Class" destination="$sourcedir" />
+		<modification type="file">upgrade_1_2_1_144.xml</modification>
 		<code>tables.php</code>
 	</upgrade>
 	<upgrade from="1.2.1.0">
