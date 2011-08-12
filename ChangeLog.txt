@@ -24,6 +24,7 @@ Bug Fixes
 - Name to Reg and Check in TS is now Shortened to 30 if longer
 - Removed Corp Description as some can Break XML
 - Fixed a bug causing error when no titles found
+- Fixed issue with tea function being called in other areas of profile
 
 ----------------------
 Version 1.1.2 -> 1.2.0

@@ -18,13 +18,15 @@
 		<operation>
 			<search position="replace"><![CDATA[	// Here's where we sort out all the 'other' values...]]></search>
 			<add><![CDATA[	global $tea, $teats;
-	if($_GET['sa'] == 'ts')
+	if($_GET['area'] == 'tea' && $_GET['sa'] == 'ts')
 	{
 		$teats -> tea_set_ts($memID);
 		redirectexit('action=profile;area=tea;sa=ts;updated;u='.$memID);
 	}
-	else
+	elseif($_GET['area'] == 'tea')
+	{
 		$tea -> TEAAdd($memID);
+	}
 
 	// Here's where we sort out all the 'other' values...]]></add>
 		</operation>
