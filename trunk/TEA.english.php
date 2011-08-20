@@ -18,6 +18,7 @@ $txt['tea_version'] = 'Version';
 $txt['tea_info'] = "Info";
 $txt['tea_rules'] = "Rules";
 $txt['tea_ts'] = "TeamSpeak";
+$txt['tea_jabber'] = "Jabber";
 $txt['tea_checks'] = "Checks";
 $txt['tea_settings_message'] = "The API info needed here is to get Standings<Br>A Full API Key is Required for Standings";
 $txt['tea_enable'] = 'Enable Temars Eve Api Mod';
@@ -74,6 +75,29 @@ $txt['tea_ts_method_create'] = 'Allow TS UniqueID Method (Requires TS to run as 
 $txt['tea_ts_warnm'] = 'Incorrect Name Warning Every x Mins (0 = Disabled)';
 $txt['tea_ts_kickm'] = 'Incorrect Name Kick after x Mins (0 = Disabled)';
 
+//Jabber Settings
+$txt['tea_jabber_enable'] = 'Enable Jabber for TEA Mod';
+$txt['tea_jabber_host'] = 'Address of Host (localhost or 127.0.0.1 if same server)';
+$txt['tea_jabber_qport'] = 'Server Query Port';
+$txt['tea_jabber_port'] = 'Server Port';
+$txt['tea_jabber_username'] = 'Query Username';
+$txt['tea_jabber_password'] = 'Query Password';
+$txt['tea_jabber_nf'] = 'Name Format (use #at# #ct# for alliance/corp tags and #name# for char name)';
+$txt['tea_jabber_addrule_group'] = 'SMF Group';
+$txt['tea_jabber_addrule_jabberg'] = 'jabber Group';
+$txt['tea_jabber_addrule_nf'] = 'Name Format (use #at# #ct# for alliance/corp tags and #name# for char name)<br>Leave Blank for Default, #at# #ct# are for EVE only';
+$txt['tea_jabber_db_need'] = 'Jabber Database Details, Only Required for UniqueID Method';
+$txt['tea_jabber_db_host'] = 'Jabber Database host eg localhost';
+$txt['tea_jabber_db_user'] = 'Jabber Database username';
+$txt['tea_jabber_db_pw'] = 'Jabber Database password';
+$txt['tea_jabber_db_db'] = 'Jabber Database database';
+$txt['tea_jabber_db_pre'] = 'Jabber Database prefix';
+$txt['tea_jabber_dbid'] = 'Server Database ID';
+$txt['tea_jabber_method_online'] = 'Allow Online Method';
+$txt['tea_jabber_method_create'] = 'Allow jabber UniqueID Method (Requires jabber to run as MySQL)';
+$txt['tea_jabber_admin_url'] = 'URL to Admin Page for Openfire eg. http://localhost:9090';
+$txt['tea_jabber_secret'] = 'Secret Passcode to Access User Service';
+
 
 //TS Profile
 $txt['tea_ts_userinfo'] = 'This section allows you to Gain Access to TeamSpeak';
@@ -98,6 +122,12 @@ $txt['tea_rulesinfo'] = '* Rules for Main Group are checked in Order of ID
 		<br>* Rules with Same ID as Another act as Multi Requirments
 		<br>* All conditions must be met by the same character if AND rule
 		<br>* Remember if you create a rule for say Director, you need to add the corp or alliance condition too or it will be every director in eve';
+
+//Jabber Profile
+$txt['tea_jabber_userinfo'] = 'This section allows you to Gain Access to Jabber';
+$txt['tea_jabber_disabled'] = 'Temars Eve Api Mod Jabber Area is Disabled.';
+
+$txt['tea_groupmon'] = 'Groups to Monitor and Remove';
 
 //profile
 $txt['tea_mainrule'] = 'Main Matched Rule';

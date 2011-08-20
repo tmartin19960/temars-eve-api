@@ -23,7 +23,7 @@ class TEA extends TEAC
 		$this -> smcFunc = &$smcFunc;
 		$this -> settings = &$settings;
 
-		$this -> version = "1.2.1";
+		$this -> version = "1.3.0 r155";
 
 		$permissions["tea_view_own"] = 1;
 		$permissions["tea_view_any"] = 0;
@@ -1359,6 +1359,8 @@ class TEA extends TEAC
 				),
 				'ts' => array(
 				),
+				'jabber' => array(
+				),
 				'checks' => array(
 				),
 			),
@@ -1368,6 +1370,8 @@ class TEA extends TEAC
 			$this -> settings_rules($scripturl);
 		elseif(isset($_GET['sa']) && strtolower($_GET['sa']) == "ts")
 			$this -> ts -> settings($scripturl);
+		elseif(isset($_GET['sa']) && strtolower($_GET['sa']) == "jabber")
+			$this -> jabber -> settings($scripturl);
 		elseif(isset($_GET['sa']) && strtolower($_GET['sa']) == "checks")
 			$this -> settings_checks($scripturl);
 		elseif(isset($_GET['sa']) && strtolower($_GET['sa']) == "settings")
@@ -2314,7 +2318,7 @@ value_type();
 		Return $groups;
 	}
 
-	function TEAAdd($memberID, $reg=FALSE)
+	function tea_set_api($memberID, $reg=FALSE)
 	{
 		if(!$this -> modSettings["tea_enable"])
 			Return;
@@ -3009,8 +3013,11 @@ function postFileReady()
 $tea = new TEA($db_prefix, $sourcedir, $modSettings, $user_info, $context, $txt, $smcFunc, $settings);
 
 require_once($sourcedir.'/TEA_TS.php');
+require_once($sourcedir.'/TEA_Jabber.php');
 $tea -> ts = $teats;
+$tea -> jabber = $teaj;
 $teats -> tea = $tea;
+$teaj -> tea = $tea;
 
 Global $forum_copyright;
 $forum_copyright .= '</span></li><li class="copyright"><span><a href="http://code.google.com/p/temars-eve-api/" target="_blank" class="new_win">TEA '.$tea -> version.' &copy; 2009-2011, Temars EVE API</a>';

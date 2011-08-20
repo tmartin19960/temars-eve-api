@@ -17,15 +17,20 @@
 		</operation>
 		<operation>
 			<search position="replace"><![CDATA[	// Here's where we sort out all the 'other' values...]]></search>
-			<add><![CDATA[	global $tea, $teats;
+			<add><![CDATA[	global $tea, $teats, $teaj;
 	if($_GET['area'] == 'tea' && $_GET['sa'] == 'ts')
 	{
 		$teats -> tea_set_ts($memID);
 		redirectexit('action=profile;area=tea;sa=ts;updated;u='.$memID);
 	}
+	elseif($_GET['sa'] == 'jabber')
+	{
+		$teaj -> tea_set_jabber($memID);
+		redirectexit('action=profile;area=tea;sa=jabber;updated;u='.$memID);
+	}
 	elseif($_GET['area'] == 'tea')
 	{
-		$tea -> TEAAdd($memID);
+		$tea -> tea_set_api($memID);
 	}
 
 	// Here's where we sort out all the 'other' values...]]></add>

@@ -16,6 +16,7 @@
 					'subsections' => array(
 						'api' => array($txt['tea_eveapi']),
 						'ts' => array($txt['tea_ts']),
+						'jabber' => array($txt['tea_jabber']),
 					),
 					'permission' => array(
 						'own' => array('tea_edit_any', 'tea_edit_own', 'tea_view_any', 'tea_view_own'),
