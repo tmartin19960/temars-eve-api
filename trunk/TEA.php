@@ -23,7 +23,7 @@ class TEA extends TEAC
 		$this -> smcFunc = &$smcFunc;
 		$this -> settings = &$settings;
 
-		$this -> version = "1.3.0 r157";
+		$this -> version = "1.3.0 r158";
 
 		$permissions["tea_view_own"] = 1;
 		$permissions["tea_view_any"] = 0;
