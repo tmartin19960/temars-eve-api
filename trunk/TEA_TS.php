@@ -108,8 +108,12 @@ class TEA_TS extends TEAC
 				}
 			}
 		}
-		$groups = $this -> tea -> MemberGroups(TRUE);
+		$groups2 = $this -> tea -> MemberGroups(TRUE);
 		$groups[-1] = '-';
+		foreach($groups2 as $i => $g)
+		{
+			$groups[$i] = $g;
+		}
 		$options = '';
 		if(!empty($charlist))
 		{
