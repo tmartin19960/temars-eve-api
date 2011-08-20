@@ -192,14 +192,14 @@ class TEA_Jabber extends TEAC
 				array('text', 'tea_jabber_db_user', 15),
 				array('text', 'tea_jabber_db_pw', 15),
 				array('text', 'tea_jabber_db_db', 15),
-				array('text', 'tea_jabber_db_pre', 15),
+		//		array('text', 'tea_jabber_db_pre', 15),
 				array('text', 'tea_jabber_unf', 15),
 				array('text', 'tea_jabber_nf', 15),
+				array('text', 'tea_jabber_admin_url', 30),
+				array('text', 'tea_jabber_secret', 15),
 				'<dt>Jabber Info (HTML) will display on Jabber area of profile</dt>',
 				'<dt><textarea name="tea_jabber_info" cols=120 rows=6>'.$this -> modSettings['tea_jabber_info'].'</textarea></dt>',
 				'',
-				array('text', 'tea_jabber_admin_url', 30),
-				array('text', 'tea_jabber_secret', 15),
 		//		'',
 		);
 		$rules = $this -> smcFunc['db_query']('', "SELECT id, smf, jabber, nf FROM {db_prefix}tea_jabber_rules ORDER BY id");

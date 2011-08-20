@@ -23,7 +23,7 @@ class TEA extends TEAC
 		$this -> smcFunc = &$smcFunc;
 		$this -> settings = &$settings;
 
-		$this -> version = "1.3.0 r155";
+		$this -> version = "1.3.0 r157";
 
 		$permissions["tea_view_own"] = 1;
 		$permissions["tea_view_any"] = 0;
@@ -104,6 +104,11 @@ class TEA extends TEAC
 		$dsets['tea_lastpull'] = 0;
 		$dsets['tea_nf'] = '[#ct#] #name#';
 		$dsets['tea_tf'] = '#ct#';
+		$dsets['tea_ts_nf'] = '[#ct#] #name#';
+		$dsets['tea_jabber_unf'] = '#name#';
+		$dsets['tea_jabber_nf'] = '#ct# #name#';
+		$dsets['tea_ts_addrule_group'] = '-1';
+		$dsets['tea_jabber_addrule_group'] = '-1';
 
 		foreach($dsets as $s => $v)
 		{
