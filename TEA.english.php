@@ -82,6 +82,7 @@ $txt['tea_jabber_qport'] = 'Server Query Port';
 $txt['tea_jabber_port'] = 'Server Port';
 $txt['tea_jabber_username'] = 'Query Username';
 $txt['tea_jabber_password'] = 'Query Password';
+$txt['tea_jabber_unf'] = 'Username Format (use #at# #ct# for alliance/corp tags and #name# for char name)';
 $txt['tea_jabber_nf'] = 'Name Format (use #at# #ct# for alliance/corp tags and #name# for char name)';
 $txt['tea_jabber_addrule_group'] = 'SMF Group';
 $txt['tea_jabber_addrule_jabberg'] = 'jabber Group';

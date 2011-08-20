@@ -384,6 +384,28 @@ function move(id, value)
 			}
 		}
 
+		$char = $_POST['tea_jabber_char'];
+		$char = html_entity_decode($char, ENT_QUOTES);
+		$name = $this -> format_jabber_name($memberID, $char);
+		$nick = $this -> format_jabber_name($memberID, $char, FALSE, FALSE);
+
+		$cgq = $this -> smcFunc['db_query']('', "SELECT id, value FROM {db_prefix}tea_jabber_groups ORDER BY id");
+		$cgq = $this -> tea -> select($cgq);
+		if(!empty($cgq))
+		{
+			foreach($cgq as $cgqs)
+				$cg[$cgqs[0]] = $cgqs[1];
+		}
+		$userg = $this -> db -> get_user_groups($name);
+		if(!empty($userg))
+		{
+			foreach($userg as $g)
+			{
+				if(!isset($jabbergs[$g]) && $cg[$g] != 1)
+					$jabbergs[$g] = $g;
+			}
+		}
+
 		if(!empty($jabbergs))
 		{
 			//require_once($this -> sourcedir . '/TS3_Class/TeamSpeak3.php');
@@ -396,12 +418,6 @@ function move(id, value)
 			//{
 			//	$ts3 = TeamSpeak3::factory("serverquery://".$this -> modSettings["tea_ts_username"].":".$this -> modSettings["tea_ts_password"]."@".$this -> modSettings["tea_ts_host"].":".$this -> modSettings["tea_ts_qport"]."/?server_port=".$this -> modSettings["tea_ts_port"]."&blocking=0");
 
-				$char = $_POST['tea_jabber_char'];
-				$char = html_entity_decode($char, ENT_QUOTES);
-			//	if($_POST['method'] == 'online' && $this -> modSettings["tea_jabber_method_online"])
-			//	{
-					$name = $this -> format_jabber_name($memberID, $char);
-					$nick = $this -> format_jabber_name($memberID, $char, FALSE, FALSE);
 
 					$dupcheck = $this -> smcFunc['db_query']('', "SELECT id, username, name FROM {db_prefix}tea_jabber_users WHERE username = '".mysql_real_escape_string($name)."'");
 					$dupcheck = $this -> tea -> select($dupcheck);
