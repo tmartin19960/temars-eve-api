@@ -21,6 +21,7 @@
 						'settings' => array($txt['settings']),
 						'rules' => array($txt['tea_rules']),
 						'ts' => array($txt['tea_ts']),
+						'jabber' => array($txt['tea_jabber']),
 						'checks' => array($txt['tea_checks']),
 					),
 				),

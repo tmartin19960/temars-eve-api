@@ -19,7 +19,7 @@
 			<search position="replace"><![CDATA[	$memberID = registerMember($regOptions, true);]]></search>
 			<add><![CDATA[	$memberID = registerMember($regOptions, true);
 
-	$tea -> TEAAdd($memberID, true);]]></add>
+	$tea -> tea_set_api($memberID, true);]]></add>
 		</operation>
 
 	</file>

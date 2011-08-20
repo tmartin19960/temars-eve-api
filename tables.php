@@ -183,13 +183,31 @@ $tables[8]["lastwarn"] = "INT";
 
 $info[9]['name'] = 'tea_ts_groups';
 $info[9]['primary'] = 'id';
-$tables[9]["id"] = "VARCHAR(11) DEFAULT NULL";
+$tables[9]["id"] = "VARCHAR(50) DEFAULT NULL";
 $tables[9]["value"] = "INT(1) DEFAULT 1";
 
 $info[10]['name'] = 'tea_user_prefs';
 $info[10]['primary'] = 'id';
 $tables[10]["id"] = "VARCHAR(11) DEFAULT NULL";
 $tables[10]["main"] = "INT(11) DEFAULT 0";
+
+$info[11]['name'] = 'tea_jabber_users';
+$info[11]['primary'] = 'id';
+$tables[11]["id"] = "INT";
+$tables[11]["username"] = "VARCHAR(255)";
+$tables[11]["name"] = "VARCHAR(255)";
+
+$info[12]['name'] = 'tea_jabber_rules';
+$info[12]['primary'] = 'id';
+$tables[12]["id"] = "INT DEFAULT NULL AUTO_INCREMENT";
+$tables[12]["smf"] = "INT DEFAULT 0";
+$tables[12]["jabber"] = "VARCHAR(255) DEFAULT NULL";
+$tables[12]["nf"] = "VARCHAR(255) DEFAULT NULL";
+
+$info[13]['name'] = 'tea_jabber_groups';
+$info[13]['primary'] = 'id';
+$tables[13]["id"] = "VARCHAR(50) DEFAULT NULL";
+$tables[13]["value"] = "INT(1) DEFAULT 1";
 
 Global $db_prefix;
 
