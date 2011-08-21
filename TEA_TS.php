@@ -950,6 +950,10 @@ function template_edit_tea_ts()
 				echo '<tr><td>Register Using your TS Unique ID</td></tr>';
 				echo '<tr><td><input type="text" name="tsid" value="'.$uniqueid.'"></td></tr>';
 			}
+			echo '<tr><td>';
+			$txt['change_profile'] = 'Register';
+			template_profile_save();
+			echo '</td></tr>';
 		}
 		else
 		{
@@ -998,7 +1002,6 @@ function template_edit_tea_ts()
 									// </td>
 								// </tr>';
 			//	}
-		template_profile_save();
 	}
 	echo '
 						</table>
