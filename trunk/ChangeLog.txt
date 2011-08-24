@@ -3,6 +3,7 @@ Version 1.2.1 -> 1.3.0 (dev)
 ----------------------
 New Features
 - Jabber Registration
+- Added Important Upgrade Notes to info page
 
 Bug Fixes
 - 

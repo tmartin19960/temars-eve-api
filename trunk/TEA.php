@@ -23,7 +23,7 @@ class TEA extends TEAC
 		$this -> smcFunc = &$smcFunc;
 		$this -> settings = &$settings;
 
-		$this -> version = "1.3.0 r159";
+		$this -> version = "1.3.0 r160";
 
 		$permissions["tea_view_own"] = 1;
 		$permissions["tea_view_any"] = 0;
@@ -1416,7 +1416,13 @@ class TEA extends TEAC
 			'</form><dt>Your '.$this -> txt['tea_version'].': '.$this -> version.'</dt>',
 			'<dt>Latest Released '.$this -> txt['tea_version'].': '.$latestv[0].$vdown.'</dt>',
 			'<dt>Latest Dev '.$this -> txt['tea_version'].': '.$latestv[1].$dvdown.'</dt>',
+			'',
+			'<dt>Important Update Notes:</dt>',
+			'<dt>1.3<br>- Cron files are now in forum_folder/TEA/</dt>',
 			'<dt></dt>',
+			'<dt>1.2.1</dt>',
+			'<dt>- Custom Name Format options Changed, Check Settings Page</dt>',
+			'<dt>- SMF Group Monitor List System Changed, Check Rules Page</dt>',
 		);
 
 		$this -> context['settings_save_dont_show'] = TRUE;
@@ -1507,7 +1513,7 @@ class TEA extends TEAC
 			{
 				userid = document.tea_settings.tea_userid.value;
 				api = document.tea_settings.tea_api.value;
-				include("TEA_xmlhttp.php?page=settings&userid="+userid+"&api="+api);
+				include("TEA/TEA_xmlhttp.php?page=settings&userid="+userid+"&api="+api);
 			}
 			function include(pURL)
 			{
@@ -2859,7 +2865,7 @@ function getchars()
 {
 	userid = document.registration.tea_user_id.value;
 	api = document.registration.tea_user_api.value;
-	include("TEA_xmlhttp.php?userid="+userid+"&api="+api);
+	include("TEA/TEA_xmlhttp.php?userid="+userid+"&api="+api);
 }
 if(auto)
 	getchars();
