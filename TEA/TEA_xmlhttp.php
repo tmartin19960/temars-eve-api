@@ -2,7 +2,7 @@
 
 $txt['tea_getchar'] = 'Get Characters';
 
-require_once("Sources/TEAC.php");
+require_once("../Sources/TEAC.php");
 $teac = new TEAC;
 $chars = $teac -> get_api_characters($_GET['userid'], $_GET['api']);
 
