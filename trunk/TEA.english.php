@@ -1,8 +1,8 @@
 <?php
 $txt['tea_tea'] = 'Temars Eve Api';
 $txt['tea_eveapi'] = 'Eve Api';
-$txt['tea_userid'] = 'User ID from API Page <A href="http://myeve.eve-online.com/api/default.asp">here</a>';
-$txt['tea_api'] = 'API key from API Page <A href="http://myeve.eve-online.com/api/default.asp">here</a>';
+$txt['tea_userid'] = 'ID from API Page <A href="https://support.eveonline.com/api/Key">here</a>';
+$txt['tea_api'] = 'Verification Code from API Page <A href="https://support.eveonline.com/api/Key">here</a>';
 $txt['tea_charid'] = 'Character to use';
 $txt['tea_status'] = 'Status';
 $txt['tea_characters'] = 'Characters';
