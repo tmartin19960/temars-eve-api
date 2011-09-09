@@ -23,7 +23,7 @@ class TEA extends TEAC
 		$this -> smcFunc = &$smcFunc;
 		$this -> settings = &$settings;
 
-		$this -> version = "1.3.0 r161";
+		$this -> version = "1.3.0 r162";
 
 		$permissions["tea_view_own"] = 1;
 		$permissions["tea_view_any"] = 0;
@@ -173,7 +173,7 @@ class TEA extends TEAC
 
 	function get_standings()
 	{
-		$sfile = $this -> sourcedir."/../cache/eve_standings.php";
+		$sfile = $this -> sourcedir."/../TEA/eve_standings.php";
 		if(file_exists($sfile))
 		{
 			require($sfile);
@@ -186,7 +186,7 @@ class TEA extends TEAC
 			unset($corps);
 		}
 		//$post = array('userID' => $this -> modSettings["tea_userid"], 'apiKey' => $this -> modSettings["tea_api"], 'characterID' => $this -> modSettings["tea_charid"]);
-		$data = $this -> standings($this -> modSettings["tea_userid"], $this -> modSettings["tea_api"], $this -> modSettings["tea_charid"]);
+		$data = $this -> standings($this -> modSettings["tea_apiid"], $this -> modSettings["tea_vcode"]);
 		$this -> blues = $data[0];
 		$this -> reds = $data[1];
 		$count = $data[2];
@@ -986,67 +986,8 @@ class TEA extends TEAC
 
 	function skill_list($id, $api, $charid)
 	{
-		$skills = NULL;
 		require_once($this -> sourcedir.'/TEA_SkillDump.php');
-		$skilllist = getSkillArray();
-		$post = array('userID' => $id, 'apiKey' => $api, 'characterID' => $charid);
-		$xml = $this -> get_xml('charsheet', $post);
-		$xml = new SimpleXMLElement($xml);
-		if(!empty($xml -> result -> rowset[0]))
-		{
-			foreach($xml -> result -> rowset[0] as $skill)
-			{
-				//echo "<pre>";var_dump($skill["typeID"]); echo '<hr>';
-				$skills[strtolower($skilllist[(string)$skill["typeID"]])] = (string)$skill["level"];
-			}
-		}
-		return $skills;
-	}
-
-	function roles($id, $api, $charid)
-	{
-		$roles = NULL;
-		$post = array('userID' => $id, 'apiKey' => $api, 'characterID' => $charid);
-		$xml = $this -> get_xml('charsheet', $post);
-	//	$xml = file_get_contents('me.xml');
-		$xml = new SimpleXMLElement($xml);
-		$rg = array(2, 3, 4, 5);
-		foreach($rg as $i)
-		{
-			if(!empty($xml -> result -> rowset[$i]))
-			{
-				foreach($xml -> result -> rowset[$i] as $role)
-				{
-					$roles[strtolower((string)$role["roleName"])] = TRUE;
-				}
-			}
-		}
-		return $roles;
-	}
-
-	function titles($id, $api, $charid)
-	{
-		$post = array('userID' => $id, 'apiKey' => $api, 'characterID' => $charid);
-		$xml = $this -> get_xml('charsheet', $post);
-	//	$xml = file_get_contents('me.xml');
-		$xml = new SimpleXMLElement($xml);
-		if(!empty($xml -> result -> rowset[6]))
-		{
-			foreach($xml -> result -> rowset[6] as $title)
-			{
-				$titles[strtolower((string)$title["titleName"])] = TRUE;
-			}
-		}
-		return $titles;
-	}
-
-	function mititia($id, $api, $charid)
-	{
-		$post = array('userID' => $id, 'apiKey' => $api, 'characterID' => $charid);
-		$xml = $this -> get_xml('facwar', $post);
-		$xml = new SimpleXMLElement($xml);
-		$faction = $xml -> result -> factionName;
-		return $faction;
+		return $this -> skills($id, $api, $charid);
 	}
 
 	function all($force=FALSE)
@@ -1419,6 +1360,7 @@ class TEA extends TEAC
 			'',
 			'<dt>Important Update Notes:</dt>',
 			'<dt>1.3<br>- Cron files are now in forum_folder/TEA/</dt>',
+			'<dt>1.3<br>- New API Supported, blocking new OLD apis being added but current stored still work</dt>',
 			'<dt></dt>',
 			'<dt>1.2.1</dt>',
 			'<dt>- Custom Name Format options Changed, Check Settings Page</dt>',
@@ -1467,7 +1409,7 @@ class TEA extends TEAC
 		$blues = NULL;
 		$reds = NULL;
 		$time = FALSE;
-		$file = $this -> sourcedir."/../cache/eve_standings.php";
+		$file = $this -> sourcedir."/../TEA/eve_standings.php";
 		if(file_exists($file))
 			require($file);
 		if($time)
@@ -1497,51 +1439,8 @@ class TEA extends TEAC
 			'',
 			'<dt>'.$this -> txt['tea_settings_message'].'</dt>',
 				// api info
-				array('int', 'tea_userid', 10),
-				array('text', 'tea_api', 64),
-			//	array('select', 'tea_charid', $charlist),
-			'<dt>
-				<a id="setting_tea_charid"></a> <span><label for="tea_charid">'.$this -> txt['tea_charid'].'</label></span>
-			</dt>
-			<dd>
-				<div id="chars"><select name="tea_charid" id="tea_charid" >
-					'.$options.'
-				</select> <button type="button" onclick="javascript: getchars()">'.$this -> txt['tea_getchar'].'</button></div>
-			</dd>
-			<script type="text/javascript">
-			function getchars()
-			{
-				userid = document.tea_settings.tea_userid.value;
-				api = document.tea_settings.tea_api.value;
-				include("TEA/TEA_xmlhttp.php?page=settings&userid="+userid+"&api="+api);
-			}
-			function include(pURL)
-			{
-				if (window.XMLHttpRequest) { // code for Mozilla, Safari, ** And Now IE 7 **, etc
-					xmlhttp=new XMLHttpRequest();
-				} else if (window.ActiveXObject) { //IE
-					xmlhttp=new ActiveXObject(\'Microsoft.XMLHTTP\');
-				}
-				if (typeof(xmlhttp)==\'object\')
-				{
-					xmlhttp.onreadystatechange=postFileReady;
-					xmlhttp.open(\'GET\', pURL, true);
-					xmlhttp.send(null);
-				}
-			}
-
-			function postFileReady()
-			{
-				if (xmlhttp.readyState==4)
-				{
-					if (xmlhttp.status==200)
-					{
-						document.getElementById(\'chars\').innerHTML=xmlhttp.responseText;
-					}
-				}
-			}
-			</script>
-			',
+				array('int', 'tea_apiid', 10),
+				array('text', 'tea_vcode', 64),
 			'<dt>'.$this -> txt['tea_standings_updated'].': '.$time.'</dt>',
 			'<dt>'.$this -> txt['tea_standings_contains'].': '.count($blues).' '.$this -> txt['tea_standings_blue'].', '.count($reds).' '.$this -> txt['tea_standings_red'].'</dt>',
 			'<dt>'.$this -> txt['tea_corpl_updated'].': '.$atime.'</dt>',
@@ -2365,12 +2264,26 @@ value_type();
 			$api = $apis[$k];
 			$duserid = NULL;
 			$dapi = NULL;
-			$user = $this -> smcFunc['db_query']('', "SELECT userid, api, status, status_change FROM {db_prefix}tea_api WHERE ID_MEMBER = ".$memberID." AND userid = ".mysql_real_escape_string($userid));
+			$user = $this -> smcFunc['db_query']('', "SELECT userid, api, status, status_change, ID_MEMBER FROM {db_prefix}tea_api WHERE userid = ".mysql_real_escape_string($userid));
 			$user = $this -> select($user);
 			if(!empty($user))
 			{
+				if($user[0][4] != $memberID)
+				{
+					$_SESSION['tea_error'][] = "API is already Attached to a Different Account";
+					Continue;
+				}
 				$duserid = $user[0][0];
 				$dapi = $user[0][1];
+			}
+			else
+			{
+				$check = $this -> is_new($_POST['tea_user_id'], $_POST['tea_user_api']);
+				if(!$check) // old api
+				{
+					$_SESSION['tea_error'][] = "OLD API's are no Longer Accepted as new api's";
+					Continue;
+				}
 			}
 			if(!$userid || !$api)
 				Continue;
@@ -2689,6 +2602,7 @@ value_type();
 
 	function EveApi($txt, $scripturl, &$context, $settings, $sc)
 	{ // old settings mod?
+		die("old function?");
 		if(!$this -> modSettings["tea_enable"])
 			Return;
 		$config_vars = array(
@@ -2903,6 +2817,15 @@ function postFileReady()
 
 	function reg_checks()
 	{
+		if(!empty($_POST['tea_user_id']))
+		{
+			$user = $this -> smcFunc['db_query']('', "SELECT userid, api, status, status_change, ID_MEMBER FROM {db_prefix}tea_api WHERE userid = ".mysql_real_escape_string($_POST['tea_user_id']));
+			$user = $this -> select($user);
+			if(!empty($user))
+			{
+				return("API is already Attached to an Account");
+			}
+		}
 		if($this -> modSettings['tea_regreq'])
 		{
 			$chars = $this -> get_characters($_POST['tea_user_id'], $_POST['tea_user_api']);
@@ -2924,6 +2847,14 @@ function postFileReady()
 			$ret = $this -> txt['tea_regchar_error'];
 			if(empty($ret))
 				$ret = 'Please Select a Character';
+			Return $ret;
+		}
+		$check = $this -> is_new($_POST['tea_user_id'], $_POST['tea_user_api']);
+		if(!$check) // old api
+		{
+		//	$ret = $this -> txt['tea_regreq_error'];
+		//	if(empty($ret))
+				$ret = 'A NEW API is Required to Register on this Forum, OLD API\'s no longer Supported for Registration';
 			Return $ret;
 		}
 	}
@@ -3082,6 +3013,12 @@ function template_edittea()
 				</tr><tr>
 					<td class="windowbg2" style="padding-bottom: 2ex;">
 						<table border="0" width="100%" cellpadding="3">';
+	if(!empty($_SESSION['tea_error']))
+	{
+		foreach($_SESSION['tea_error'] as $e)
+			echo "<tr><td>[ERROR] ".$e."</td></tr>";
+		unset($_SESSION['tea_error']);
+	}
 	if(!$modSettings["tea_enable"])
 	{
 		echo '<tr><td>'.$txt['tea_disabled'].'</td></tr>';

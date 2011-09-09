@@ -4,6 +4,7 @@ Version 1.2.1 -> 1.3.0 (dev)
 New Features
 - Jabber Registration
 - Added Important Upgrade Notes to info page
+- Support for new API system, Stop old getting added but still supports current stored
 
 Bug Fixes
 - 
