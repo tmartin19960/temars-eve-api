@@ -23,7 +23,7 @@ class TEA extends TEAC
 		$this -> smcFunc = &$smcFunc;
 		$this -> settings = &$settings;
 
-		$this -> version = "1.3.0 r163";
+		$this -> version = "1.3.0 r164";
 
 		$permissions["tea_view_own"] = 1;
 		$permissions["tea_view_any"] = 0;
@@ -2756,6 +2756,11 @@ value_type();
 //								</tr>';
 		echo '<dl class="register_form">
 									<dt>
+										<b>TEA Required Options:</b></dt>
+									<dd>
+										CharacterInfo, CharacterSheet, FacWarStats
+									</dd>
+									<dt>
 										<b>', $this -> txt['tea_userid'], ':</b></dt>
 									<dd>
 										<input type="text" name="tea_user_id" value="'.$post['id'].'" size="10" />
@@ -3114,6 +3119,12 @@ function template_edittea()
 							<td><input type="text" name="tea_user_api[]" value="'.$info['api'].'" size="64" />
 						</td>
 					</tr>';
+				if($info['userid'] == "")
+					echo '<tr><td><b>TEA Required Options:</b></td>
+									<td>
+										CharacterInfo, CharacterSheet, FacWarStats
+									</td></tr>';
+
 			}
 			else
 			{
