@@ -66,7 +66,7 @@ class TEAC
 
 	function roles($id, $api, $charid)
 	{
-		$check = $this -> is_new($userid, $api);
+		$check = $this -> is_new($id, $api);
 		if($check)
 			$class = $this -> newc;
 		else
@@ -78,7 +78,7 @@ class TEAC
 
 	function titles($id, $api, $charid)
 	{
-		$check = $this -> is_new($userid, $api);
+		$check = $this -> is_new($id, $api);
 		if($check)
 			$class = $this -> newc;
 		else
@@ -89,7 +89,7 @@ class TEAC
 
 	function mititia($id, $api, $charid)
 	{
-		$check = $this -> is_new($userid, $api);
+		$check = $this -> is_new($id, $api);
 		if($check)
 			$class = $this -> newc;
 		else
@@ -122,9 +122,9 @@ class TEAC
 		if(isset($this -> newold[$keyid]))
 		{
 			if($this -> newold[$keyid] == "old")
-				return $this -> oldc;
+				return FALSE;
 			else
-				Return $this -> newc;
+				Return TRUE;
 		}
 		$post = array('keyID' => $keyid, 'vCode' => $vcode);
 		$data = $this -> get_xml('keyinfo', $post);
