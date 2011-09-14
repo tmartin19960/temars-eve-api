@@ -6,6 +6,6 @@ if (file_exists(dirname(dirname(__FILE__)) . '/SSI.php'))
 
 Global $sourcedir;
 require_once($sourcedir."/TEA.php");
-$tea -> update_api(FALSE, TRUE);
+$tea -> update_api(FALSE);
 
 ?>
