@@ -7,7 +7,6 @@ class TEAC
 		$this -> version = "1.3";
 		$this -> server = 'http://api.eve-online.com';
 
-
 		$this -> atags = array();
 	}
 
@@ -33,7 +32,8 @@ class TEAC
 
 	function corp_info($corp)
 	{
-		return TEACN::corp_info($corp);
+		$this -> newc -> atags = $this -> atags;
+		return $this -> newc -> corp_info($corp);
 	}
 
 	function standings($userid, $apikey)
@@ -48,6 +48,7 @@ class TEAC
 			$class = $this -> newc;
 		else
 			$class = $this -> oldc;
+		$class -> atags = $this -> atags;
 		$chars = $class -> get_api_characters($userid, $api);
 		$this -> data = $class -> data;
 		return $chars;
@@ -149,7 +150,6 @@ class TEACN
 	{
 		$this -> version = "1.3";
 		$this -> server = 'http://api.eve-online.com';
-
 
 		$this -> atags = array();
 	}
@@ -581,7 +581,6 @@ class TEACO
 	{
 		$this -> version = "1.3";
 		$this -> server = 'http://api.eve-online.com';
-
 
 		$this -> atags = array();
 	}

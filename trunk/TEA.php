@@ -23,7 +23,7 @@ class TEA extends TEAC
 		$this -> smcFunc = &$smcFunc;
 		$this -> settings = &$settings;
 
-		$this -> version = "1.3.0 r166";
+		$this -> version = "1.3.0 r167";
 
 		$permissions["tea_view_own"] = 1;
 		$permissions["tea_view_any"] = 0;
@@ -1226,7 +1226,7 @@ class TEA extends TEAC
 
 	function alliance_list($update=TRUE)
 	{
-		$sfile = $this -> sourcedir."/../cache/eve_corplist.php";
+		$sfile = $this -> sourcedir."/../TEA/eve_corplist.php";
 		if(file_exists($sfile))
 		{
 			require($sfile);
@@ -3030,10 +3030,13 @@ function template_edittea()
 	}
 	else
 	{
-		foreach($teainfo as $info)
+		if(!empty($teainfo))
 		{
-			foreach($info['charnames'] as $i => $char)
-				$charlist[$i] = $char[0];
+			foreach($teainfo as $info)
+			{
+				foreach($info['charnames'] as $i => $char)
+					$charlist[$i] = $char[0];
+			}
 		}
 		echo '<tr><td>'.$txt['tea_charid'].'</td><td>';
 		if($edit)
