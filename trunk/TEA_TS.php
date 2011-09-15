@@ -32,7 +32,7 @@ class TEA_TS extends TEAC
 		$host = $this -> modSettings["tea_ts_db_host"];
 		$user = $this -> modSettings["tea_ts_db_user"];
 		$pw = $this -> modSettings["tea_ts_db_pw"];
-		$this -> ts_connection = mysql_connect($host, $user, $pw) or die(mysql_error());
+		$this -> ts_connection = mysql_connect($host, $user, $pw, TRUE) or die(mysql_error());
 		//mysql_select_db($sqldatabase) or die(mysql_error());
 	}
 

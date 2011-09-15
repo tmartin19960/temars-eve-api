@@ -27,7 +27,7 @@ class TEA_Jabber_DB extends TEAC
 		$host = $this -> modSettings["tea_jabber_db_host"];
 		$user = $this -> modSettings["tea_jabber_db_user"];
 		$pw = $this -> modSettings["tea_jabber_db_pw"];
-		$this -> connection = mysql_connect($host, $user, $pw);
+		$this -> connection = mysql_connect($host, $user, $pw, TRUE);
 		if (!$this -> connection)
 		{
 			echo 'MySQL Error:'.mysql_error($this -> connection);
