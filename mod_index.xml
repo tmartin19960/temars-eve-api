@@ -3,7 +3,7 @@
 <modification xmlns="http://www.simplemachines.org/xml/modification" xmlns:smf="http://www.simplemachines.org/">
 	<id>temar:TEA</id>
 	<version>1.00</version>
-	<file name="index.php">
+	<file name="$boarddir/index.php">
 		<operation>
 			<search position="replace"><![CDATA[	// Is the forum in maintenance mode? (doesn't apply to administrators.)]]></search>
 			<add><![CDATA[	require_once($sourcedir.'/TEA.php');
