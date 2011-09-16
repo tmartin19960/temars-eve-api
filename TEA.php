@@ -23,7 +23,7 @@ class TEA extends TEAC
 		$this -> smcFunc = &$smcFunc;
 		$this -> settings = &$settings;
 
-		$this -> version = "1.3.0 r167";
+		$this -> version = "1.3.0 r168";
 
 		$permissions["tea_view_own"] = 1;
 		$permissions["tea_view_any"] = 0;
@@ -994,7 +994,7 @@ class TEA extends TEAC
 	{
 		//if($apiecho)
 		//	echo "checking all...\n<br>";
-		$next = $this -> settings['tea_nextpull'];
+		$next = $this -> modSettings['tea_nextpull'];
 		if($next > time() && $force === FALSE)
 			Return;
 		$time = time() - 3600;
@@ -1002,7 +1002,7 @@ class TEA extends TEAC
 		if($force !== FALSE && $force !== NULL)
 			$lastid = $force;
 		else
-			$lastid = $this -> settings['tea_lastpull'];
+			$lastid = $this -> modSettings['tea_lastpull'];
 		$limit = time() + 25;
 		$users = $this -> smcFunc['db_query']('', "SELECT id_member, member_name, ID_GROUP FROM {db_prefix}members WHERE id_member > $lastid Order by id_member");
 		$users = $this -> select($users);
@@ -1038,6 +1038,7 @@ class TEA extends TEAC
 		{
 			$next = time() + 45;
 			$this -> lastid = $blastid;
+			$lastid = $blastid;
 		}
 		else
 		{
@@ -1057,7 +1058,7 @@ class TEA extends TEAC
 		  REPLACE INTO {db_prefix}settings
 			 (variable, value)
 		  VALUES
-			  ('tea_nextpull', $lastid)");
+			  ('tea_nextpull', $next)");
 	//	$fp = fopen("api.log", 'a');
 	//	fwrite($fp, $this -> file);
 	//	fclose($fp);
