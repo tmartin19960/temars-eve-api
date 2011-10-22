@@ -32,6 +32,8 @@ class TEAC
 
 	function corp_info($corp)
 	{
+		if(empty($this -> newc))
+			$this -> newc = new TEACN;
 		$this -> newc -> atags = $this -> atags;
 		return $this -> newc -> corp_info($corp);
 	}
